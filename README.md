@@ -14,3 +14,9 @@
 ## Cài Mongoose, tạo db.js để connect với mongoose qua hàm async await
 
 - lưu ý, thư mục .env phải cùng cấp với sever.js để phục vụ dotevn.config()
+
+## Tạo schema cho ORDER và VEHICLE
+
+## Chỉnh sửa controllers
+
+## Phân tách controller và router của xe và order

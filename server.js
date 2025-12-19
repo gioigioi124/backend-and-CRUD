@@ -1,7 +1,8 @@
 import express from "express";
-import router from "./src/routers/productsRouters.js";
 import dotenv from "dotenv";
 import { connectDB } from "./src/config/db.js";
+import ordersRouter from "./src/routers/ordersRouter.js";
+import vehiclesRouter from "./src/routers/vehiclesRouter.js";
 
 //gọi dotenv
 dotenv.config();
@@ -14,7 +15,8 @@ const app = express();
 app.use(express.json());
 
 //rút gọn URL nhờ router
-app.use("/products", router);
+app.use("/orders", ordersRouter);
+app.use("/vehicles", vehiclesRouter);
 
 // connect DB
 connectDB().then(() => {
