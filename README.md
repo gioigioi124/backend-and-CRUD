@@ -12,3 +12,5 @@
 ## Tách các router, URL sang thư mục router để quản lý
 
 ## Cài Mongoose, tạo db.js để connect với mongoose qua hàm async await
+
+- lưu ý, thư mục .env phải cùng cấp với sever.js để phục vụ dotevn.config()
