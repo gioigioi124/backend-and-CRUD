@@ -1,7 +1,18 @@
+import Vehicle from "../models/Vehicle.js";
+//thêm dữ liệu
+export const createVehicle = async (req, res) => {
+  try {
+    const vehicle = await Vehicle.create(req.body);
+    res.status(201).json(vehicle);
+  } catch (error) {
+    console.error("Lỗi khi thêm sản phẩm", error);
+    console.log("Lỗi khi thêm sản phẩm");
+  }
+};
+
 //lấy tất cả dữ liệu
 export const getAllVehicles = async (req, res) => {
   try {
-    res.json(vehicles);
   } catch (error) {
     console.error("Lỗi khi lấy thông tin toàn bộ sản phẩm", error);
     console.log("Lỗi khi lấy thông tin toàn bộ sản phẩm");
@@ -33,23 +44,7 @@ export const updateVehicle = async (req, res) => {
     console.log("Lỗi khi cập nhật thông tin sản phẩm");
   }
 };
-//thêm dữ liệu
-export const createVehicle = async (req, res) => {
-  try {
-    const newVehicle = {
-      id: vehicles.length + 1,
-      name: req.body.name,
-      price: req.body.price,
-    };
-    if (!newVehicle)
-      return res.status(404).json({ message: "Lỗi khi thêm sản phẩm" });
-    vehicles.push(newVehicle);
-    res.status(200).json(newVehicle);
-  } catch (error) {
-    console.error("Lỗi khi thêm sản phẩm", error);
-    console.log("Lỗi khi thêm sản phẩm");
-  }
-};
+
 //xóa dữ liệu
 export const deleteVehicle = async (req, res) => {
   try {

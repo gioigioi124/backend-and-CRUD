@@ -20,3 +20,5 @@
 ## Chỉnh sửa controllers
 
 ## Phân tách controller và router của xe và order
+
+## 19/12/2025 OMG test gửi dữ liệu tạo xe thành công nhờ THUNDER
