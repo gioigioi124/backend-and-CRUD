@@ -10,7 +10,7 @@ export const getAllOrders = async (req, res) => {
 //lấy dữ liệu một sản phẩm
 export const getOrder = async (req, res) => {
   try {
-    const order = orders.find((p) => p.id === parseInt(req.params.id));
+    const order = orders.find((p) => p._id == req.params.id);
     if (!order)
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
     res.json(order);

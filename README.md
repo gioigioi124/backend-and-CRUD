@@ -22,3 +22,5 @@
 ## Phân tách controller và router của xe và order
 
 ## 19/12/2025 OMG test gửi dữ liệu tạo xe thành công nhờ THUNDER
+
+## 21/12/2025 Test thành công CRUD của xe qua Thunder
