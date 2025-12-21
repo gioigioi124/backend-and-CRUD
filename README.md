@@ -24,3 +24,5 @@
 ## 19/12/2025 OMG test gửi dữ liệu tạo xe thành công nhờ THUNDER
 
 ## 21/12/2025 Test thành công CRUD của xe qua Thunder
+
+## Tạo ứng dụng react và vite, sử dụng thêm react-router axios sonner lucide-react
