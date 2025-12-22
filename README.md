@@ -26,3 +26,7 @@
 ## 21/12/2025 Test thành công CRUD của xe qua Thunder
 
 ## Tạo ứng dụng react và vite, sử dụng thêm react-router axios sonner lucide-react
+
+## Cài đặt shadcn, jsconfig.json, tạo file chứa layout chính và component cho Vehicles
+
+## Tạo thư mục services và api.js để rút gọn URL cho API
