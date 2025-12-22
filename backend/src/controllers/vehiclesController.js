@@ -40,12 +40,15 @@ export const updateVehicle = async (req, res) => {
     if (!vehicle) return res.status(404).json({ message: "Không có xe này" });
     vehicle.carName = req.body.carName;
     vehicle.time = req.body.time;
+    vehicle.weight = req.body.weight;
     vehicle.destination = req.body.destination;
     vehicle.note = req.body.note;
+    await vehicle.save();
     res.status(200).json(vehicle);
   } catch (error) {
     console.log("Lỗi khi cập nhật thông tin xe - ", error.message);
     console.log("Lỗi khi cập nhật thông tin xe");
+    res.status(500).json({ message: "Lỗi khi cập nhật thông tin xe" });
   }
 };
 

@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./src/config/db.js";
 import ordersRouter from "./src/routers/ordersRouter.js";
 import vehiclesRouter from "./src/routers/vehiclesRouter.js";
+import cors from "cors";
 
 //gọi dotenv
 dotenv.config();
@@ -13,6 +14,7 @@ const app = express();
 
 //middleware đọc Json từ request body
 app.use(express.json());
+app.use(cors());
 
 //rút gọn URL nhờ router
 app.use("/orders", ordersRouter);
