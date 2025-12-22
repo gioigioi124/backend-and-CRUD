@@ -30,3 +30,7 @@
 ## Cài đặt shadcn, jsconfig.json, tạo file chứa layout chính và component cho Vehicles
 
 ## Tạo thư mục services và api.js để rút gọn URL cho API
+
+## Tạo logic cho api của Vehicles
+
+## 22/12/2025 Test thành công Vehicle lên frontend
