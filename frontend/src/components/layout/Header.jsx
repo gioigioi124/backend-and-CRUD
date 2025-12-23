@@ -2,9 +2,11 @@ import { Link } from "react-router";
 import { useState } from "react";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import { Button } from "../ui/button";
+import { useVehicleContext } from "@/vehicles/VehicleContext";
 
 const Header = ({ onVehicleCreated }) => {
   const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
+  const { triggerRefresh } = useVehicleContext();
 
   return (
     <>
@@ -36,7 +38,7 @@ const Header = ({ onVehicleCreated }) => {
       <VehicleFormDialog
         open={openVehicleDialog}
         onOpenChange={setOpenVehicleDialog}
-        onSuccess={onVehicleCreated}
+        onSuccess={triggerRefresh}
       />
     </>
   );

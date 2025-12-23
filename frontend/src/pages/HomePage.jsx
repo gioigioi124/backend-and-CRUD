@@ -4,11 +4,6 @@ import { useState, useCallback } from "react";
 const HomePage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleVehicleCreated = useCallback(() => {
-    setRefreshKey((prev) => prev + 1); // Trigger refresh
-  }, []);
 
   return (
     <div className="container mx-auto p-4">
@@ -16,7 +11,6 @@ const HomePage = () => {
         {/* Cột 1: Danh sách xe */}
         <div className="col-span-3 bg-white rounded-lg shadow p-4 overflow-y-auto">
           <VehicleList
-            key={refreshKey}
             selectedVehicle={selectedVehicle}
             onSelectVehicle={setSelectedVehicle}
           />

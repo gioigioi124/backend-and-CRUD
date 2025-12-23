@@ -1,66 +1,117 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import VehicleItem from "./VehicleItem";
+import VehicleFormDialog from "./VehicleFormDialog";
+import DeleteVehicleDialog from "./DeleteVehicleDialog";
 import { vehicleService } from "@/services/vehicleService";
-import { Car } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useVehicleContext } from "./VehicleContext";
 
-const VehicleList = () => {
-  const [vehicles, setVehicles] = useState([]); //quản lý xe
-  const [loading, setLoading] = useState(true); //quản lý loading
-  const [error, setError] = useState(null); //quản lý lỗi
+const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { refreshTrigger } = useVehicleContext();
 
-  //chạy lần đầu khi vào trang
+  // Dialog states
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState(null);
+  const [deletingVehicle, setDeletingVehicle] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   useEffect(() => {
-    fetchVehicle();
-  }, []);
+    fetchVehicles();
+  }, [refreshTrigger]);
 
-  const fetchVehicle = async () => {
+  const fetchVehicles = async () => {
     try {
       setLoading(true);
-      const data = await vehicleService.getAllVehicles(); //lấy data xe
-      setVehicles(data); //gom vào để quản lý thay đổi
+      const data = await vehicleService.getAllVehicles();
+      setVehicles(data);
       setError(null);
     } catch (err) {
       setError("Không thể tải danh sách xe");
-      console.log("Không thể tải danh sách xe", err.message);
+      console.error(err);
     } finally {
-      setLoading(false); //trường hợp nào xảy ra thì cũng bỏ loading
+      setLoading(false);
     }
   };
-  if (loading)
-    return (
-      <div className="flex items-center gap-2 text-slate-600 text-sm">
-        <Spinner className="text-blue-500" />
-        <p>Đang tải dữ liệu xe</p>
-      </div>
-    );
-  if (error) return <div className="text-red-500">{error}</div>;
+
+  const handleEdit = (vehicle) => {
+    setEditingVehicle(vehicle);
+    setEditDialogOpen(true);
+  };
+
+  const handleDelete = (vehicle) => {
+    setDeletingVehicle(vehicle);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setDeleteLoading(true);
+      await vehicleService.deleteVehicle(deletingVehicle._id);
+      toast.success("Xóa xe thành công!");
+      setDeleteDialogOpen(false);
+      fetchVehicles();
+
+      // Nếu xe đang được chọn thì bỏ chọn
+      if (selectedVehicle?._id === deletingVehicle._id) {
+        onSelectVehicle(null);
+      }
+    } catch (error) {
+      toast.error(
+        "Xóa xe thất bại: " + (error.response?.data?.message || error.message)
+      );
+      console.error(error);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  if (loading) return <div className="text-center py-4">Đang tải...</div>;
+  if (error)
+    return <div className="text-red-500 text-center py-4">{error}</div>;
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-1">Tranpo list</h2>
-      {vehicles.length === 0 ? (
-        <p>No tranpo yet</p>
-      ) : (
-        <div className="space-y-2 hover:cursor-pointer">
-          {vehicles.map((vehicle, index) => (
-            <div
-              key={vehicle._id}
-              className="p-2  border-0 rounded shadow-custom-md hover:shadow-custom-lg hover:bg-primary hover:text-white transition-all duration-200 animate-fade-in group"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="text-sm flex items-center gap-2">
-                <Car /> {vehicle.weight} - {vehicle.destination}
-              </div>
-              <div className="text-xs">
-                {vehicle.time} - {vehicle.note}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <>
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Danh sách xe</h2>
+        {vehicles.length === 0 ? (
+          <p className="text-gray-500 text-center">Chưa có xe nào</p>
+        ) : (
+          <div className="space-y-2 ">
+            {vehicles.map((vehicle) => (
+              <VehicleItem
+                key={vehicle._id}
+                vehicle={vehicle}
+                isSelected={selectedVehicle?._id === vehicle._id}
+                onSelect={onSelectVehicle}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Edit Dialog */}
+      <VehicleFormDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSuccess={fetchVehicles}
+        editData={editingVehicle}
+      />
+
+      {/* Delete Dialog */}
+      <DeleteVehicleDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        vehicle={deletingVehicle}
+        onConfirm={confirmDelete}
+        loading={deleteLoading}
+      />
+    </>
   );
 };
 

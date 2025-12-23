@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,7 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { vehicleService } from "@/services/vehicleService";
 
 const WEIGHT_OPTIONS = [
@@ -38,7 +38,7 @@ const WEIGHT_OPTIONS = [
   "Cont 40",
 ];
 
-const VehicleFormDialog = ({ open, onOpenChange, onSuccess }) => {
+const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     carName: "",
@@ -48,6 +48,29 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess }) => {
     note: "",
   });
 
+  const isEditMode = !!editData;
+
+  // Load data khi edit
+  useEffect(() => {
+    if (editData) {
+      setFormData({
+        carName: editData.carName || "",
+        weight: editData.weight || "",
+        time: editData.time || "",
+        destination: editData.destination || "",
+        note: editData.note || "",
+      });
+    } else {
+      setFormData({
+        carName: "",
+        weight: "",
+        time: "",
+        destination: "",
+        note: "",
+      });
+    }
+  }, [editData, open]);
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -55,7 +78,7 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Kiểm tra nhập liệu
+    // Validation
     if (
       !formData.carName ||
       !formData.weight ||
@@ -68,8 +91,14 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess }) => {
 
     try {
       setLoading(true);
-      await vehicleService.createVehicle(formData);
-      toast.success("Tạo xe thành công!");
+
+      if (isEditMode) {
+        await vehicleService.updateVehicle(editData._id, formData);
+        toast.success("Cập nhật xe thành công!");
+      } else {
+        await vehicleService.createVehicle(formData);
+        toast.success("Tạo xe thành công!");
+      }
 
       // Reset form
       setFormData({
@@ -85,7 +114,9 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess }) => {
       onSuccess?.();
     } catch (error) {
       toast.error(
-        "Tạo xe thất bại: " + (error.response?.data?.message || error.message)
+        (isEditMode ? "Cập nhật" : "Tạo") +
+          " xe thất bại: " +
+          (error.response?.data?.message || error.message)
       );
       console.error(error);
     } finally {
@@ -95,9 +126,9 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-125">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Tạo xe mới</DialogTitle>
+          <DialogTitle>{isEditMode ? "Cập nhật xe" : "Tạo xe mới"}</DialogTitle>
           <DialogDescription>
             Điền thông tin xe vào form bên dưới
           </DialogDescription>
@@ -187,7 +218,7 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess }) => {
               Hủy
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Đang tạo..." : "Tạo xe"}
+              {loading ? "Đang xử lý..." : isEditMode ? "Cập nhật" : "Tạo xe"}
             </Button>
           </DialogFooter>
         </form>

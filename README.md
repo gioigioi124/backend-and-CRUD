@@ -50,3 +50,7 @@
 │ Tranpo 3 │  Customer 3     │  [Buttons]              │
 │          │                 │                         │
 └──────────┴─────────────────┴─────────────────────────┘
+
+## 23/12/2025 [CREATE TRANPO] Tạo xe thành công bằng dialog nhưng trang chủ chưa tự cập nhật xe
+
+## 23/12/2025 [UPDATE DELETE] Sửa xóa xe thành công qua dialog
