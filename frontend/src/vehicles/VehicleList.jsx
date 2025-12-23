@@ -1,8 +1,9 @@
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { vehicleService } from "@/services/vehicleService";
+import { Car } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 const VehicleList = () => {
   const [vehicles, setVehicles] = useState([]); //quản lý xe
@@ -29,37 +30,37 @@ const VehicleList = () => {
   };
   if (loading)
     return (
-      <>
-        <Spinner />
+      <div className="flex items-center gap-2 text-slate-600 text-sm">
+        <Spinner className="text-blue-500" />
         <p>Đang tải dữ liệu xe</p>
-      </>
+      </div>
     );
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <Card className="p-4 max-w-fit">
-      <h2 className="text-xl font-bold mb-4">Tranpo list</h2>
+    <div>
+      <h2 className="text-xl font-bold mb-1">Tranpo list</h2>
       {vehicles.length === 0 ? (
         <p>No tranpo yet</p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 hover:cursor-pointer">
           {vehicles.map((vehicle, index) => (
             <div
               key={vehicle._id}
-              className="p-2 rounded border-0 shadow-custom-md hover:shadow-custom-lg hover:bg-slate-200 transition-all duration-200 animate-fade-in group"
+              className="p-2  border-0 rounded shadow-custom-md hover:shadow-custom-lg hover:bg-primary hover:text-white transition-all duration-200 animate-fade-in group"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="text-sm text-gray-600">
-                {vehicle.weight} - {vehicle.destination}
+              <div className="text-sm flex items-center gap-2">
+                <Car /> {vehicle.weight} - {vehicle.destination}
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs">
                 {vehicle.time} - {vehicle.note}
               </div>
             </div>
           ))}
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 

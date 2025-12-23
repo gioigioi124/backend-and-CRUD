@@ -34,3 +34,19 @@
 ## Tạo logic cho api của Vehicles
 
 ## 22/12/2025 Test thành công Vehicle lên frontend
+
+## 23/12/2025 Tạo layout chung cho trang chủ, thêm các nút Tạo đơn hàng, Tạo xe, Danh sách đơn hàng
+
+<!-- prettier-ignore -->
+┌──────────────────────────────────────────────────────┐
+│  Header: [Create Order] [Create Tranpo] [OrderList]  │
+├──────────┬─────────────────┬─────────────────────────┤
+│          │                 │                         │
+│ Vehicle  │  Orders in      │  Order Detail           │
+│ List     │  Vehicle        │  (Chi tiết + Form)      │
+│          │                 │                         │
+│ Tranpo 1 │  Customer 1     │  Khách hàng: ...        │
+│ Tranpo 2 │  Customer 2     │  Items table            │
+│ Tranpo 3 │  Customer 3     │  [Buttons]              │
+│          │                 │                         │
+└──────────┴─────────────────┴─────────────────────────┘
