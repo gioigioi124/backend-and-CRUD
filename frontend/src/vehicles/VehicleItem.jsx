@@ -4,7 +4,8 @@ import { Pencil, Trash2 } from "lucide-react";
 const VehicleItem = ({ vehicle, isSelected, onSelect, onEdit, onDelete }) => {
   return (
     <div
-      className={`relative  p-3 border rounded transition-colors group ${
+      className={`relative p-3 border rounded transition-colors group ${
+        //hiệu ứng khi select
         isSelected ? "bg-blue-50 border-blue-500" : "hover:bg-gray-50"
       }`}
     >

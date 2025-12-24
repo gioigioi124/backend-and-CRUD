@@ -78,7 +78,7 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
+    // Validation các trường bắt buộc
     if (
       !formData.carName ||
       !formData.weight ||
@@ -126,7 +126,7 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>{isEditMode ? "Cập nhật xe" : "Tạo xe mới"}</DialogTitle>
           <DialogDescription>

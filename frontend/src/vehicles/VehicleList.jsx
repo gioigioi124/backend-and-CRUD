@@ -19,34 +19,40 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
   const [deletingVehicle, setDeletingVehicle] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  //chạy lại data khi sửa, xóa, thêm xe
   useEffect(() => {
     fetchVehicles();
   }, [refreshTrigger]);
 
+  //tải danh sách xe
   const fetchVehicles = async () => {
     try {
       setLoading(true);
       const data = await vehicleService.getAllVehicles();
+      //Mảng giá trị của các xe
       setVehicles(data);
       setError(null);
     } catch (err) {
       setError("Không thể tải danh sách xe");
-      console.error(err);
+      console.log("Không thể tải xe", err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  //edit xe
   const handleEdit = (vehicle) => {
     setEditingVehicle(vehicle);
     setEditDialogOpen(true);
   };
 
+  //delete xe
   const handleDelete = (vehicle) => {
     setDeletingVehicle(vehicle);
     setDeleteDialogOpen(true);
   };
 
+  //xác nhận delete xe
   const confirmDelete = async () => {
     try {
       setDeleteLoading(true);
@@ -69,12 +75,14 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
     }
   };
 
+  //loading và error
   if (loading) return <div className="text-center py-4">Đang tải...</div>;
   if (error)
     return <div className="text-red-500 text-center py-4">{error}</div>;
 
   return (
     <>
+      {/* map để tạo hàng loạt xe ra frontend */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Danh sách xe</h2>
         {vehicles.length === 0 ? (
@@ -85,8 +93,12 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
               <VehicleItem
                 key={vehicle._id}
                 vehicle={vehicle}
-                isSelected={selectedVehicle?._id === vehicle._id}
+                // props onSelect trong VehicleItem, sẽ lấy hết dữ liệu của Vehicle
+                //lúc này onSelectVehicle sẽ có giá trị của Vehicle
+                //truyền onSelectVehicle ra ngoài để gọi hàm setSelectVehicle(vehicle) để setSelectVehicle có thuộc tính _id
                 onSelect={onSelectVehicle}
+                // lúc này có thể lấy selectedVehicle?._id đem ra so sánh rồi
+                isSelected={selectedVehicle?._id === vehicle._id}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -94,7 +106,6 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
           </div>
         )}
       </div>
-
       {/* Edit Dialog */}
       <VehicleFormDialog
         open={editDialogOpen}
@@ -102,11 +113,13 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
         onSuccess={fetchVehicles}
         editData={editingVehicle}
       />
-
       {/* Delete Dialog */}
       <DeleteVehicleDialog
+        //trả về true false để mở dialog
         open={deleteDialogOpen}
+        //trả về true false vì trong dialog có sẵn hàm onOpenChange
         onOpenChange={setDeleteDialogOpen}
+        //deletingVehicle chính là giá trị vehicle
         vehicle={deletingVehicle}
         onConfirm={confirmDelete}
         loading={deleteLoading}
