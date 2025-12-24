@@ -6,35 +6,38 @@
 - Dùng để làm gì: Hiển thị thông tin xe
 - Được lấy từ đâu: VehicleList.jsx
 
-  vehicles.map((vehicle) => (
-  <VehicleItem
-  vehicle={vehicle} // ← Truyền object xe
-  />
-  ))
+  vehicles.map((vehicle) => (<VehicleItem vehicle={vehicle} />)) // ← Truyền object xe
 
 2. Props isSelected
 
 - Là gì: Boolean (true/false) cho biết xe này có đang được chọn không
 - Dùng để làm gì: Đổi màu nền khi được chọn.
+
+```
   className={`... ${
   isSelected
     ? 'bg-blue-50 border-blue-500'  // ← Xe đang chọn: màu xanh
     : 'hover:bg-gray-50'             // ← Xe khác: màu xám khi hover
 }`}
+```
 
 - Được lấy từ đâu: VehicleList.jsx
-  <VehicleItem
-  isSelected={selectedVehicle?.\_id === vehicle.\_id}
+
+```
+  <VehicleItem isSelected={selectedVehicle?.\_id === vehicle.\_id}
   // ↓
   // So sánh ID xe đang chọn với ID xe hiện tại
   // Nếu trùng → true
   // Nếu khác → false
   />
+```
 
 3. Props onSelect
 
 - Là gì: Function để thông báo "Tôi vừa được click!"
 - Đến từ đâu:
+
+```
   // VehicleList.jsx
   <VehicleItem onSelect={onSelectVehicle} /> // ← Function từ VehicleList
 
@@ -66,10 +69,10 @@ Re-render → VehicleList nhận selectedVehicle mới
 isSelected được tính lại
 // ↓
 Xe vừa click có màu xanh ✅
+```
 
 ```
 ### **Hình ảnh hóa:**
-```
 
 User Click
 ↓
@@ -82,21 +85,25 @@ HomePage: setSelectedVehicle(vehicle)
 State thay đổi → Re-render
 ↓
 Xe được highlight
+```
 
 4. Props onEdit
 
 - Là gì: Function để mở dialog chỉnh sửa xe
 - Đến từ đâu: VehicleList.jsx
+
+```
   const handleEdit = (vehicle) => {
   setEditingVehicle(vehicle); // ← Lưu xe đang edit
   setEditDialogOpen(true); // ← Mở dialog
   };
+```
 
-<VehicleItem
-onEdit={handleEdit} // ← Truyền function này
-/>
+<VehicleItem onEdit={handleEdit} /> // ← Truyền function này
 
 - Để làm gì:
+
+```
   // 1. User click nút "Sửa"
   <Button onClick={(e) => {
   e.stopPropagation(); // ← Ngăn không trigger onSelect ở thẻ cha
@@ -116,21 +123,25 @@ setEditDialogOpen(true) // ← Mở dialog
 <VehicleFormDialog editData={editingVehicle} />
 // ↓
 Dialog hiển thị với data của xe ✅
+```
 
 5. Props onDelete
 
 - Là gì: Function để mở dialog xác nhận xóa xe
 - Đến từ đâu: VehicleList.jsx
+
+```
   const handleDelete = (vehicle) => {
   setDeletingVehicle(vehicle); // ← Lưu xe đang xóa
   setDeleteDialogOpen(true); // ← Mở dialog confirm
   };
 
-<VehicleItem
-onDelete={handleDelete} // ← Truyền function này
-/>
+<VehicleItem onDelete={handleDelete}/>  // ← Truyền function này
+```
 
 - Để làm gì:
+
+```
   // 1. User click nút "Xóa"
   <Button onClick={(e) => {
   e.stopPropagation(); // ← Ngăn không trigger onSelect
@@ -156,6 +167,7 @@ User click "Xóa"
 confirmDelete() → API call → Xóa thành công ✅
 
 ## Tóm tắt toàn bộ workflow:
+```
 
 ```
 ┌─────────────────────────────────────────────────────────┐
