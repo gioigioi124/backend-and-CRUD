@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Vehicle from "./Vehicle";
 
 const orderSchema = new mongoose.Schema(
   {

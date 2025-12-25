@@ -56,3 +56,5 @@
 ## 23/12/2025 [CREATE TRANPO] Tạo xe thành công bằng dialog nhưng trang chủ chưa tự cập nhật xe
 
 ## 23/12/2025 [UPDATE DELETE] Sửa xóa xe thành công qua dialog
+
+## 25/12/2025 Tạo phần backend và API cho Order, test thành công qua Thunder

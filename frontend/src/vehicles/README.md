@@ -1,4 +1,4 @@
-## Logic trong VehicleItem với các props
+# Logic trong VehicleItem với các props
 
 1. Props vehicle
 
@@ -207,9 +207,9 @@ confirmDelete() → API call → Xóa thành công ✅
 └─────────────────────────────────────────────────────────┘
 ```
 
-## Logic và workflow trong VehicleList
+# Logic và workflow trong VehicleList
 
-# STATE (Dữ liệu local)
+## STATE (Dữ liệu local)
 
 ```
 const [vehicles, setVehicles] = useState([]);
@@ -238,7 +238,7 @@ Mục đích: Disable nút khi đang xóa
 
 ```
 
-# PROPS (Nhận từ component cha)
+## PROPS (Nhận từ component cha)
 
 ```
 const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {}
@@ -248,7 +248,7 @@ onSelectVehicle: Function để update xe được chọn (từ HomePage) gọi 
 
 ```
 
-# CONTEXT
+## CONTEXT
 
 ```
 
@@ -256,7 +256,7 @@ const { refreshTrigger } = useVehicleContext();
 refreshTrigger: Số đếm để trigger refresh danh sách (tăng lên khi tạo xe mới)
 ```
 
-## Logic phần VehicleFormDialog
+# Logic phần VehicleFormDialog
 
 PROPS (Nhận từ component cha)
 
@@ -270,7 +270,7 @@ editData: Object hoặc null - Dữ liệu xe cần sửa (null = tạo mới)
 
 ```
 
-# STATE (Dữ liệu local)
+## STATE (Dữ liệu local)
 
 ```
 const [loading, setLoading] = useState(false);
@@ -288,7 +288,7 @@ const [formData, setFormData] = useState({
 Mục đích: Lưu dữ liệu form người dùng đang nhập
 ```
 
-# BIẾN PHỤ
+## BIẾN PHỤ
 
 ```
 const isEditMode = !!editData;
@@ -299,7 +299,7 @@ editData = null → isEditMode = false (Tạo mới)
 editData = {...} → isEditMode = true (Sửa)
 ```
 
-# FUNCTIONS
+## FUNCTIONS
 
 ```
 1.
@@ -370,7 +370,7 @@ useEffect(() => {
 Nhiệm vụ: Load data khi mở dialog sửa / Reset khi mở dialog tạo mới
 ```
 
-# LUỒNG DỮ LIỆU CẬP NHẬT XE
+## LUỒNG DỮ LIỆU CẬP NHẬT XE
 
 - Bước 1: User click "Sửa" ở VehicleItem
 
