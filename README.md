@@ -38,6 +38,7 @@
 ## 23/12/2025 Tạo layout chung cho trang chủ, thêm các nút Tạo đơn hàng, Tạo xe, Danh sách đơn hàng
 
 <!-- prettier-ignore -->
+```
 ┌──────────────────────────────────────────────────────┐
 │  Header: [Create Order] [Create Tranpo] [OrderList]  │
 ├──────────┬─────────────────┬─────────────────────────┤
@@ -50,6 +51,7 @@
 │ Tranpo 3 │  Customer 3     │  [Buttons]              │
 │          │                 │                         │
 └──────────┴─────────────────┴─────────────────────────┘
+```
 
 ## 23/12/2025 [CREATE TRANPO] Tạo xe thành công bằng dialog nhưng trang chủ chưa tự cập nhật xe
 
