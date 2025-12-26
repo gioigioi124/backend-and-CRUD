@@ -1,9 +1,20 @@
 import api from "./api";
 
 export const orderService = {
-  // Lấy tất cả đơn hàng
-  getAllOrders: async () => {
-    const response = await api.get("/orders");
+  // Lấy tất cả đơn hàng (hỗ trợ filter và search)
+  getAllOrders: async (params = {}) => {
+    // Tạo query string từ params object
+    const queryString = new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== null && value !== undefined && value !== "") {
+          acc[key] = value;
+        }
+        return acc;
+      }, {})
+    ).toString();
+
+    const url = queryString ? `/orders?${queryString}` : "/orders";
+    const response = await api.get(url);
     return response.data;
   },
 
@@ -34,6 +45,22 @@ export const orderService = {
   // Lấy đơn hàng theo xe
   getOrdersByVehicle: async (vehicleId) => {
     const response = await api.get(`/orders?vehicle=${vehicleId}`);
+    return response.data;
+  },
+
+  // Gán đơn hàng vào xe
+  assignOrder: async (orderId, vehicleId) => {
+    const response = await api.put(`/orders/${orderId}/assign`, {
+      vehicleId: vehicleId,
+    });
+    return response.data;
+  },
+
+  // Bỏ gán đơn hàng khỏi xe
+  unassignOrder: async (orderId) => {
+    const response = await api.put(`/orders/${orderId}/assign`, {
+      vehicleId: null,
+    });
     return response.data;
   },
 };

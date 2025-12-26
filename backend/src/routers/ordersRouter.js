@@ -19,8 +19,9 @@ ordersRouter.get("/:id", getOrder);
 ordersRouter.put("/:id", updateOrder);
 ordersRouter.delete("/:id", deleteOrder);
 
-// Các chức năng đặc biệt (sẽ dùng sau)
-ordersRouter.put("/:id/assign-vehicle", assignToVehicle);
+// Các chức năng đặc biệt
+ordersRouter.put("/:id/assign", assignToVehicle); // Gán hoặc bỏ gán đơn vào xe
+ordersRouter.put("/:id/assign-vehicle", assignToVehicle); // Giữ lại để tương thích
 ordersRouter.put(
   "/:orderId/items/:itemIndex/warehouse-confirm",
   confirmWarehouse

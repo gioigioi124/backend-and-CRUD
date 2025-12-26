@@ -1,4 +1,5 @@
 import Vehicle from "../models/Vehicle.js";
+import Order from "../models/Order.js";
 
 //thêm dữ liệu
 export const createVehicle = async (req, res) => {
@@ -55,13 +56,24 @@ export const updateVehicle = async (req, res) => {
 //xóa dữ liệu
 export const deleteVehicle = async (req, res) => {
   try {
-    const vehicle = await Vehicle.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+    
+    // Kiểm tra xem có đơn hàng nào đang gán vào xe không
+    const ordersWithVehicle = await Order.countDocuments({ vehicle: id });
+    
+    if (ordersWithVehicle > 0) {
+      return res.status(400).json({ 
+        message: `Không thể xóa xe. Có ${ordersWithVehicle} đơn hàng đang được gán vào xe này. Vui lòng bỏ gán các đơn hàng trước khi xóa xe.` 
+      });
+    }
+
+    const vehicle = await Vehicle.findByIdAndDelete(id);
     if (!vehicle) {
       return res.status(404).json({ message: "Không có xe này" });
     }
     res.status(200).json({ message: "Xóa xe thành công" });
   } catch (error) {
     console.log("Lỗi khi xóa xe - ", error.message);
-    console.log("Lỗi khi xóa xe");
+    res.status(500).json({ message: "Lỗi khi xóa xe" });
   }
 };

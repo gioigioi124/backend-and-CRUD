@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 
-const VehicleItem = ({ vehicle, isSelected, onSelect, onEdit, onDelete }) => {
+const VehicleItem = ({ vehicle, isSelected, onSelect, onEdit, onDelete, hasOrders }) => {
   return (
     <div onClick={() => onSelect(vehicle)}>
       <div
@@ -45,6 +45,8 @@ const VehicleItem = ({ vehicle, isSelected, onSelect, onEdit, onDelete }) => {
               e.stopPropagation();
               onDelete(vehicle);
             }}
+            disabled={hasOrders}
+            title={hasOrders ? "Không thể xóa xe khi còn đơn hàng" : ""}
           >
             <Trash2 className="w-4 h-4 mr-1" />
           </Button>

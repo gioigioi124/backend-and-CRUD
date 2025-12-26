@@ -16,11 +16,28 @@ export const createOrder = async (req, res) => {
 // GET ALL - Lấy tất cả đơn hàng
 export const getAllOrders = async (req, res) => {
   try {
-    const { vehicle } = req.query; // Lọc theo xe nếu có
+    const { vehicle, status, search } = req.query; // Lọc theo xe, trạng thái, và tìm kiếm
 
     const filter = {};
+
+    // Filter theo vehicle (nếu có)
     if (vehicle) {
       filter.vehicle = vehicle;
+    }
+
+    // Filter theo trạng thái gán xe
+    if (status === "unassigned") {
+      filter.vehicle = null; // Chưa gán xe
+    } else if (status === "assigned") {
+      filter.vehicle = { $ne: null }; // Đã gán xe
+    }
+
+    // Tìm kiếm theo tên khách hàng (case-insensitive)
+    if (search && search.trim()) {
+      filter["customer.name"] = {
+        $regex: search.trim(),
+        $options: "i", // Case-insensitive
+      };
     }
 
     const orders = await Order.find(filter)
@@ -103,17 +120,22 @@ export const deleteOrder = async (req, res) => {
   }
 };
 
-// ASSIGN TO VEHICLE - Gán đơn hàng vào xe (sẽ dùng sau)
+// ASSIGN TO VEHICLE - Gán đơn hàng vào xe hoặc bỏ gán (vehicleId = null)
 export const assignToVehicle = async (req, res) => {
   try {
     const { id } = req.params;
     const { vehicleId } = req.body;
 
-    const order = await Order.findByIdAndUpdate(
-      id,
-      { vehicle: vehicleId },
-      { new: true, runValidators: true }
-    ).populate("vehicle");
+    // Cho phép vehicleId = null để bỏ gán
+    const updateData =
+      vehicleId === null || vehicleId === undefined
+        ? { vehicle: null }
+        : { vehicle: vehicleId };
+
+    const order = await Order.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("vehicle");
 
     if (!order) {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
@@ -122,7 +144,10 @@ export const assignToVehicle = async (req, res) => {
     res.status(200).json(order);
   } catch (error) {
     res.status(400).json({
-      message: "Gán xe thất bại",
+      message:
+        vehicleId === null || vehicleId === undefined
+          ? "Bỏ gán xe thất bại"
+          : "Gán xe thất bại",
       error: error.message,
     });
   }

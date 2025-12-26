@@ -4,6 +4,7 @@ import VehicleItem from "./VehicleItem";
 import VehicleFormDialog from "./VehicleFormDialog";
 import DeleteVehicleDialog from "./DeleteVehicleDialog";
 import { vehicleService } from "@/services/vehicleService";
+import { orderService } from "@/services/orderService";
 import { useVehicleContext } from "./VehicleContext";
 
 const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
@@ -18,6 +19,7 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [deletingVehicle, setDeletingVehicle] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [orderCounts, setOrderCounts] = useState({}); // { vehicleId: count }
 
   //chạy lại data khi sửa, xóa, thêm xe
   useEffect(() => {
@@ -32,6 +34,18 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
       //Mảng giá trị của các xe
       setVehicles(data);
       setError(null);
+      
+      // Fetch số lượng đơn hàng của mỗi xe
+      const counts = {};
+      for (const vehicle of data) {
+        try {
+          const orders = await orderService.getOrdersByVehicle(vehicle._id);
+          counts[vehicle._id] = orders.length;
+        } catch (err) {
+          counts[vehicle._id] = 0;
+        }
+      }
+      setOrderCounts(counts);
     } catch (err) {
       setError("Không thể tải danh sách xe");
       console.log("Không thể tải xe", err.message);
@@ -47,8 +61,21 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
   };
 
   //delete xe
-  const handleDelete = (vehicle) => {
-    setDeletingVehicle(vehicle);
+  const handleDelete = async (vehicle) => {
+    // Kiểm tra số lượng đơn hàng
+    let orderCount = orderCounts[vehicle._id];
+    if (orderCount === undefined) {
+      // Nếu chưa có trong cache, fetch ngay
+      try {
+        const orders = await orderService.getOrdersByVehicle(vehicle._id);
+        orderCount = orders.length;
+        setOrderCounts((prev) => ({ ...prev, [vehicle._id]: orderCount }));
+      } catch (err) {
+        orderCount = 0;
+      }
+    }
+    
+    setDeletingVehicle({ ...vehicle, orderCount });
     setDeleteDialogOpen(true);
   };
 
@@ -66,10 +93,13 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
         onSelectVehicle(null);
       }
     } catch (error) {
-      toast.error(
-        "Xóa xe thất bại: " + (error.response?.data?.message || error.message)
-      );
+      const errorMessage = error.response?.data?.message || error.message;
+      toast.error("Xóa xe thất bại: " + errorMessage);
       console.error(error);
+      // Nếu lỗi do có đơn hàng, refresh lại số lượng đơn
+      if (errorMessage.includes("đơn hàng")) {
+        fetchVehicles();
+      }
     } finally {
       setDeleteLoading(false);
     }
@@ -89,20 +119,24 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
           <p className="text-gray-500 text-center">Chưa có xe nào</p>
         ) : (
           <div className="space-y-2 ">
-            {vehicles.map((vehicle) => (
-              <VehicleItem
-                key={vehicle._id}
-                vehicle={vehicle}
-                // props onSelect trong VehicleItem, sẽ lấy hết dữ liệu của Vehicle
-                //lúc này onSelectVehicle sẽ có giá trị của Vehicle
-                //truyền onSelectVehicle ra ngoài để gọi hàm setSelectVehicle(vehicle) để setSelectVehicle có thuộc tính _id
-                onSelect={onSelectVehicle}
-                // lúc này có thể lấy selectedVehicle?._id đem ra so sánh rồi
-                isSelected={selectedVehicle?._id === vehicle._id}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
+            {vehicles.map((vehicle) => {
+              const hasOrders = (orderCounts[vehicle._id] || 0) > 0;
+              return (
+                <VehicleItem
+                  key={vehicle._id}
+                  vehicle={vehicle}
+                  // props onSelect trong VehicleItem, sẽ lấy hết dữ liệu của Vehicle
+                  //lúc này onSelectVehicle sẽ có giá trị của Vehicle
+                  //truyền onSelectVehicle ra ngoài để gọi hàm setSelectVehicle(vehicle) để setSelectVehicle có thuộc tính _id
+                  onSelect={onSelectVehicle}
+                  // lúc này có thể lấy selectedVehicle?._id đem ra so sánh rồi
+                  isSelected={selectedVehicle?._id === vehicle._id}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  hasOrders={hasOrders}
+                />
+              );
+            })}
           </div>
         )}
       </div>
