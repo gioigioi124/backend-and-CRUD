@@ -18,9 +18,6 @@ const Header = ({ onVehicleCreated }) => {
             </Link>
 
             <div className="flex gap-2">
-              <Link to="/create-order">
-                <Button variant="default">Create Order</Button>
-              </Link>
               <Button
                 variant="default"
                 onClick={() => setOpenVehicleDialog(true)}

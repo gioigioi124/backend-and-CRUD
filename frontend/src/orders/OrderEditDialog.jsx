@@ -20,19 +20,29 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   const [customer, setCustomer] = useState({ name: "", note: "" });
   const [items, setItems] = useState([]);
 
+  // Kiểm tra chế độ: tạo mới hay sửa
+  const isCreateMode = !order;
+
   // Load dữ liệu khi mở dialog
   useEffect(() => {
-    if (open && order) {
-      setCustomer({
-        name: order.customer?.name || "",
-        note: order.customer?.note || "",
-      });
-      // Copy items và đảm bảo có stt
-      const itemsWithStt = (order.items || []).map((item, index) => ({
-        ...item,
-        stt: item.stt || index + 1,
-      }));
-      setItems(itemsWithStt);
+    if (open) {
+      if (order) {
+        // Edit mode: load dữ liệu từ order
+        setCustomer({
+          name: order.customer?.name || "",
+          note: order.customer?.note || "",
+        });
+        // Copy items và đảm bảo có stt
+        const itemsWithStt = (order.items || []).map((item, index) => ({
+          ...item,
+          stt: item.stt || index + 1,
+        }));
+        setItems(itemsWithStt);
+      } else {
+        // Create mode: reset form
+        setCustomer({ name: "", note: "" });
+        setItems([]);
+      }
     }
   }, [open, order]);
 
@@ -73,19 +83,26 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
       const orderData = {
         customer,
         items,
-        // Giữ nguyên vehicle nếu có
-        vehicle: order.vehicle || null,
+        vehicle: order?.vehicle || null,
       };
 
-      await orderService.updateOrder(order._id, orderData);
-      toast.success("Cập nhật đơn hàng thành công!");
+      if (isCreateMode) {
+        // Tạo mới đơn hàng
+        await orderService.createOrder(orderData);
+        toast.success("Tạo đơn hàng thành công!");
+      } else {
+        // Cập nhật đơn hàng
+        await orderService.updateOrder(order._id, orderData);
+        toast.success("Cập nhật đơn hàng thành công!");
+      }
 
       // Đóng dialog và refresh
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
+      const action = isCreateMode ? "Tạo" : "Cập nhật";
       toast.error(
-        "Cập nhật đơn hàng thất bại: " +
+        `${action} đơn hàng thất bại: ` +
           (error.response?.data?.message || error.message)
       );
       console.error(error);
@@ -98,9 +115,13 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Sửa đơn hàng</DialogTitle>
+          <DialogTitle>
+            {isCreateMode ? "Tạo đơn hàng mới" : "Sửa đơn hàng"}
+          </DialogTitle>
           <DialogDescription>
-            Cập nhật thông tin khách hàng và danh sách hàng hóa
+            {isCreateMode
+              ? "Điền thông tin khách hàng và danh sách hàng hóa"
+              : "Cập nhật thông tin khách hàng và danh sách hàng hóa"}
           </DialogDescription>
         </DialogHeader>
 
@@ -151,7 +172,13 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
               Hủy
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Đang cập nhật..." : "Cập nhật"}
+              {loading
+                ? isCreateMode
+                  ? "Đang tạo..."
+                  : "Đang cập nhật..."
+                : isCreateMode
+                ? "Tạo đơn hàng"
+                : "Cập nhật"}
             </Button>
           </DialogFooter>
         </form>
@@ -161,4 +188,3 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
 };
 
 export default OrderEditDialog;
-

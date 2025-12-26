@@ -4,6 +4,7 @@ import OrderDetail from "@/orders/OrderDetail";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
 import { toast } from "sonner";
 
@@ -15,6 +16,12 @@ const OrderListPage = () => {
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Xử lý tạo đơn hàng mới
+  const handleCreateOrder = () => {
+    setEditingOrder(null); // null = chế độ tạo mới
+    setEditDialogOpen(true);
+  };
 
   // Xử lý sửa đơn hàng
   const handleEdit = (order) => {
@@ -72,7 +79,11 @@ const OrderListPage = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-none">
-      <h1 className="text-2xl font-bold mb-4">Danh sách đơn hàng đã đặt</h1>
+      {/* Header với nút Tạo đơn hàng */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Danh sách đơn hàng đã đặt</h1>
+        <Button onClick={handleCreateOrder}>Tạo đơn hàng mới</Button>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Cột trái: Danh sách đơn hàng */}
         <Card className="lg:col-span-3">
