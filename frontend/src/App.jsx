@@ -1,25 +1,36 @@
 import { Toaster } from "sonner";
 import { BrowserRouter, Routes, Route } from "react-router";
 import MainLayout from "./components/layout/MainLayout";
-import Header from "./components/layout/Header";
 import HomePage from "./pages/HomePage";
 import OrderListPage from "./pages/OrderListPage";
+import LoginPage from "./pages/LoginPage";
+import UsersPage from "./pages/UsersPage";
+import PrivateRoute from "./components/PrivateRoute";
 import { VehicleProvider } from "./vehicles/VehicleContext";
+import { AuthProvider } from "./context/AuthContext";
 
 function App() {
   return (
     <>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-center" />
       <BrowserRouter>
-        <VehicleProvider>
-          <Header />
-          <Routes>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<HomePage />} />
-              <Route path="orders" element={<OrderListPage />} />
-            </Route>
-          </Routes>
-        </VehicleProvider>
+        <AuthProvider>
+          <VehicleProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<LoginPage />} />
+
+              {/* Protected Routes */}
+              <Route element={<PrivateRoute />}>
+                <Route path="/" element={<MainLayout />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="orders" element={<OrderListPage />} />
+                  <Route path="users" element={<UsersPage />} />
+                </Route>
+              </Route>
+            </Routes>
+          </VehicleProvider>
+        </AuthProvider>
       </BrowserRouter>
     </>
   );

@@ -6,6 +6,8 @@ import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
 import DateRangeSearch from "@/components/DateRangeSearch";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "../context/AuthContext";
+
 import { useState } from "react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { toast } from "sonner";
@@ -19,6 +21,7 @@ const getTodayDate = () => {
 
 const HomePage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const { logout } = useAuth();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -141,7 +144,12 @@ const HomePage = () => {
           <h1 className="text-2xl font-bold">Quản lý đơn hàng và xe</h1>
           <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
         </div>
-        <Button onClick={handleCreateOrder}>Tạo đơn hàng mới</Button>
+        <div className="flex gap-2">
+          <Button onClick={handleCreateOrder}>Tạo đơn hàng mới</Button>
+          <Button variant="outline" onClick={logout}>
+            Đăng xuất
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-120px)]">

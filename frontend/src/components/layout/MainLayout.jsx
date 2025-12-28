@@ -1,9 +1,10 @@
 import { Outlet } from "react-router";
+import Header from "./Header";
 
 const MainLayout = () => {
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header sẽ thêm sau */}
+      <Header />
       <main>
         <Outlet />
       </main>

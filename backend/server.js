@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import { connectDB } from "./src/config/db.js";
 import ordersRouter from "./src/routers/ordersRouter.js";
 import vehiclesRouter from "./src/routers/vehiclesRouter.js";
+import authRouter from "./src/routers/authRouter.js";
+import userRouter from "./src/routers/userRouter.js";
 import cors from "cors";
 
 //gọi dotenv
@@ -19,6 +21,8 @@ app.use(cors());
 //rút gọn URL nhờ router
 app.use("/orders", ordersRouter);
 app.use("/vehicles", vehiclesRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
 
 // connect DB
 connectDB().then(() => {

@@ -3,8 +3,22 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "http://localhost:3000", // URL backend của bạn
   headers: {
-    "Content-Type": "application/json", //axios tự xử lý gửi dữ liệu dạng JSON, có thể bỏ nhưng dòng này giúp rõ ràng hơn
+    "Content-Type": "application/json",
   },
 });
+
+// Add a request interceptor
+api.interceptors.request.use(
+  (config) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.token) {
+      config.headers.Authorization = `Bearer ${user.token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export default api;
