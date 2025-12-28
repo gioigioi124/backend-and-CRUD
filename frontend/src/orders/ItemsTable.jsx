@@ -151,6 +151,7 @@ const ItemsTable = ({ items, setItems }) => {
                   <TableCell>
                     <Select
                       value={item.warehouse}
+                      disabled={!!item.warehouseConfirm?.value}
                       onValueChange={(value) =>
                         updateItem(index, "warehouse", value)
                       }
@@ -197,6 +198,7 @@ const ItemsTable = ({ items, setItems }) => {
                       type="button"
                       variant="ghost"
                       size="sm"
+                      disabled={!!item.warehouseConfirm?.value}
                       onClick={() => removeItem(index)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >

@@ -18,6 +18,7 @@ const createUser = async (req, res) => {
       password,
       name,
       role: role || "staff",
+      warehouseCode: req.body.warehouseCode || undefined,
     });
 
     if (user) {
@@ -59,6 +60,7 @@ const updateUser = async (req, res) => {
     if (user) {
       user.name = req.body.name || user.name;
       user.role = req.body.role || user.role;
+      user.warehouseCode = req.body.warehouseCode || user.warehouseCode; // Cho phép update warehouseCode
       if (req.body.password) {
         user.password = req.body.password;
       }

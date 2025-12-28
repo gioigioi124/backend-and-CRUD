@@ -92,16 +92,52 @@ export const getOrder = async (req, res) => {
 export const updateOrder = async (req, res) => {
   try {
     const { id } = req.params;
+    const existingOrder = await Order.findById(id);
+
+    if (!existingOrder) {
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+    }
+
+    // Nếu có cập nhật items, kiểm tra tính hợp lệ
+    if (req.body.items) {
+      const newItems = req.body.items;
+
+      // 1. Kiểm tra xem có xóa mất item nào đã được xác nhận không
+      for (const oldItem of existingOrder.items) {
+        if (oldItem.warehouseConfirm?.value) {
+          const stillExists = newItems.find(
+            (it) => it._id && it._id.toString() === oldItem._id.toString()
+          );
+          if (!stillExists) {
+            return res.status(400).json({
+              message: `Không thể xóa hàng hóa "${oldItem.productName}" đã được kho xác nhận`,
+            });
+          }
+        }
+      }
+
+      // 2. Kiểm tra xem có đổi kho của item đã xác nhận không
+      for (const newItem of newItems) {
+        if (newItem._id) {
+          const oldItem = existingOrder.items.find(
+            (it) => it._id.toString() === newItem._id.toString()
+          );
+          if (oldItem && oldItem.warehouseConfirm?.value) {
+            if (newItem.warehouse !== oldItem.warehouse) {
+              return res.status(400).json({
+                message: `Không thể đổi kho cho hàng hóa "${oldItem.productName}" đã được xác nhận`,
+              });
+            }
+          }
+        }
+      }
+    }
 
     const order = await Order.findByIdAndUpdate(
       id,
       req.body,
       { new: true, runValidators: true } // Trả về document mới và chạy validation
     ).populate("vehicle");
-
-    if (!order) {
-      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-    }
 
     res.status(200).json(order);
   } catch (error) {
@@ -116,12 +152,23 @@ export const updateOrder = async (req, res) => {
 export const deleteOrder = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const order = await Order.findByIdAndDelete(id);
+    const order = await Order.findById(id);
 
     if (!order) {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
+
+    // Kiểm tra xem có item nào đã xác nhận chưa
+    const hasConfirmedItem = order.items.some(
+      (item) => item.warehouseConfirm?.value
+    );
+    if (hasConfirmedItem) {
+      return res.status(400).json({
+        message: "Không thể xóa đơn hàng đã có hàng hóa được kho xác nhận",
+      });
+    }
+
+    await Order.findByIdAndDelete(id);
 
     res.status(200).json({
       message: "Xóa đơn hàng thành công",
@@ -182,6 +229,16 @@ export const confirmWarehouse = async (req, res) => {
 
     if (!order.items[itemIndex]) {
       return res.status(404).json({ message: "Không tìm thấy item" });
+    }
+
+    // Check quyền: chỉ user có warehouseCode trùng khớp hoặc admin mới được xác nhận
+    if (
+      req.user.role === "warehouse" &&
+      req.user.warehouseCode !== order.items[itemIndex].warehouse
+    ) {
+      return res.status(403).json({
+        message: "Bạn không có quyền xác nhận hàng của kho này",
+      });
     }
 
     // Cập nhật xác nhận của thủ kho

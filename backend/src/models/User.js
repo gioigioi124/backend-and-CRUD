@@ -18,8 +18,13 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "staff"],
+      enum: ["admin", "staff", "warehouse"],
       default: "staff",
+    },
+    warehouseCode: {
+      type: String,
+      enum: ["K01", "K02", "K03", "K04"],
+      // Chỉ bắt buộc nếu role là warehouse, nhưng xử lý logic đó ở controller hoặc validation sau
     },
   },
   {

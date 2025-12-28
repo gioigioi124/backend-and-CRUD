@@ -63,4 +63,38 @@ export const orderService = {
     });
     return response.data;
   },
+
+  // Lấy danh sách hàng hóa cho thủ kho
+  getWarehouseItems: async (fromDate, toDate, status) => {
+    // build query params
+    const params = {};
+    if (fromDate) params.fromDate = fromDate;
+    if (toDate) params.toDate = toDate;
+    if (status) params.status = status;
+
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString
+      ? `/orders/warehouse-items?${queryString}`
+      : "/orders/warehouse-items";
+
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  // Thủ kho xác nhận
+  confirmWarehouseItem: async (orderId, itemIndex, value) => {
+    const response = await api.put(
+      `/orders/${orderId}/items/${itemIndex}/warehouse-confirm`,
+      { value }
+    );
+    return response.data;
+  },
+
+  // Thủ kho xác nhận hàng loạt
+  confirmWarehouseBatch: async (updates) => {
+    const response = await api.post("/orders/warehouse-confirm-batch", {
+      updates,
+    });
+    return response.data;
+  },
 };

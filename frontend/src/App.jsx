@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import OrderListPage from "./pages/OrderListPage";
 import LoginPage from "./pages/LoginPage";
 import UsersPage from "./pages/UsersPage";
+import WarehouseDashboard from "./pages/WarehouseDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import { VehicleProvider } from "./vehicles/VehicleContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -26,6 +27,11 @@ function App() {
                   <Route index element={<HomePage />} />
                   <Route path="orders" element={<OrderListPage />} />
                   <Route path="users" element={<UsersPage />} />
+                  <Route
+                    element={<PrivateRoute allowedRoles={["warehouse"]} />}
+                  >
+                    <Route path="warehouse" element={<WarehouseDashboard />} />
+                  </Route>
                 </Route>
               </Route>
             </Routes>

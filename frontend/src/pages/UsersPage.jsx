@@ -106,10 +106,16 @@ const UsersPage = () => {
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       user.role === "admin"
                         ? "bg-purple-100 text-purple-800"
+                        : user.role === "warehouse"
+                        ? "bg-orange-100 text-orange-800"
                         : "bg-green-100 text-green-800"
                     }`}
                   >
-                    {user.role === "admin" ? "Quản trị viên" : "Nhân viên"}
+                    {user.role === "admin"
+                      ? "Quản trị viên"
+                      : user.role === "warehouse"
+                      ? `Thủ kho (${user.warehouseCode || "-"})`
+                      : "Nhân viên"}
                   </span>
                 </TableCell>
                 <TableCell className="text-right">

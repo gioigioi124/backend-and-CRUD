@@ -26,6 +26,7 @@ const loginUser = async (req, res) => {
           username: user.username,
           name: user.name,
           role: user.role,
+          warehouseCode: user.warehouseCode,
           token: generateToken(user._id),
         });
       }
@@ -51,6 +52,7 @@ const getMe = async (req, res) => {
         username: user.username,
         name: user.name,
         role: user.role,
+        warehouseCode: user.warehouseCode,
       });
     } else {
       res.status(404).json({ message: "Không tìm thấy người dùng" });

@@ -24,15 +24,18 @@ const UserDialog = ({ open, onOpenChange, user, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, reset, setValue } = useForm();
   const [role, setRole] = useState("staff");
+  const [warehouseCode, setWarehouseCode] = useState("");
 
   useEffect(() => {
     if (user) {
       setValue("username", user.username);
       setValue("name", user.name);
       setRole(user.role);
+      setWarehouseCode(user.warehouseCode || "");
     } else {
       reset();
       setRole("staff");
+      setWarehouseCode("");
     }
   }, [user, reset, setValue, open]);
 
@@ -40,6 +43,9 @@ const UserDialog = ({ open, onOpenChange, user, onSuccess }) => {
     try {
       setLoading(true);
       const payload = { ...data, role };
+      if (role === "warehouse") {
+        payload.warehouseCode = warehouseCode;
+      }
 
       if (user) {
         // Edit mode (Note: Password is optional in edit)
@@ -113,9 +119,27 @@ const UserDialog = ({ open, onOpenChange, user, onSuccess }) => {
               <SelectContent>
                 <SelectItem value="staff">Nhân viên (Staff)</SelectItem>
                 <SelectItem value="admin">Quản trị viên (Admin)</SelectItem>
+                <SelectItem value="warehouse">Thủ kho (Warehouse)</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {role === "warehouse" && (
+            <div className="space-y-2">
+              <Label>Chọn kho</Label>
+              <Select value={warehouseCode} onValueChange={setWarehouseCode}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn kho quản lý" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="K01">Kho K01</SelectItem>
+                  <SelectItem value="K02">Kho K02</SelectItem>
+                  <SelectItem value="K03">Kho K03</SelectItem>
+                  <SelectItem value="K04">Kho K04</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <DialogFooter>
             <Button

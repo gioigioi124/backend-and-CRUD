@@ -36,18 +36,29 @@ const Header = () => {
 
             <div className="flex items-center gap-4">
               <div className="flex gap-2">
-                <Button
-                  variant="default"
-                  onClick={() => setOpenVehicleDialog(true)}
-                  size="sm"
-                >
-                  Create Tranpo
-                </Button>
-                <Link to="/orders">
-                  <Button variant="outline" size="sm">
-                    OrderList
-                  </Button>
-                </Link>
+                {user?.role !== "warehouse" && (
+                  <>
+                    <Button
+                      variant="default"
+                      onClick={() => setOpenVehicleDialog(true)}
+                      size="sm"
+                    >
+                      Create Tranpo
+                    </Button>
+                    <Link to="/orders">
+                      <Button variant="outline" size="sm">
+                        OrderList
+                      </Button>
+                    </Link>
+                  </>
+                )}
+                {user?.role === "warehouse" && (
+                  <Link to="/warehouse">
+                    <Button variant="default" size="sm">
+                      Kho Dashboard
+                    </Button>
+                  </Link>
+                )}
               </div>
 
               {/* User Menu */}
