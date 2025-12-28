@@ -106,4 +106,19 @@ const deleteUser = async (req, res) => {
   }
 };
 
-export { createUser, getUsers, updateUser, deleteUser };
+// @desc    Get staff list for dropdowns (id and name only)
+// @route   GET /api/users/staff-list
+// @access  Private
+const getStaffList = async (req, res) => {
+  try {
+    const users = await User.find({ role: { $in: ["staff", "admin"] } })
+      .select("name username role")
+      .sort({ name: 1 });
+    res.json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+export { createUser, getUsers, updateUser, deleteUser, getStaffList };

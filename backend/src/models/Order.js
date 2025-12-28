@@ -107,6 +107,11 @@ const orderSchema = new mongoose.Schema(
       ref: "Vehicle",
       default: null,
     },
+    // Người tạo đơn hàng
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   {
     timestamps: true,

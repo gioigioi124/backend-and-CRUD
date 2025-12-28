@@ -12,6 +12,7 @@ const VehicleList = ({
   onSelectVehicle,
   fromDate,
   toDate,
+  creator,
 }) => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,10 +27,10 @@ const VehicleList = ({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [orderCounts, setOrderCounts] = useState({}); // { vehicleId: count }
 
-  //chạy lại data khi sửa, xóa, thêm xe hoặc khi date range thay đổi
+  //chạy lại data khi sửa, xóa, thêm xe hoặc khi date range thay đổi hoặc người tạo thay đổi
   useEffect(() => {
     fetchVehicles();
-  }, [refreshTrigger, fromDate, toDate]);
+  }, [refreshTrigger, fromDate, toDate, creator]);
 
   //tải danh sách xe
   const fetchVehicles = async () => {
@@ -40,6 +41,7 @@ const VehicleList = ({
       // Thêm date range nếu có
       if (fromDate) params.fromDate = fromDate;
       if (toDate) params.toDate = toDate;
+      if (creator) params.creator = creator;
 
       const data = await vehicleService.getAllVehicles(params);
       //Mảng giá trị của các xe

@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { userService } from "@/services/userService";
+import { useAuth } from "@/context/AuthContext";
 
 // Helper function để lấy ngày hôm nay
 const getTodayDate = () => {
@@ -25,6 +27,7 @@ const OrderList = ({
   onDelete,
   refreshTrigger,
 }) => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,6 +36,8 @@ const OrderList = ({
   const [statusFilter, setStatusFilter] = useState("all"); // "all", "unassigned", "assigned"
   const [searchQuery, setSearchQuery] = useState(""); // Giá trị trong input
   const [activeSearchQuery, setActiveSearchQuery] = useState(""); // Giá trị đang được search
+  const [staffList, setStaffList] = useState([]);
+  const [creatorFilter, setCreatorFilter] = useState(user?._id || "all");
 
   // Khởi tạo dateRange với ngày hôm nay
   const todayDate = getTodayDate();
@@ -41,11 +46,28 @@ const OrderList = ({
     toDate: todayDate,
   });
 
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        const data = await userService.getStaffList();
+        setStaffList(data);
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách nhân viên:", error);
+      }
+    };
+    fetchStaff();
+  }, []);
+
   // Tải danh sách đơn hàng
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
       const params = {};
+
+      // Thêm filter theo người tạo
+      if (creatorFilter !== "all") {
+        params.creator = creatorFilter;
+      }
 
       // Thêm filter theo trạng thái
       if (statusFilter !== "all") {
@@ -75,7 +97,7 @@ const OrderList = ({
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, activeSearchQuery, dateRange]);
+  }, [statusFilter, activeSearchQuery, dateRange, creatorFilter]);
 
   // Fetch orders khi filter hoặc search thay đổi
   useEffect(() => {
@@ -158,13 +180,28 @@ const OrderList = ({
 
       {/* Filter và Search */}
       <div className="mb-4 space-y-2 max-w-75">
+        {/* Filter người tạo */}
+        <Select value={creatorFilter} onValueChange={setCreatorFilter}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Lọc theo người tạo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả nhân viên</SelectItem>
+            {staffList.map((staff) => (
+              <SelectItem key={staff._id} value={staff._id}>
+                {staff.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {/* Filter dropdown */}
         <Select value={statusFilter} onValueChange={handleFilterChange}>
           <SelectTrigger className="w-full ">
             <SelectValue placeholder="Lọc theo trạng thái" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tất cả</SelectItem>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
             <SelectItem value="unassigned">Chưa gán xe</SelectItem>
             <SelectItem value="assigned">Đã gán xe</SelectItem>
           </SelectContent>

@@ -8,10 +8,18 @@ import DateRangeSearch from "@/components/DateRangeSearch";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { toast } from "sonner";
 import { orderService } from "@/services/orderService";
+import { userService } from "@/services/userService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Helper function để lấy ngày hôm nay
 const getTodayDate = () => {
@@ -20,8 +28,8 @@ const getTodayDate = () => {
 };
 
 const HomePage = () => {
+  const { user, logout } = useAuth();
   const [selectedVehicle, setSelectedVehicle] = useState(null);
-  const { logout } = useAuth();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -30,6 +38,11 @@ const HomePage = () => {
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Staff filter
+  const [staffList, setStaffList] = useState([]);
+  const [selectedStaff, setSelectedStaff] = useState(user?._id || "all");
+
   // Khởi tạo dateRange với ngày hôm nay để mặc định filter theo hôm nay
   const todayDate = getTodayDate();
   const [dateRange, setDateRange] = useState({
@@ -37,6 +50,25 @@ const HomePage = () => {
     toDate: todayDate,
   });
   const { triggerRefresh: triggerVehicleRefresh } = useVehicleContext();
+
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        const data = await userService.getStaffList();
+        setStaffList(data);
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách nhân viên:", error);
+      }
+    };
+    fetchStaff();
+  }, []);
+
+  // Cập nhật selectedStaff khi user thay đổi (lúc mới login)
+  useEffect(() => {
+    if (user?._id && selectedStaff === "all") {
+      setSelectedStaff(user._id);
+    }
+  }, [user]);
 
   // Xử lý khi gán đơn thành công
   const handleAssignSuccess = () => {
@@ -143,6 +175,25 @@ const HomePage = () => {
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold">Quản lý đơn hàng và xe</h1>
           <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium whitespace-nowrap">
+              Người tạo:
+            </span>
+            <Select value={selectedStaff} onValueChange={setSelectedStaff}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Chọn nhân viên" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả nhân viên</SelectItem>
+                {staffList.map((staff) => (
+                  <SelectItem key={staff._id} value={staff._id}>
+                    {staff.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleCreateOrder}>Tạo đơn hàng mới</Button>
@@ -160,6 +211,7 @@ const HomePage = () => {
             onSelectVehicle={setSelectedVehicle}
             fromDate={dateRange.fromDate}
             toDate={dateRange.toDate}
+            creator={selectedStaff === "all" ? "" : selectedStaff}
           />
         </div>
 
@@ -195,6 +247,7 @@ const HomePage = () => {
         onOpenChange={setAssignDialogOpen}
         vehicle={selectedVehicle}
         onSuccess={handleAssignSuccess}
+        creator={selectedStaff === "all" ? "" : selectedStaff}
       />
 
       {/* Dialog sửa đơn hàng */}

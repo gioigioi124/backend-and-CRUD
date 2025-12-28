@@ -4,7 +4,10 @@ import Order from "../models/Order.js";
 //thêm dữ liệu
 export const createVehicle = async (req, res) => {
   try {
-    const vehicle = await Vehicle.create(req.body);
+    const vehicle = await Vehicle.create({
+      ...req.body,
+      createdBy: req.user._id, // Gán người tạo từ token
+    });
     res.status(201).json(vehicle);
   } catch (error) {
     console.log("Lỗi khi thêm xe - ", error.message);
@@ -15,27 +18,35 @@ export const createVehicle = async (req, res) => {
 //lấy tất cả dữ liệu
 export const getAllVehicles = async (req, res) => {
   try {
+    const { fromDate, toDate, creator } = req.query;
     const filter = {};
 
+    // Filter theo người tạo
+    if (creator) {
+      filter.createdBy = creator;
+    }
+
     // Filter theo khoảng ngày (vehicleDate)
-    if (req.query.fromDate || req.query.toDate) {
+    if (fromDate || toDate) {
       filter.vehicleDate = {};
-      if (req.query.fromDate) {
-        const fromDate = new Date(req.query.fromDate);
-        fromDate.setHours(0, 0, 0, 0); // Start of day
-        filter.vehicleDate.$gte = fromDate;
+      if (fromDate) {
+        const from = new Date(fromDate);
+        from.setHours(0, 0, 0, 0); // Start of day
+        filter.vehicleDate.$gte = from;
       }
-      if (req.query.toDate) {
-        const toDate = new Date(req.query.toDate);
-        toDate.setHours(23, 59, 59, 999); // End of day
-        filter.vehicleDate.$lte = toDate;
+      if (toDate) {
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999); // End of day
+        filter.vehicleDate.$lte = to;
       }
     }
 
-    const result = await Vehicle.find(filter).sort({
-      vehicleDate: -1,
-      createdAt: -1,
-    }); // Sắp xếp theo vehicleDate, sau đó createdAt
+    const result = await Vehicle.find(filter)
+      .populate("createdBy", "name username")
+      .sort({
+        vehicleDate: -1,
+        createdAt: -1,
+      }); // Sắp xếp theo vehicleDate, sau đó createdAt
     res.status(200).json(result);
   } catch (error) {
     console.log("Lỗi khi lấy thông tin xe - ", error.message);

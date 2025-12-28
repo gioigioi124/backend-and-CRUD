@@ -11,7 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
 
-const AssignOrderDialog = ({ open, onOpenChange, vehicle, onSuccess }) => {
+const AssignOrderDialog = ({
+  open,
+  onOpenChange,
+  vehicle,
+  onSuccess,
+  creator,
+}) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
@@ -22,12 +28,15 @@ const AssignOrderDialog = ({ open, onOpenChange, vehicle, onSuccess }) => {
     if (open) {
       fetchUnassignedOrders();
     }
-  }, [open]);
+  }, [open, creator]);
 
   const fetchUnassignedOrders = async () => {
     try {
       setLoading(true);
-      const data = await orderService.getAllOrders({ status: "unassigned" });
+      const params = { status: "unassigned" };
+      if (creator) params.creator = creator;
+
+      const data = await orderService.getAllOrders(params);
       setOrders(data);
       setSelectedOrderId(null);
     } catch (error) {
@@ -121,7 +130,8 @@ const AssignOrderDialog = ({ open, onOpenChange, vehicle, onSuccess }) => {
                           {order.customer?.name || "Không có tên"}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          {totalItems} {totalItems === 1 ? "mặt hàng" : "mặt hàng"} •{" "}
+                          {totalItems}{" "}
+                          {totalItems === 1 ? "mặt hàng" : "mặt hàng"} •{" "}
                           {formatDate(order.createdAt)}
                         </div>
                         {order.customer?.note && (
@@ -161,7 +171,10 @@ const AssignOrderDialog = ({ open, onOpenChange, vehicle, onSuccess }) => {
           >
             Hủy
           </Button>
-          <Button onClick={handleAssign} disabled={assigning || !selectedOrderId}>
+          <Button
+            onClick={handleAssign}
+            disabled={assigning || !selectedOrderId}
+          >
             {assigning ? "Đang gán..." : "Gán vào xe"}
           </Button>
         </DialogFooter>
@@ -171,4 +184,3 @@ const AssignOrderDialog = ({ open, onOpenChange, vehicle, onSuccess }) => {
 };
 
 export default AssignOrderDialog;
-

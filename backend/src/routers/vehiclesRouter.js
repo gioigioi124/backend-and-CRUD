@@ -6,8 +6,12 @@ import {
   getVehicle,
   updateVehicle,
 } from "../controllers/vehiclesController.js";
+import { protect } from "../middleware/authMiddleware.js";
 //tạo router sử dụng express Router
 const vehiclesRouter = express.Router();
+
+// Tất cả các routes xe đều cần login
+vehiclesRouter.use(protect);
 
 //CREATE hàm tạo một product mới
 vehiclesRouter.post("/", createVehicle);

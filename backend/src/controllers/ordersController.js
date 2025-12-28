@@ -3,7 +3,10 @@ import Order from "../models/Order.js";
 // CREATE - Tạo đơn hàng mới
 export const createOrder = async (req, res) => {
   try {
-    const order = await Order.create(req.body);
+    const order = await Order.create({
+      ...req.body,
+      createdBy: req.user._id, // Gán người tạo từ token
+    });
     res.status(201).json(order);
   } catch (error) {
     res.status(400).json({
@@ -16,9 +19,14 @@ export const createOrder = async (req, res) => {
 // GET ALL - Lấy tất cả đơn hàng
 export const getAllOrders = async (req, res) => {
   try {
-    const { vehicle, status, search } = req.query; // Lọc theo xe, trạng thái, và tìm kiếm
+    const { vehicle, status, search, creator, fromDate, toDate } = req.query; // Lọc theo xe, trạng thái, và tìm kiếm
 
     const filter = {};
+
+    // Filter theo người tạo
+    if (creator) {
+      filter.createdBy = creator;
+    }
 
     // Filter theo vehicle (nếu có)
     if (vehicle) {
@@ -41,22 +49,23 @@ export const getAllOrders = async (req, res) => {
     }
 
     // Filter theo khoảng ngày (orderDate)
-    if (req.query.fromDate || req.query.toDate) {
+    if (fromDate || toDate) {
       filter.orderDate = {};
-      if (req.query.fromDate) {
-        const fromDate = new Date(req.query.fromDate);
-        fromDate.setHours(0, 0, 0, 0); // Start of day
-        filter.orderDate.$gte = fromDate;
+      if (fromDate) {
+        const from = new Date(fromDate);
+        from.setHours(0, 0, 0, 0); // Start of day
+        filter.orderDate.$gte = from;
       }
-      if (req.query.toDate) {
-        const toDate = new Date(req.query.toDate);
-        toDate.setHours(23, 59, 59, 999); // End of day
-        filter.orderDate.$lte = toDate;
+      if (toDate) {
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999); // End of day
+        filter.orderDate.$lte = to;
       }
     }
 
     const orders = await Order.find(filter)
       .populate("vehicle") // Lấy thông tin xe
+      .populate("createdBy", "name username") // Lấy thông tin người tạo
       .sort({ orderDate: -1, createdAt: -1 }); // Sắp xếp theo orderDate, sau đó createdAt
 
     res.status(200).json(orders);

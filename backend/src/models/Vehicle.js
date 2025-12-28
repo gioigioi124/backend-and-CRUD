@@ -64,6 +64,11 @@ const vehicleSchema = new mongoose.Schema(
       },
       default: Date.now,
     },
+    // Người tạo xe
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   {
     timestamps: true,
