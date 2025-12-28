@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
+import { toast } from "sonner";
 
 const DateRangeSearch = ({ onSearch, defaultToToday = false }) => {
   const [fromDate, setFromDate] = useState("");
@@ -28,7 +29,8 @@ const DateRangeSearch = ({ onSearch, defaultToToday = false }) => {
   const handleSearch = () => {
     // Validation: fromDate phải <= toDate
     if (fromDate && toDate && fromDate > toDate) {
-      alert("Ngày bắt đầu không được lớn hơn ngày kết thúc");
+      setToDate(fromDate);
+      onSearch?.(fromDate, fromDate);
       return;
     }
     onSearch?.(fromDate, toDate);

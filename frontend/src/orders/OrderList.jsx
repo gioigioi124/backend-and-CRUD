@@ -12,6 +12,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Helper function để lấy ngày hôm nay
+const getTodayDate = () => {
+  const today = new Date();
+  return today.toISOString().split("T")[0];
+};
+
 const OrderList = ({
   selectedOrder,
   onSelectOrder,
@@ -27,7 +33,13 @@ const OrderList = ({
   const [statusFilter, setStatusFilter] = useState("all"); // "all", "unassigned", "assigned"
   const [searchQuery, setSearchQuery] = useState(""); // Giá trị trong input
   const [activeSearchQuery, setActiveSearchQuery] = useState(""); // Giá trị đang được search
-  const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
+
+  // Khởi tạo dateRange với ngày hôm nay
+  const todayDate = getTodayDate();
+  const [dateRange, setDateRange] = useState({
+    fromDate: todayDate,
+    toDate: todayDate,
+  });
 
   // Tải danh sách đơn hàng
   const fetchOrders = useCallback(async () => {
@@ -108,10 +120,37 @@ const OrderList = ({
     onDelete?.(order);
   };
 
-  // Loading và error states
-  if (loading) return <div className="text-center py-4">Đang tải...</div>;
-  if (error)
-    return <div className="text-red-500 text-center py-4">{error}</div>;
+  // Loading và error states (chỉ hiển thị loading/error cho phần list, giữ nguyên header filter)
+  const renderContent = () => {
+    if (loading) return <div className="text-center py-4">Đang tải...</div>;
+    if (error)
+      return <div className="text-red-500 text-center py-4">{error}</div>;
+
+    if (orders.length === 0) {
+      return (
+        <p className="text-gray-500 text-center py-4">
+          {activeSearchQuery || statusFilter !== "all"
+            ? "Không tìm thấy đơn hàng"
+            : "Chưa có đơn hàng nào"}
+        </p>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        {orders.map((order) => (
+          <OrderItem
+            key={order._id}
+            order={order}
+            isSelected={selectedOrder?._id === order._id}
+            onSelect={onSelectOrder}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -145,26 +184,7 @@ const OrderList = ({
       </div>
 
       {/* Danh sách đơn hàng */}
-      {orders.length === 0 ? (
-        <p className="text-gray-500 text-center py-4">
-          {activeSearchQuery || statusFilter !== "all"
-            ? "Không tìm thấy đơn hàng"
-            : "Chưa có đơn hàng nào"}
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {orders.map((order) => (
-            <OrderItem
-              key={order._id}
-              order={order}
-              isSelected={selectedOrder?._id === order._id}
-              onSelect={onSelectOrder}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      )}
+      {renderContent()}
     </div>
   );
 };
