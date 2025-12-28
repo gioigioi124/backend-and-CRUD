@@ -8,6 +8,7 @@ import {
   assignToVehicle,
   confirmWarehouse,
   confirmLeader,
+  confirmOrderDetails,
 } from "../controllers/ordersController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -42,5 +43,6 @@ ordersRouter.put(
   protect,
   confirmLeader
 );
+ordersRouter.put("/:id/confirm-details", protect, confirmOrderDetails);
 
 export default ordersRouter;

@@ -1,21 +1,18 @@
 import VehicleList from "@/vehicles/VehicleList";
 import VehicleOrderList from "@/orders/VehicleOrderList";
-import OrderDetail from "@/orders/OrderDetail";
-import AssignOrderDialog from "@/orders/AssignOrderDialog";
-import OrderEditDialog from "@/orders/OrderEditDialog";
-import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
-import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
+import DispatcherOrderDetail from "@/orders/DispatcherOrderDetail";
 import DateRangeSearch from "@/components/DateRangeSearch";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "../context/AuthContext";
+import { List, PlusCircle, Truck } from "lucide-react";
 import { Link } from "react-router";
-
+import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
-import { toast } from "sonner";
-import { orderService } from "@/services/orderService";
 import { userService } from "@/services/userService";
-import { PlusCircle, Truck, List } from "lucide-react";
+import { orderService } from "@/services/orderService";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
+import OrderEditDialog from "@/orders/OrderEditDialog";
+import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import {
   Select,
   SelectContent,
@@ -29,19 +26,14 @@ const getTodayDate = () => {
   return today.toISOString().split("T")[0];
 };
 
-const HomePage = () => {
+const DispatcherDashboard = () => {
   const { user } = useAuth();
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
   const [orderToEdit, setOrderToEdit] = useState(null);
-  const [orderToDelete, setOrderToDelete] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
   const [staffList, setStaffList] = useState([]);
   const [selectedStaff, setSelectedStaff] = useState("all");
 
@@ -57,6 +49,7 @@ const HomePage = () => {
       try {
         const data = await userService.getStaffList();
         setStaffList(data);
+        // Default to current user if staff/leader
         if (user && (user.role === "staff" || user.role === "leader")) {
           setSelectedStaff(user._id);
         } else {
@@ -69,9 +62,9 @@ const HomePage = () => {
     fetchStaff();
   }, [user]);
 
-  const handleAssignSuccess = () => {
+  const handleDateSearch = (fromDate, toDate) => {
+    setDateRange({ fromDate, toDate });
     setRefreshTrigger((prev) => prev + 1);
-    triggerVehicleRefresh();
   };
 
   const handleUnassign = () => {
@@ -80,19 +73,18 @@ const HomePage = () => {
     setSelectedOrder(null);
   };
 
+  const handleRefresh = () => {
+    setRefreshTrigger((prev) => prev + 1);
+    triggerVehicleRefresh();
+  };
+
   const handleCreateOrder = () => {
     setOrderToEdit(null);
     setEditDialogOpen(true);
   };
 
-  const handleEdit = (order) => {
-    setOrderToEdit(order);
-    setEditDialogOpen(true);
-  };
-
   const handleEditSuccess = async () => {
-    setRefreshTrigger((prev) => prev + 1);
-    triggerVehicleRefresh();
+    handleRefresh();
     if (selectedOrder && orderToEdit && selectedOrder._id === orderToEdit._id) {
       try {
         const updatedOrder = await orderService.getOrder(orderToEdit._id);
@@ -103,53 +95,15 @@ const HomePage = () => {
     }
   };
 
-  const handleDelete = (order) => {
-    setOrderToDelete(order);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!orderToDelete) return;
-
-    try {
-      setDeleteLoading(true);
-      await orderService.deleteOrder(orderToDelete._id);
-      toast.success("Xóa đơn hàng thành công!");
-      setDeleteDialogOpen(false);
-      setRefreshTrigger((prev) => prev + 1);
-      triggerVehicleRefresh();
-      if (selectedOrder && selectedOrder._id === orderToDelete._id) {
-        setSelectedOrder(null);
-      }
-      setOrderToDelete(null);
-    } catch (error) {
-      toast.error(
-        "Xóa đơn hàng thất bại: " +
-          (error.response?.data?.message || error.message)
-      );
-      console.error(error);
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
-
-  const handleDateSearch = (fromDate, toDate) => {
-    setDateRange({ fromDate, toDate });
-    setRefreshTrigger((prev) => prev + 1);
-  };
-
   return (
     <div className="container mx-auto p-4 max-w-none">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div className="flex flex-wrap items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Điều phối Xe & Đơn hàng
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800">Bảng Điều Vận</h1>
           <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {/* Nút Danh sách đơn hàng (OrderList) */}
           <Link to="/orders">
             <Button variant="outline" className="gap-2 shadow-sm font-medium">
               <List className="w-4 h-4" />
@@ -157,18 +111,14 @@ const HomePage = () => {
             </Button>
           </Link>
 
-          {/* Nút Điều vận */}
-          {user?.role === "leader" && (
-            <Link to="/dispatcher">
-              <Button
-                variant="outline"
-                className="gap-2 shadow-sm font-medium text-orange-600 border-orange-200 hover:bg-orange-50"
-              >
-                <Truck className="w-4 h-4" />
-                Điều vận
-              </Button>
-            </Link>
-          )}
+          {/* Nút Điều vận (Đang ở trang này) */}
+          <Button
+            variant="outline"
+            className="gap-2 shadow-sm font-medium text-orange-600 border-orange-200 bg-orange-50 cursor-default"
+          >
+            <Truck className="w-4 h-4" />
+            Điều vận
+          </Button>
 
           {/* Nút Tạo xe */}
           {user?.role !== "warehouse" && (
@@ -215,6 +165,7 @@ const HomePage = () => {
       </div>
 
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
+        {/* Cột 1: Xe */}
         <div className="col-span-3 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
           <VehicleList
             selectedVehicle={selectedVehicle}
@@ -225,51 +176,35 @@ const HomePage = () => {
           />
         </div>
 
+        {/* Cột 2: Đơn hàng trong xe */}
         <div className="col-span-3 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
           <VehicleOrderList
             vehicle={selectedVehicle}
             selectedOrder={selectedOrder}
             onSelectOrder={setSelectedOrder}
             onUnassign={handleUnassign}
-            onAssignClick={() => setAssignDialogOpen(true)}
             refreshTrigger={refreshTrigger}
             fromDate={dateRange.fromDate}
             toDate={dateRange.toDate}
           />
         </div>
 
+        {/* Cột 3: Chi tiết & Xác nhận */}
         <div className="col-span-6 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
-          <OrderDetail
+          <DispatcherOrderDetail
             order={selectedOrder}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
             vehicle={selectedVehicle}
             onUnassign={handleUnassign}
+            onRefresh={handleRefresh}
           />
         </div>
       </div>
-
-      <AssignOrderDialog
-        open={assignDialogOpen}
-        onOpenChange={setAssignDialogOpen}
-        vehicle={selectedVehicle}
-        onSuccess={handleAssignSuccess}
-        creator={selectedStaff === "all" ? "" : selectedStaff}
-      />
 
       <OrderEditDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         order={orderToEdit}
         onSuccess={handleEditSuccess}
-      />
-
-      <DeleteOrderDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        order={orderToDelete}
-        onConfirm={handleDeleteConfirm}
-        loading={deleteLoading}
       />
 
       <VehicleFormDialog
@@ -281,4 +216,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default DispatcherDashboard;

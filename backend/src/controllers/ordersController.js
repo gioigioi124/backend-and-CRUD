@@ -299,3 +299,49 @@ export const confirmLeader = async (req, res) => {
     });
   }
 };
+
+// CONFIRM ALL DETAILS - Xác nhận tất cả hàng hóa trong 1 đơn (Cho điều vận)
+export const confirmOrderDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { items } = req.body; // Mảng items đã update warehouseConfirm và leaderConfirm
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+    }
+
+    // Cập nhật từng item
+    items.forEach((updatedItem) => {
+      const itemIndex = order.items.findIndex(
+        (it) => it._id.toString() === updatedItem._id.toString()
+      );
+      if (itemIndex !== -1) {
+        // Cập nhật warehouseConfirm nếu có thay đổi
+        if (updatedItem.warehouseConfirm !== undefined) {
+          order.items[itemIndex].warehouseConfirm = {
+            value: updatedItem.warehouseConfirm.value,
+            confirmedAt: new Date(),
+          };
+        }
+        // Cập nhật leaderConfirm nếu có thay đổi
+        if (updatedItem.leaderConfirm !== undefined) {
+          order.items[itemIndex].leaderConfirm = {
+            value: updatedItem.leaderConfirm.value,
+            confirmedAt: new Date(),
+          };
+        }
+      }
+    });
+
+    await order.save();
+
+    res.status(200).json(order);
+  } catch (error) {
+    res.status(400).json({
+      message: "Xác nhận chi tiết đơn hàng thất bại",
+      error: error.message,
+    });
+  }
+};

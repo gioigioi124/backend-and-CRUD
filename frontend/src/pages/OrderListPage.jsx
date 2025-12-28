@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import OrderList from "@/orders/OrderList";
 import OrderDetail from "@/orders/OrderDetail";
 import OrderEditDialog from "@/orders/OrderEditDialog";
@@ -98,6 +99,19 @@ const OrderListPage = () => {
             <List className="w-4 h-4" />
             Đơn hàng
           </Button>
+
+          {/* Nút Điều vận */}
+          {user?.role === "leader" && (
+            <Link to="/dispatcher">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm font-medium text-orange-600 border-orange-200 hover:bg-orange-50"
+              >
+                <Truck className="w-4 h-4" />
+                Điều vận
+              </Button>
+            </Link>
+          )}
 
           {/* Nút Tạo xe (Tương đương Create Tranpo cũ) */}
           {user?.role !== "warehouse" && (

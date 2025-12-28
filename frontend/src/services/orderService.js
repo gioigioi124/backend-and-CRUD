@@ -97,4 +97,12 @@ export const orderService = {
     });
     return response.data;
   },
+
+  // Xác nhận chi tiết đơn hàng (Dành cho điều vận)
+  confirmOrderDetails: async (orderId, items) => {
+    const response = await api.put(`/orders/${orderId}/confirm-details`, {
+      items,
+    });
+    return response.data;
+  },
 };
