@@ -4,15 +4,18 @@ import OrderDetail from "@/orders/OrderDetail";
 import AssignOrderDialog from "@/orders/AssignOrderDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
+import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import DateRangeSearch from "@/components/DateRangeSearch";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router";
 
 import { useState, useEffect } from "react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { toast } from "sonner";
 import { orderService } from "@/services/orderService";
 import { userService } from "@/services/userService";
+import { PlusCircle, Truck, List } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,29 +24,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Helper function để lấy ngày hôm nay
 const getTodayDate = () => {
   const today = new Date();
   return today.toISOString().split("T")[0];
 };
 
 const HomePage = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
   const [orderToEdit, setOrderToEdit] = useState(null);
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Staff filter
   const [staffList, setStaffList] = useState([]);
-  const [selectedStaff, setSelectedStaff] = useState("all"); // Khởi tạo là all, sau đó sẽ set lại theo user
+  const [selectedStaff, setSelectedStaff] = useState("all");
 
-  // Khởi tạo dateRange với ngày hôm nay để mặc định filter theo hôm nay
   const todayDate = getTodayDate();
   const [dateRange, setDateRange] = useState({
     fromDate: todayDate,
@@ -56,8 +57,6 @@ const HomePage = () => {
       try {
         const data = await userService.getStaffList();
         setStaffList(data);
-
-        // Mặc định: Nếu là staff thì chọn chính mình, nếu là admin/warehouse thì chọn "Tất cả"
         if (user && user.role === "staff") {
           setSelectedStaff(user._id);
         } else {
@@ -70,47 +69,30 @@ const HomePage = () => {
     fetchStaff();
   }, [user]);
 
-  // Xử lý khi gán đơn thành công
   const handleAssignSuccess = () => {
-    // Trigger refresh danh sách đơn của xe
     setRefreshTrigger((prev) => prev + 1);
-    // Trigger refresh danh sách xe để cập nhật số lượng đơn hàng
     triggerVehicleRefresh();
-    // Refresh selectedOrder nếu cần
-    if (selectedOrder) {
-      // Có thể fetch lại order nếu cần
-    }
   };
 
-  // Xử lý khi bỏ gán đơn
   const handleUnassign = () => {
-    // Trigger refresh danh sách đơn của xe
     setRefreshTrigger((prev) => prev + 1);
-    // Trigger refresh danh sách xe để cập nhật số lượng đơn hàng
     triggerVehicleRefresh();
-    // Nếu đơn đang được chọn thì bỏ chọn
     setSelectedOrder(null);
   };
 
-  // Xử lý khi mở dialog tạo đơn mới
   const handleCreateOrder = () => {
-    setOrderToEdit(null); // null = chế độ tạo mới
+    setOrderToEdit(null);
     setEditDialogOpen(true);
   };
 
-  // Xử lý khi mở dialog sửa đơn
   const handleEdit = (order) => {
     setOrderToEdit(order);
     setEditDialogOpen(true);
   };
 
-  // Xử lý khi sửa đơn thành công
   const handleEditSuccess = async () => {
-    // Trigger refresh danh sách đơn của xe
     setRefreshTrigger((prev) => prev + 1);
-    // Trigger refresh danh sách xe
     triggerVehicleRefresh();
-    // Cập nhật selectedOrder nếu đang chọn đơn vừa sửa
     if (selectedOrder && orderToEdit && selectedOrder._id === orderToEdit._id) {
       try {
         const updatedOrder = await orderService.getOrder(orderToEdit._id);
@@ -121,13 +103,11 @@ const HomePage = () => {
     }
   };
 
-  // Xử lý khi mở dialog xóa đơn
   const handleDelete = (order) => {
     setOrderToDelete(order);
     setDeleteDialogOpen(true);
   };
 
-  // Xử lý xác nhận xóa đơn
   const handleDeleteConfirm = async () => {
     if (!orderToDelete) return;
 
@@ -135,21 +115,12 @@ const HomePage = () => {
       setDeleteLoading(true);
       await orderService.deleteOrder(orderToDelete._id);
       toast.success("Xóa đơn hàng thành công!");
-
-      // Đóng dialog
       setDeleteDialogOpen(false);
-
-      // Trigger refresh danh sách đơn của xe
       setRefreshTrigger((prev) => prev + 1);
-      // Trigger refresh danh sách xe
       triggerVehicleRefresh();
-
-      // Bỏ chọn đơn nếu đang chọn đơn vừa xóa
       if (selectedOrder && selectedOrder._id === orderToDelete._id) {
         setSelectedOrder(null);
       }
-
-      // Reset orderToDelete
       setOrderToDelete(null);
     } catch (error) {
       toast.error(
@@ -162,7 +133,6 @@ const HomePage = () => {
     }
   };
 
-  // Xử lý tìm kiếm theo ngày
   const handleDateSearch = (fromDate, toDate) => {
     setDateRange({ fromDate, toDate });
     setRefreshTrigger((prev) => prev + 1);
@@ -170,27 +140,54 @@ const HomePage = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-none">
-      {/* Header với nút Tạo đơn hàng */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold">Quản lý đơn hàng và xe</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Điều phối Xe & Đơn hàng
+          </h1>
           <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleCreateOrder}>Tạo đơn hàng mới</Button>
-          <Button variant="outline" onClick={logout}>
-            Đăng xuất
-          </Button>
+
+        <div className="flex flex-wrap gap-2">
+          {/* Nút Danh sách đơn hàng (OrderList) */}
+          <Link to="/orders">
+            <Button variant="outline" className="gap-2 shadow-sm font-medium">
+              <List className="w-4 h-4" />
+              Đơn hàng
+            </Button>
+          </Link>
+
+          {/* Nút Tạo xe */}
+          {user?.role !== "warehouse" && (
+            <Button
+              variant="secondary"
+              className="gap-2 shadow-sm font-medium"
+              onClick={() => setOpenVehicleDialog(true)}
+            >
+              <Truck className="w-4 h-4" />
+              Tạo xe
+            </Button>
+          )}
+
+          {/* Nút Tạo đơn hàng */}
+          {user?.role !== "warehouse" && (
+            <Button
+              onClick={handleCreateOrder}
+              className="gap-2 shadow-sm font-medium"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Tạo đơn hàng mới
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Bộ lọc nhân viên được đưa xuống dưới */}
       <div className="flex items-center gap-2 mb-4 bg-gray-50 p-2 rounded-md border border-gray-100 w-fit">
         <span className="text-sm font-medium whitespace-nowrap">
           Người tạo:
         </span>
         <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-          <SelectTrigger className="w-[180px] bg-white">
+          <SelectTrigger className="w-[180px] bg-white h-9">
             <SelectValue placeholder="Chọn nhân viên" />
           </SelectTrigger>
           <SelectContent>
@@ -204,9 +201,8 @@ const HomePage = () => {
         </Select>
       </div>
 
-      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-120px)]">
-        {/* Cột 1: Danh sách xe */}
-        <div className="col-span-3 bg-white rounded-lg shadow p-4 overflow-y-auto">
+      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
+        <div className="col-span-3 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
           <VehicleList
             selectedVehicle={selectedVehicle}
             onSelectVehicle={setSelectedVehicle}
@@ -216,8 +212,7 @@ const HomePage = () => {
           />
         </div>
 
-        {/* Cột 2: Danh sách đơn hàng trong xe */}
-        <div className="col-span-3 bg-white rounded-lg shadow p-4 overflow-y-auto">
+        <div className="col-span-3 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
           <VehicleOrderList
             vehicle={selectedVehicle}
             selectedOrder={selectedOrder}
@@ -230,8 +225,7 @@ const HomePage = () => {
           />
         </div>
 
-        {/* Cột 3: Chi tiết đơn hàng */}
-        <div className="col-span-6 bg-white rounded-lg shadow p-4 overflow-y-auto">
+        <div className="col-span-6 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
           <OrderDetail
             order={selectedOrder}
             onEdit={handleEdit}
@@ -242,7 +236,6 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Dialog gán đơn vào xe */}
       <AssignOrderDialog
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
@@ -251,7 +244,6 @@ const HomePage = () => {
         creator={selectedStaff === "all" ? "" : selectedStaff}
       />
 
-      {/* Dialog sửa đơn hàng */}
       <OrderEditDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
@@ -259,13 +251,18 @@ const HomePage = () => {
         onSuccess={handleEditSuccess}
       />
 
-      {/* Dialog xóa đơn hàng */}
       <DeleteOrderDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         order={orderToDelete}
         onConfirm={handleDeleteConfirm}
         loading={deleteLoading}
+      />
+
+      <VehicleFormDialog
+        open={openVehicleDialog}
+        onOpenChange={setOpenVehicleDialog}
+        onSuccess={triggerVehicleRefresh}
       />
     </div>
   );
