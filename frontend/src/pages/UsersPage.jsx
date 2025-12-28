@@ -108,6 +108,8 @@ const UsersPage = () => {
                         ? "bg-purple-100 text-purple-800"
                         : user.role === "warehouse"
                         ? "bg-orange-100 text-orange-800"
+                        : user.role === "leader"
+                        ? "bg-blue-100 text-blue-800"
                         : "bg-green-100 text-green-800"
                     }`}
                   >
@@ -115,6 +117,8 @@ const UsersPage = () => {
                       ? "Quản trị viên"
                       : user.role === "warehouse"
                       ? `Thủ kho (${user.warehouseCode || "-"})`
+                      : user.role === "leader"
+                      ? "Điều vận (Leader)"
                       : "Nhân viên"}
                   </span>
                 </TableCell>

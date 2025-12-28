@@ -118,6 +118,7 @@ const UserDialog = ({ open, onOpenChange, user, onSuccess }) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="staff">Nhân viên (Staff)</SelectItem>
+                <SelectItem value="leader">Điều vận (Leader)</SelectItem>
                 <SelectItem value="admin">Quản trị viên (Admin)</SelectItem>
                 <SelectItem value="warehouse">Thủ kho (Warehouse)</SelectItem>
               </SelectContent>

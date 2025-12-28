@@ -38,7 +38,10 @@ const OrderList = ({
   const [activeSearchQuery, setActiveSearchQuery] = useState(""); // Giá trị đang được search
   const [staffList, setStaffList] = useState([]);
   const [creatorFilter, setCreatorFilter] = useState(
-    user && (user.role === "staff" || user.role === "warehouse")
+    user &&
+      (user.role === "staff" ||
+        user.role === "warehouse" ||
+        user.role === "leader")
       ? user._id
       : "all"
   );
@@ -57,8 +60,13 @@ const OrderList = ({
         console.log("Fetched staff list:", data);
         setStaffList(data);
 
-        // Mặc định: Nếu là staff hoặc warehouse thì chọn chính mình, nếu là admin thì chọn "Tất cả"
-        if (user && (user.role === "staff" || user.role === "warehouse")) {
+        // Mặc định: Nếu là staff, leader hoặc warehouse thì chọn chính mình, nếu là admin thì chọn "Tất cả"
+        if (
+          user &&
+          (user.role === "staff" ||
+            user.role === "warehouse" ||
+            user.role === "leader")
+        ) {
           console.log("Setting default creator filter to user:", user._id);
           setCreatorFilter(user._id);
         } else {
