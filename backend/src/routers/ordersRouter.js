@@ -16,12 +16,18 @@ import {
   getWarehouseItems,
   confirmWarehouseBatch,
 } from "../controllers/warehouseController.js";
+import {
+  getDispatcherItems,
+  confirmDispatcherBatch,
+} from "../controllers/dispatcherController.js";
 
 const ordersRouter = express.Router();
 
 // Route cho kho (đặt trước các route có param :id để tránh conflict)
 ordersRouter.get("/warehouse-items", protect, getWarehouseItems);
 ordersRouter.post("/warehouse-confirm-batch", protect, confirmWarehouseBatch);
+ordersRouter.get("/dispatcher-items", protect, getDispatcherItems);
+ordersRouter.post("/dispatcher-confirm-batch", protect, confirmDispatcherBatch);
 
 // CRUD cơ bản
 ordersRouter.post("/", protect, createOrder);

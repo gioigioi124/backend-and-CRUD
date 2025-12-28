@@ -13,6 +13,7 @@ const VehicleOrderList = ({
   refreshTrigger,
   fromDate,
   toDate,
+  onOrdersLoaded,
 }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -49,6 +50,7 @@ const VehicleOrderList = ({
 
       const data = await orderService.getAllOrders(params);
       setOrders(data);
+      if (onOrdersLoaded) onOrdersLoaded(data);
     } catch (err) {
       setError("Không thể tải danh sách đơn hàng");
       console.error("Không thể tải đơn hàng", err.message);

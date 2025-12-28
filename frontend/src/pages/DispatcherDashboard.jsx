@@ -30,6 +30,7 @@ const DispatcherDashboard = () => {
   const { user } = useAuth();
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [vehicleOrders, setVehicleOrders] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
@@ -76,6 +77,10 @@ const DispatcherDashboard = () => {
   const handleRefresh = () => {
     setRefreshTrigger((prev) => prev + 1);
     triggerVehicleRefresh();
+  };
+
+  const handleOrdersLoaded = (orders) => {
+    setVehicleOrders(orders);
   };
 
   const handleCreateOrder = () => {
@@ -186,13 +191,15 @@ const DispatcherDashboard = () => {
             refreshTrigger={refreshTrigger}
             fromDate={dateRange.fromDate}
             toDate={dateRange.toDate}
+            onOrdersLoaded={handleOrdersLoaded}
           />
         </div>
 
-        {/* Cột 3: Chi tiết & Xác nhận */}
+        {/* Cột 3: Xác nhận hàng loạt cho Xe */}
         <div className="col-span-6 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
           <DispatcherOrderDetail
-            order={selectedOrder}
+            orders={vehicleOrders}
+            selectedOrder={selectedOrder}
             vehicle={selectedVehicle}
             onUnassign={handleUnassign}
             onRefresh={handleRefresh}

@@ -105,4 +105,29 @@ export const orderService = {
     });
     return response.data;
   },
+
+  // Lấy danh sách hàng hóa cho điều vận/tổ trưởng
+  getDispatcherItems: async (fromDate, toDate, creator, status) => {
+    const params = {};
+    if (fromDate) params.fromDate = fromDate;
+    if (toDate) params.toDate = toDate;
+    if (creator) params.creator = creator;
+    if (status) params.status = status;
+
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString
+      ? `/orders/dispatcher-items?${queryString}`
+      : "/orders/dispatcher-items";
+
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  // Tổ trưởng xác nhận hàng loạt
+  confirmDispatcherBatch: async (updates) => {
+    const response = await api.post("/orders/dispatcher-confirm-batch", {
+      updates,
+    });
+    return response.data;
+  },
 };

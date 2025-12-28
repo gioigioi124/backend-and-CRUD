@@ -23,36 +23,63 @@ import {
 import { orderService } from "@/services/orderService";
 import { toast } from "sonner";
 
-const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
+const DispatcherOrderDetail = ({
+  orders = [],
+  selectedOrder,
+  vehicle,
+  onUnassign,
+  onRefresh,
+}) => {
   const [viewMode, setViewMode] = useState(1); // 1: Staff, 2: Confirm, 3: Final
   const [localItems, setLocalItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (order && order.items) {
-      setLocalItems(
-        order.items.map((item) => ({
-          ...item,
-          warehouseConfirmValue: item.warehouseConfirm?.value || "",
-          leaderConfirmValue: item.leaderConfirm?.value || "",
-        }))
-      );
+    if (orders && orders.length > 0) {
+      // Biến đổi toàn bộ items từ tất cả đơn hàng thành mặt bằng phẳng để xử lý một lần
+      const allItems = [];
+      orders.forEach((order) => {
+        if (order.items) {
+          order.items.forEach((item, index) => {
+            allItems.push({
+              ...item,
+              orderId: order._id,
+              orderDate: order.orderDate,
+              customerName: order.customer?.name || "N/A",
+              customerNote: order.customer?.note || "",
+              itemIndex: index, // Lưu lại index nguyên bản trong đơn hàng
+              warehouseConfirmValue: item.warehouseConfirm?.value || "",
+              leaderConfirmValue: item.leaderConfirm?.value || "",
+            });
+          });
+        }
+      });
+      setLocalItems(allItems);
     } else {
       setLocalItems([]);
     }
-  }, [order]);
+  }, [orders]);
 
-  if (!order) {
+  if (!vehicle) {
     return (
       <div className="text-center py-8 text-gray-500">
-        Chọn đơn hàng để xem chi tiết
+        Chọn xe để xem chi tiết các đơn hàng cần xác nhận
       </div>
     );
   }
 
-  const formatDate = (dateString) => {
+  if (orders.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Xe này chưa được gán đơn hàng nào
+      </div>
+    );
+  }
+
+  const formatDate = (dateString, includeTime = false) => {
     if (!dateString) return "";
     const date = new Date(dateString);
+    if (!includeTime) return date.toLocaleDateString("vi-VN");
     return date.toLocaleDateString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
@@ -61,12 +88,6 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
       minute: "2-digit",
     });
   };
-
-  const isAssigned = order.vehicle !== null && order.vehicle !== undefined;
-  const belongsToSelectedVehicle =
-    vehicle &&
-    order.vehicle &&
-    (order.vehicle._id === vehicle._id || order.vehicle === vehicle._id);
 
   const handleInputChange = (index, field, value) => {
     const newItems = [...localItems];
@@ -77,8 +98,11 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
   const handleQuickFill = () => {
     const newItems = localItems.map((item) => ({
       ...item,
-      warehouseConfirmValue: item.quantity.toString(),
-      leaderConfirmValue: item.quantity.toString(),
+      // Ưu tiên lấy từ kho xác nhận, nếu ko có thì lấy từ SL đơn
+      leaderConfirmValue:
+        item.warehouseConfirmValue || item.quantity.toString(),
+      warehouseConfirmValue:
+        item.warehouseConfirmValue || item.quantity.toString(),
     }));
     setLocalItems(newItems);
     toast.success("Đã điền nhanh số lượng thực tế");
@@ -87,14 +111,16 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
   const handleConfirm = async () => {
     try {
       setLoading(true);
+      // Chuẩn bị dữ liệu cho batch update
       const updates = localItems.map((item) => ({
-        _id: item._id,
-        warehouseConfirm: { value: item.warehouseConfirmValue },
-        leaderConfirm: { value: item.leaderConfirmValue },
+        orderId: item.orderId,
+        itemIndex: item.itemIndex,
+        leaderValue: item.leaderConfirmValue,
+        warehouseValue: item.warehouseConfirmValue,
       }));
 
-      await orderService.confirmOrderDetails(order._id, updates);
-      toast.success("Xác nhận thông tin đơn hàng thành công!");
+      await orderService.confirmDispatcherBatch(updates);
+      toast.success("Xác nhận thông tin toàn bộ xe thành công!");
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error(error);
@@ -106,11 +132,15 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
     }
   };
 
-  // View 3 logic: Filter leaderConfirm.value > 0
-  const finalItems = order.items.filter((item) => {
-    const val = parseFloat(item.leaderConfirm?.value);
+  // View 3 logic: Filter leaderConfirmValue > 0 or item.leaderConfirm.value > 0
+  const finalItems = localItems.filter((item) => {
+    const val = parseFloat(item.leaderConfirmValue);
     return !isNaN(val) && val > 0;
   });
+
+  // Highlight logic for selected order
+  const isItemSelected = (orderId) =>
+    selectedOrder && selectedOrder._id === orderId;
 
   return (
     <div className="space-y-4">
@@ -142,51 +172,28 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
         </Button>
       </div>
 
-      {/* Basic Info */}
+      {/* Basic Info: Show Vehicle instead of single Order */}
       <Card>
         <CardContent className="pt-6 space-y-2">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm font-medium text-gray-500">Khách hàng</p>
-              <p className="text-lg font-bold">
-                {order.customer?.name || "N/A"}
+              <p className="text-sm font-medium text-gray-500">
+                Đang điều phối xe
               </p>
-              {order.customer?.note && (
-                <p className="text-sm text-gray-600">{order.customer.note}</p>
-              )}
+              <p className="text-xl font-bold text-primary">
+                {vehicle?.licensePlate || "N/A"}
+              </p>
+              <p className="text-xs text-gray-500">
+                {orders.length} đơn hàng - {localItems.length} mặt hàng
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-500">
-                Trạng thái gán xe
-              </p>
-              <div className="flex items-center gap-1 justify-end">
-                {isAssigned ? (
-                  <span className="text-green-600 font-bold flex items-center gap-1">
-                    <Truck className="w-4 h-4" /> Đã gán
-                  </span>
-                ) : (
-                  <span className="text-orange-600 font-bold flex items-center gap-1">
-                    <Package className="w-4 h-4" /> Chưa gán
-                  </span>
-                )}
+              <p className="text-sm font-medium text-gray-500">Ngày vận hành</p>
+              <div className="flex items-center gap-1 justify-end font-bold text-gray-700">
+                <Calendar className="w-4 h-4" />{" "}
+                {formatDate(orders[0]?.orderDate)}
               </div>
-              {belongsToSelectedVehicle && onUnassign && (
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="text-red-500 h-auto p-0 mt-1"
-                  onClick={() => onUnassign(order)}
-                >
-                  Bỏ gán khỏi xe
-                </Button>
-              )}
             </div>
-          </div>
-          <div className="flex items-center gap-4 text-xs text-gray-500 pt-2 border-t">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" /> Ngày tạo:{" "}
-              {formatDate(order.createdAt)}
-            </span>
           </div>
         </CardContent>
       </Card>
@@ -195,9 +202,9 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-md">
-            {viewMode === 1 && "Danh sách hàng hóa"}
-            {viewMode === 2 && "Xác nhận hàng hóa thực tế"}
-            {viewMode === 3 && "Hàng hóa thực tế trên xe"}
+            {viewMode === 1 && "Chi tiết hàng hóa toàn xe"}
+            {viewMode === 2 && "Xác nhận hàng hóa thực tế (Cả xe)"}
+            {viewMode === 3 && "Hàng hóa thực tế chốt trên xe"}
           </CardTitle>
           {viewMode === 2 && (
             <div className="flex gap-2">
@@ -215,7 +222,7 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
                 disabled={loading}
                 className="gap-1 h-8 bg-green-600 hover:bg-green-700"
               >
-                <CheckSquare className="w-3 h-3" /> Xác nhận
+                <CheckSquare className="w-3 h-3" /> Xác nhận xe
               </Button>
             </div>
           )}
@@ -225,24 +232,25 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-[50px] text-center">STT</TableHead>
-                  <TableHead>Tên hàng hóa</TableHead>
-                  <TableHead className="w-[80px]">ĐVT</TableHead>
-                  <TableHead className="w-[80px] text-right">
+                  <TableHead className="w-[40px] text-center">STT</TableHead>
+                  <TableHead className="min-w-[150px]">
+                    Khách hàng / Hàng hóa
+                  </TableHead>
+                  <TableHead className="w-[60px] text-right">
                     {viewMode === 3 ? "SL Chốt" : "SL Đơn"}
                   </TableHead>
                   {viewMode === 2 && (
                     <>
-                      <TableHead className="w-[120px]">Kho XN</TableHead>
-                      <TableHead className="w-[120px]">Leader XN</TableHead>
+                      <TableHead className="w-[100px]">Kho XN</TableHead>
+                      <TableHead className="w-[100px]">Leader XN</TableHead>
                     </>
                   )}
                   {viewMode === 1 && (
                     <>
-                      <TableHead className="w-[100px] text-center">
+                      <TableHead className="w-[80px] text-center">
                         Kho XN
                       </TableHead>
-                      <TableHead className="w-[100px] text-center">
+                      <TableHead className="w-[80px] text-center">
                         Leader XN
                       </TableHead>
                     </>
@@ -254,16 +262,23 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
                 {viewMode === 3 ? (
                   finalItems.length > 0 ? (
                     finalItems.map((item, index) => (
-                      <TableRow key={index}>
+                      <TableRow
+                        key={index}
+                        className={
+                          isItemSelected(item.orderId) ? "bg-blue-50" : ""
+                        }
+                      >
                         <TableCell className="text-center">
                           {index + 1}
                         </TableCell>
-                        <TableCell className="font-medium">
-                          {item.productName}
+                        <TableCell>
+                          <div className="text-[10px] text-gray-400 uppercase font-bold">
+                            {item.customerName}
+                          </div>
+                          <div className="font-medium">{item.productName}</div>
                         </TableCell>
-                        <TableCell>{item.unit}</TableCell>
                         <TableCell className="text-right font-bold text-blue-600 text-lg">
-                          {item.leaderConfirm?.value || 0}
+                          {item.leaderConfirmValue || 0}
                         </TableCell>
                       </TableRow>
                     ))
@@ -279,21 +294,33 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
                   )
                 ) : (
                   localItems.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="text-center">
-                        {item.stt || index + 1}
-                      </TableCell>
+                    <TableRow
+                      key={index}
+                      className={`${
+                        isItemSelected(item.orderId) ? "bg-blue-50" : ""
+                      } ${
+                        item.orderId === selectedOrder?._id
+                          ? "border-l-4 border-l-blue-500"
+                          : ""
+                      }`}
+                    >
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell>
-                        <div>{item.productName}</div>
+                        <div className="text-[10px] text-gray-400 uppercase font-bold">
+                          {item.customerName}
+                        </div>
+                        <div className="text-sm">{item.productName}</div>
                         {item.size && (
-                          <div className="text-xs text-gray-500">
-                            {item.size}
+                          <div className="text-[10px] text-gray-500">
+                            KT: {item.size}
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>{item.unit}</TableCell>
                       <TableCell className="text-right font-medium">
-                        {item.quantity}
+                        {item.quantity}{" "}
+                        <span className="text-[10px] text-gray-400">
+                          {item.unit}
+                        </span>
                       </TableCell>
 
                       {viewMode === 2 ? (
@@ -308,7 +335,7 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
                                   e.target.value
                                 )
                               }
-                              className="h-8 text-sm"
+                              className="h-7 text-xs"
                               placeholder="K01..."
                             />
                           </TableCell>
@@ -322,28 +349,28 @@ const DispatcherOrderDetail = ({ order, vehicle, onUnassign, onRefresh }) => {
                                   e.target.value
                                 )
                               }
-                              className="h-8 text-sm font-bold text-blue-600"
+                              className="h-7 text-xs font-bold text-blue-600"
                               type="text"
-                              placeholder="Số lượng..."
+                              placeholder="SL..."
                             />
                           </TableCell>
                         </>
                       ) : (
                         <>
-                          <TableCell className="text-center">
-                            {item.warehouseConfirm?.value || "-"}
+                          <TableCell className="text-center text-xs">
+                            {item.warehouseConfirmValue || "-"}
                           </TableCell>
-                          <TableCell className="text-center font-medium text-blue-600">
-                            {item.leaderConfirm?.value || "-"}
+                          <TableCell className="text-center text-xs font-medium text-blue-600">
+                            {item.leaderConfirmValue || "-"}
                           </TableCell>
                         </>
                       )}
 
                       <TableCell
-                        className="text-sm text-gray-500 max-w-[150px] truncate"
-                        title={item.note}
+                        className="text-[10px] text-gray-500 max-w-[100px] truncate"
+                        title={item.customerNote + " | " + item.note}
                       >
-                        {item.note || "-"}
+                        {item.note || item.customerNote || "-"}
                       </TableCell>
                     </TableRow>
                   ))
