@@ -37,7 +37,7 @@ const OrderList = ({
   const [searchQuery, setSearchQuery] = useState(""); // Giá trị trong input
   const [activeSearchQuery, setActiveSearchQuery] = useState(""); // Giá trị đang được search
   const [staffList, setStaffList] = useState([]);
-  const [creatorFilter, setCreatorFilter] = useState(user?._id || "all");
+  const [creatorFilter, setCreatorFilter] = useState("all");
 
   // Khởi tạo dateRange với ngày hôm nay
   const todayDate = getTodayDate();
@@ -50,13 +50,24 @@ const OrderList = ({
     const fetchStaff = async () => {
       try {
         const data = await userService.getStaffList();
+        console.log("Fetched staff list:", data);
         setStaffList(data);
+
+        // Mặc định: Nếu là staff hoặc warehouse thì chọn chính mình, nếu là admin thì chọn "Tất cả"
+        if (user && (user.role === "staff" || user.role === "warehouse")) {
+          console.log("Setting default creator filter to user:", user._id);
+          setCreatorFilter(user._id);
+        } else {
+          setCreatorFilter("all");
+        }
       } catch (error) {
         console.error("Lỗi khi tải danh sách nhân viên:", error);
       }
     };
-    fetchStaff();
-  }, []);
+    if (user) {
+      fetchStaff();
+    }
+  }, [user]);
 
   // Tải danh sách đơn hàng
   const fetchOrders = useCallback(async () => {
@@ -180,20 +191,14 @@ const OrderList = ({
 
       {/* Filter và Search */}
       <div className="mb-4 space-y-2 max-w-75">
-        {/* Filter người tạo */}
-        <Select value={creatorFilter} onValueChange={setCreatorFilter}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Lọc theo người tạo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả nhân viên</SelectItem>
-            {staffList.map((staff) => (
-              <SelectItem key={staff._id} value={staff._id}>
-                {staff.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Search input */}
+        <Input
+          type="text"
+          placeholder="Tìm kiếm theo tên KH... (Enter để tìm)"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          onKeyDown={handleSearchKeyDown}
+        />
 
         {/* Filter dropdown */}
         <Select value={statusFilter} onValueChange={handleFilterChange}>
@@ -207,17 +212,28 @@ const OrderList = ({
           </SelectContent>
         </Select>
 
-        {/* Search input */}
-        <Input
-          type="text"
-          placeholder="Tìm kiếm theo tên KH... (Enter để tìm)"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          onKeyDown={handleSearchKeyDown}
-        />
-
         {/* Date range search */}
         <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
+
+        {/* Filter người tạo - đưa xuống dưới cùng */}
+        <div className="pt-2 border-t border-gray-100">
+          <span className="text-xs font-medium text-gray-500 mb-1 block">
+            Người tạo đơn:
+          </span>
+          <Select value={creatorFilter} onValueChange={setCreatorFilter}>
+            <SelectTrigger className="w-full bg-gray-50">
+              <SelectValue placeholder="Lọc theo người tạo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả các nhân viên</SelectItem>
+              {staffList.map((staff) => (
+                <SelectItem key={staff._id} value={staff._id}>
+                  {staff.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Danh sách đơn hàng */}

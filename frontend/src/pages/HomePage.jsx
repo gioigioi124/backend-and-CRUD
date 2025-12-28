@@ -41,7 +41,7 @@ const HomePage = () => {
 
   // Staff filter
   const [staffList, setStaffList] = useState([]);
-  const [selectedStaff, setSelectedStaff] = useState(user?._id || "all");
+  const [selectedStaff, setSelectedStaff] = useState("all"); // Khởi tạo là all, sau đó sẽ set lại theo user
 
   // Khởi tạo dateRange với ngày hôm nay để mặc định filter theo hôm nay
   const todayDate = getTodayDate();
@@ -56,18 +56,18 @@ const HomePage = () => {
       try {
         const data = await userService.getStaffList();
         setStaffList(data);
+
+        // Mặc định: Nếu là staff thì chọn chính mình, nếu là admin/warehouse thì chọn "Tất cả"
+        if (user && user.role === "staff") {
+          setSelectedStaff(user._id);
+        } else {
+          setSelectedStaff("all");
+        }
       } catch (error) {
         console.error("Lỗi khi tải danh sách nhân viên:", error);
       }
     };
     fetchStaff();
-  }, []);
-
-  // Cập nhật selectedStaff khi user thay đổi (lúc mới login)
-  useEffect(() => {
-    if (user?._id && selectedStaff === "all") {
-      setSelectedStaff(user._id);
-    }
   }, [user]);
 
   // Xử lý khi gán đơn thành công
@@ -175,25 +175,6 @@ const HomePage = () => {
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold">Quản lý đơn hàng và xe</h1>
           <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium whitespace-nowrap">
-              Người tạo:
-            </span>
-            <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Chọn nhân viên" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả nhân viên</SelectItem>
-                {staffList.map((staff) => (
-                  <SelectItem key={staff._id} value={staff._id}>
-                    {staff.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleCreateOrder}>Tạo đơn hàng mới</Button>
@@ -201,6 +182,26 @@ const HomePage = () => {
             Đăng xuất
           </Button>
         </div>
+      </div>
+
+      {/* Bộ lọc nhân viên được đưa xuống dưới */}
+      <div className="flex items-center gap-2 mb-4 bg-gray-50 p-2 rounded-md border border-gray-100 w-fit">
+        <span className="text-sm font-medium whitespace-nowrap">
+          Người tạo:
+        </span>
+        <Select value={selectedStaff} onValueChange={setSelectedStaff}>
+          <SelectTrigger className="w-[180px] bg-white">
+            <SelectValue placeholder="Chọn nhân viên" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả nhân viên</SelectItem>
+            {staffList.map((staff) => (
+              <SelectItem key={staff._id} value={staff._id}>
+                {staff.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-120px)]">
