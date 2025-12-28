@@ -7,8 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 const OrderListPage = () => {
+  const { user } = useAuth();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -89,6 +91,7 @@ const OrderListPage = () => {
         <Card className="lg:col-span-3">
           <CardContent className="p-4">
             <OrderList
+              key={user?._id}
               selectedOrder={selectedOrder}
               onSelectOrder={setSelectedOrder}
               onEdit={handleEdit}

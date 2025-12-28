@@ -37,7 +37,11 @@ const OrderList = ({
   const [searchQuery, setSearchQuery] = useState(""); // Giá trị trong input
   const [activeSearchQuery, setActiveSearchQuery] = useState(""); // Giá trị đang được search
   const [staffList, setStaffList] = useState([]);
-  const [creatorFilter, setCreatorFilter] = useState("all");
+  const [creatorFilter, setCreatorFilter] = useState(
+    user && (user.role === "staff" || user.role === "warehouse")
+      ? user._id
+      : "all"
+  );
 
   // Khởi tạo dateRange với ngày hôm nay
   const todayDate = getTodayDate();
