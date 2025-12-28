@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 
-const VehicleItem = ({ vehicle, isSelected, onSelect, onEdit, onDelete, hasOrders }) => {
+const VehicleItem = ({
+  vehicle,
+  isSelected,
+  onSelect,
+  onEdit,
+  onDelete,
+  hasOrders,
+}) => {
   return (
     <div onClick={() => onSelect(vehicle)}>
       <div
@@ -14,7 +21,8 @@ const VehicleItem = ({ vehicle, isSelected, onSelect, onEdit, onDelete, hasOrder
         <div className="cursor-pointer">
           <div className="flex">
             <div className="text-sm text-gray-600">
-              {vehicle.weight} - {vehicle.destination}
+              {vehicle.weight} - {vehicle.destination} -{" "}
+              {new Date(vehicle.vehicleDate).toLocaleDateString("vi-VN")}
             </div>
           </div>
           <div className="text-xs text-gray-500">{vehicle.time}</div>

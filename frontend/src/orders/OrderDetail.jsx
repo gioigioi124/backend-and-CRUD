@@ -34,14 +34,18 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
 
   // Kiểm tra trạng thái gán xe
   const isAssigned = order.vehicle !== null && order.vehicle !== undefined;
-  
+
   // Kiểm tra xem order có thuộc xe đang chọn không
-  const belongsToSelectedVehicle = vehicle && order.vehicle && 
+  const belongsToSelectedVehicle =
+    vehicle &&
+    order.vehicle &&
     (order.vehicle._id === vehicle._id || order.vehicle === vehicle._id);
 
   // Tính tổng số lượng và cm
-  const totalQuantity = order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
-  const totalCmQty = order.items?.reduce((sum, item) => sum + (item.cmQty || 0), 0) || 0;
+  const totalQuantity =
+    order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+  const totalCmQty =
+    order.items?.reduce((sum, item) => sum + (item.cmQty || 0), 0) || 0;
 
   return (
     <div className="space-y-4">
@@ -49,11 +53,7 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Chi tiết đơn hàng</h2>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(order)}
-          >
+          <Button variant="outline" size="sm" onClick={() => onEdit(order)}>
             <Pencil className="w-4 h-4 mr-1" />
             Sửa
           </Button>
@@ -75,12 +75,16 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
         </CardHeader>
         <CardContent className="space-y-2">
           <div>
-            <span className="text-sm font-medium text-gray-600">Tên khách hàng: </span>
+            <span className="text-sm font-medium text-gray-600">
+              Tên khách hàng:{" "}
+            </span>
             <span className="text-sm">{order.customer?.name || "N/A"}</span>
           </div>
           {order.customer?.note && (
             <div>
-              <span className="text-sm font-medium text-gray-600">Ghi chú: </span>
+              <span className="text-sm font-medium text-gray-600">
+                Ghi chú:{" "}
+              </span>
               <span className="text-sm">{order.customer.note}</span>
             </div>
           )}
@@ -98,7 +102,9 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
               {isAssigned ? (
                 <>
                   <Truck className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600 font-medium">Đã gán xe</span>
+                  <span className="text-sm text-green-600 font-medium">
+                    Đã gán xe
+                  </span>
                   {order.vehicle && (
                     <span className="text-sm text-gray-600">
                       - {order.vehicle.weight} - {order.vehicle.destination}
@@ -108,7 +114,9 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
               ) : (
                 <>
                   <Package className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm text-orange-600 font-medium">Chưa gán xe</span>
+                  <span className="text-sm text-orange-600 font-medium">
+                    Chưa gán xe
+                  </span>
                 </>
               )}
             </div>
@@ -159,19 +167,33 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
                       <TableHead className="w-[100px]">Số lượng</TableHead>
                       <TableHead className="w-[80px]">Kho</TableHead>
                       <TableHead className="w-[80px]">Số cm</TableHead>
+                      <TableHead className="w-[120px]">Kho xác nhận</TableHead>
+                      <TableHead className="w-[120px]">Tổ trưởng XN</TableHead>
                       <TableHead>Ghi chú</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {order.items.map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell className="text-center">{item.stt || index + 1}</TableCell>
+                        <TableCell className="text-center">
+                          {item.stt || index + 1}
+                        </TableCell>
                         <TableCell>{item.productName || "-"}</TableCell>
                         <TableCell>{item.size || "-"}</TableCell>
                         <TableCell>{item.unit || "-"}</TableCell>
-                        <TableCell className="text-right">{item.quantity || 0}</TableCell>
+                        <TableCell className="text-right">
+                          {item.quantity || 0}
+                        </TableCell>
                         <TableCell>{item.warehouse || "-"}</TableCell>
-                        <TableCell className="text-right">{item.cmQty || 0}</TableCell>
+                        <TableCell className="text-right">
+                          {item.cmQty || 0}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.warehouseConfirm?.value || "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.leaderConfirm?.value || "-"}
+                        </TableCell>
                         <TableCell className="text-sm text-gray-600">
                           {item.note || "-"}
                         </TableCell>
@@ -183,13 +205,16 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
               {/* Tổng kết */}
               <div className="text-sm text-gray-600 space-y-1">
                 <div>
-                  Tổng số mặt hàng: <span className="font-semibold">{order.items.length}</span>
+                  Tổng số mặt hàng:{" "}
+                  <span className="font-semibold">{order.items.length}</span>
                 </div>
                 <div>
-                  Tổng số lượng: <span className="font-semibold">{totalQuantity}</span>
+                  Tổng số lượng:{" "}
+                  <span className="font-semibold">{totalQuantity}</span>
                 </div>
                 <div>
-                  Tổng số cm: <span className="font-semibold">{totalCmQty}</span>
+                  Tổng số cm:{" "}
+                  <span className="font-semibold">{totalCmQty}</span>
                 </div>
               </div>
             </div>
@@ -201,4 +226,3 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
 };
 
 export default OrderDetail;
-
