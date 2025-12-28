@@ -11,6 +11,8 @@ const VehicleOrderList = ({
   onUnassign,
   onAssignClick,
   refreshTrigger,
+  fromDate,
+  toDate,
 }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,7 +41,13 @@ const VehicleOrderList = ({
     try {
       setLoading(true);
       setError(null);
-      const data = await orderService.getOrdersByVehicle(vehicle._id);
+      const params = { vehicle: vehicle._id };
+
+      // Thêm date range nếu có
+      if (fromDate) params.fromDate = fromDate;
+      if (toDate) params.toDate = toDate;
+
+      const data = await orderService.getAllOrders(params);
       setOrders(data);
     } catch (err) {
       setError("Không thể tải danh sách đơn hàng");
@@ -48,7 +56,7 @@ const VehicleOrderList = ({
     } finally {
       setLoading(false);
     }
-  }, [vehicle?._id]);
+  }, [vehicle?._id, fromDate, toDate]);
 
   // Fetch khi vehicle thay đổi hoặc refreshTrigger thay đổi
   useEffect(() => {
@@ -61,15 +69,15 @@ const VehicleOrderList = ({
     try {
       await orderService.unassignOrder(order._id);
       toast.success("Bỏ gán đơn hàng thành công!");
-      
+
       // Nếu đơn đang được chọn thì bỏ chọn
       if (selectedOrder?._id === order._id) {
         onSelectOrder(null);
       }
-      
+
       // Refresh danh sách
       fetchOrders();
-      
+
       // Gọi callback từ parent nếu có
       onUnassign?.(order);
     } catch (error) {
@@ -175,4 +183,3 @@ const VehicleOrderList = ({
 };
 
 export default VehicleOrderList;
-

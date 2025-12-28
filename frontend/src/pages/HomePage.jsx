@@ -4,11 +4,18 @@ import OrderDetail from "@/orders/OrderDetail";
 import AssignOrderDialog from "@/orders/AssignOrderDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
+import DateRangeSearch from "@/components/DateRangeSearch";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { toast } from "sonner";
 import { orderService } from "@/services/orderService";
+
+// Helper function để lấy ngày hôm nay
+const getTodayDate = () => {
+  const today = new Date();
+  return today.toISOString().split("T")[0];
+};
 
 const HomePage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
@@ -20,6 +27,12 @@ const HomePage = () => {
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  // Khởi tạo dateRange với ngày hôm nay để mặc định filter theo hôm nay
+  const todayDate = getTodayDate();
+  const [dateRange, setDateRange] = useState({
+    fromDate: todayDate,
+    toDate: todayDate,
+  });
   const { triggerRefresh: triggerVehicleRefresh } = useVehicleContext();
 
   // Xử lý khi gán đơn thành công
@@ -114,11 +127,20 @@ const HomePage = () => {
     }
   };
 
+  // Xử lý tìm kiếm theo ngày
+  const handleDateSearch = (fromDate, toDate) => {
+    setDateRange({ fromDate, toDate });
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-none">
       {/* Header với nút Tạo đơn hàng */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Quản lý đơn hàng và xe</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold">Quản lý đơn hàng và xe</h1>
+          <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
+        </div>
         <Button onClick={handleCreateOrder}>Tạo đơn hàng mới</Button>
       </div>
 
@@ -128,6 +150,8 @@ const HomePage = () => {
           <VehicleList
             selectedVehicle={selectedVehicle}
             onSelectVehicle={setSelectedVehicle}
+            fromDate={dateRange.fromDate}
+            toDate={dateRange.toDate}
           />
         </div>
 
@@ -140,6 +164,8 @@ const HomePage = () => {
             onUnassign={handleUnassign}
             onAssignClick={() => setAssignDialogOpen(true)}
             refreshTrigger={refreshTrigger}
+            fromDate={dateRange.fromDate}
+            toDate={dateRange.toDate}
           />
         </div>
 

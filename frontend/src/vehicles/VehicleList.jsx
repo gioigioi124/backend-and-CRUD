@@ -7,7 +7,12 @@ import { vehicleService } from "@/services/vehicleService";
 import { orderService } from "@/services/orderService";
 import { useVehicleContext } from "./VehicleContext";
 
-const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
+const VehicleList = ({
+  selectedVehicle,
+  onSelectVehicle,
+  fromDate,
+  toDate,
+}) => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,20 +26,26 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [orderCounts, setOrderCounts] = useState({}); // { vehicleId: count }
 
-  //chạy lại data khi sửa, xóa, thêm xe
+  //chạy lại data khi sửa, xóa, thêm xe hoặc khi date range thay đổi
   useEffect(() => {
     fetchVehicles();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, fromDate, toDate]);
 
   //tải danh sách xe
   const fetchVehicles = async () => {
     try {
       setLoading(true);
-      const data = await vehicleService.getAllVehicles();
+      const params = {};
+
+      // Thêm date range nếu có
+      if (fromDate) params.fromDate = fromDate;
+      if (toDate) params.toDate = toDate;
+
+      const data = await vehicleService.getAllVehicles(params);
       //Mảng giá trị của các xe
       setVehicles(data);
       setError(null);
-      
+
       // Fetch số lượng đơn hàng của mỗi xe
       const counts = {};
       for (const vehicle of data) {
@@ -74,7 +85,7 @@ const VehicleList = ({ selectedVehicle, onSelectVehicle }) => {
         orderCount = 0;
       }
     }
-    
+
     setDeletingVehicle({ ...vehicle, orderCount });
     setDeleteDialogOpen(true);
   };

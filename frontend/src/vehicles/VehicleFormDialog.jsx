@@ -46,19 +46,30 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
     time: "",
     destination: "",
     note: "",
+    vehicleDate: "",
   });
 
   const isEditMode = !!editData;
 
+  // Lấy ngày hôm nay ở định dạng YYYY-MM-DD
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
   // Load data khi edit
   useEffect(() => {
     if (editData) {
+      const vehicleDateValue = editData.vehicleDate
+        ? new Date(editData.vehicleDate).toISOString().split("T")[0]
+        : getTodayDate();
       setFormData({
         carName: editData.carName || "",
         weight: editData.weight || "",
         time: editData.time || "",
         destination: editData.destination || "",
         note: editData.note || "",
+        vehicleDate: vehicleDateValue,
       });
     } else {
       setFormData({
@@ -67,6 +78,7 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
         time: "",
         destination: "",
         note: "",
+        vehicleDate: getTodayDate(), // Mặc định là hôm nay
       });
     }
   }, [editData, open]);
@@ -83,7 +95,8 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
       !formData.carName ||
       !formData.weight ||
       !formData.time ||
-      !formData.destination
+      !formData.destination ||
+      !formData.vehicleDate
     ) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
@@ -107,6 +120,7 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
         time: "",
         destination: "",
         note: "",
+        vehicleDate: getTodayDate(),
       });
 
       // Đóng dialog và refresh danh sách
@@ -206,6 +220,24 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
               onChange={(e) => handleChange("note", e.target.value)}
               rows={3}
             />
+          </div>
+
+          {/* Ngày xe */}
+          <div className="space-y-2">
+            <Label htmlFor="vehicleDate">
+              Ngày xe <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="vehicleDate"
+              type="date"
+              value={formData.vehicleDate}
+              onChange={(e) => handleChange("vehicleDate", e.target.value)}
+              min={getTodayDate()}
+              required
+            />
+            <p className="text-xs text-gray-500">
+              Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai
+            </p>
           </div>
 
           <DialogFooter>

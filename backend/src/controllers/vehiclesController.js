@@ -15,7 +15,27 @@ export const createVehicle = async (req, res) => {
 //lấy tất cả dữ liệu
 export const getAllVehicles = async (req, res) => {
   try {
-    const result = await Vehicle.find({});
+    const filter = {};
+
+    // Filter theo khoảng ngày (vehicleDate)
+    if (req.query.fromDate || req.query.toDate) {
+      filter.vehicleDate = {};
+      if (req.query.fromDate) {
+        const fromDate = new Date(req.query.fromDate);
+        fromDate.setHours(0, 0, 0, 0); // Start of day
+        filter.vehicleDate.$gte = fromDate;
+      }
+      if (req.query.toDate) {
+        const toDate = new Date(req.query.toDate);
+        toDate.setHours(23, 59, 59, 999); // End of day
+        filter.vehicleDate.$lte = toDate;
+      }
+    }
+
+    const result = await Vehicle.find(filter).sort({
+      vehicleDate: -1,
+      createdAt: -1,
+    }); // Sắp xếp theo vehicleDate, sau đó createdAt
     res.status(200).json(result);
   } catch (error) {
     console.log("Lỗi khi lấy thông tin xe - ", error.message);
@@ -44,6 +64,9 @@ export const updateVehicle = async (req, res) => {
     vehicle.weight = req.body.weight;
     vehicle.destination = req.body.destination;
     vehicle.note = req.body.note;
+    if (req.body.vehicleDate) {
+      vehicle.vehicleDate = req.body.vehicleDate;
+    }
     await vehicle.save();
     res.status(200).json(vehicle);
   } catch (error) {
@@ -57,13 +80,13 @@ export const updateVehicle = async (req, res) => {
 export const deleteVehicle = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Kiểm tra xem có đơn hàng nào đang gán vào xe không
     const ordersWithVehicle = await Order.countDocuments({ vehicle: id });
-    
+
     if (ordersWithVehicle > 0) {
-      return res.status(400).json({ 
-        message: `Không thể xóa xe. Có ${ordersWithVehicle} đơn hàng đang được gán vào xe này. Vui lòng bỏ gán các đơn hàng trước khi xóa xe.` 
+      return res.status(400).json({
+        message: `Không thể xóa xe. Có ${ordersWithVehicle} đơn hàng đang được gán vào xe này. Vui lòng bỏ gán các đơn hàng trước khi xóa xe.`,
       });
     }
 

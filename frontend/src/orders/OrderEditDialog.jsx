@@ -19,9 +19,16 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [customer, setCustomer] = useState({ name: "", note: "" });
   const [items, setItems] = useState([]);
+  const [orderDate, setOrderDate] = useState("");
 
   // Kiểm tra chế độ: tạo mới hay sửa
   const isCreateMode = !order;
+
+  // Lấy ngày hôm nay ở định dạng YYYY-MM-DD
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
 
   // Load dữ liệu khi mở dialog
   useEffect(() => {
@@ -38,10 +45,18 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
           stt: item.stt || index + 1,
         }));
         setItems(itemsWithStt);
+        // Load orderDate
+        if (order.orderDate) {
+          const date = new Date(order.orderDate);
+          setOrderDate(date.toISOString().split("T")[0]);
+        } else {
+          setOrderDate(getTodayDate());
+        }
       } else {
         // Create mode: reset form
         setCustomer({ name: "", note: "" });
         setItems([]);
+        setOrderDate(getTodayDate()); // Mặc định là hôm nay
       }
     }
   }, [open, order]);
@@ -83,6 +98,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
       const orderData = {
         customer,
         items,
+        orderDate,
         vehicle: order?.vehicle || null,
       };
 
@@ -153,6 +169,23 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                 placeholder="Ghi chú về khách hàng (tùy chọn)"
                 rows={3}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-orderDate">
+                Ngày đơn hàng <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="edit-orderDate"
+                type="date"
+                value={orderDate}
+                onChange={(e) => setOrderDate(e.target.value)}
+                min={getTodayDate()}
+                required
+              />
+              <p className="text-xs text-gray-500">
+                Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai
+              </p>
             </div>
           </div>
 

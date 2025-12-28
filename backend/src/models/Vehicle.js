@@ -47,6 +47,23 @@ const vehicleSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    // Ngày xe (cho phép hôm nay hoặc tương lai, không cho phép quá khứ)
+    vehicleDate: {
+      type: Date,
+      required: [true, "Ngày xe là bắt buộc"],
+      validate: {
+        validator: function (value) {
+          // Chỉ cho phép ngày hôm nay hoặc tương lai
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const vehicleDate = new Date(value);
+          vehicleDate.setHours(0, 0, 0, 0);
+          return vehicleDate >= today;
+        },
+        message: "Ngày xe không được là ngày trong quá khứ",
+      },
+      default: Date.now,
+    },
   },
   {
     timestamps: true,

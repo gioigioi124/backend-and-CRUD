@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import OrderItem from "./OrderItem";
 import { orderService } from "@/services/orderService";
 import { Input } from "@/components/ui/input";
+import DateRangeSearch from "@/components/DateRangeSearch";
 import {
   Select,
   SelectContent,
@@ -26,6 +27,7 @@ const OrderList = ({
   const [statusFilter, setStatusFilter] = useState("all"); // "all", "unassigned", "assigned"
   const [searchQuery, setSearchQuery] = useState(""); // Giá trị trong input
   const [activeSearchQuery, setActiveSearchQuery] = useState(""); // Giá trị đang được search
+  const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
 
   // Tải danh sách đơn hàng
   const fetchOrders = useCallback(async () => {
@@ -43,6 +45,14 @@ const OrderList = ({
         params.search = activeSearchQuery.trim();
       }
 
+      // Thêm date range
+      if (dateRange.fromDate) {
+        params.fromDate = dateRange.fromDate;
+      }
+      if (dateRange.toDate) {
+        params.toDate = dateRange.toDate;
+      }
+
       const data = await orderService.getAllOrders(params);
       setOrders(data);
       setError(null);
@@ -53,7 +63,7 @@ const OrderList = ({
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, activeSearchQuery]);
+  }, [statusFilter, activeSearchQuery, dateRange]);
 
   // Fetch orders khi filter hoặc search thay đổi
   useEffect(() => {
@@ -82,6 +92,11 @@ const OrderList = ({
     if (e.key === "Enter") {
       setActiveSearchQuery(searchQuery);
     }
+  };
+
+  // Xử lý tìm kiếm theo ngày
+  const handleDateSearch = (fromDate, toDate) => {
+    setDateRange({ fromDate, toDate });
   };
 
   // Xử lý edit và delete - gọi callback từ parent
@@ -124,6 +139,9 @@ const OrderList = ({
           onChange={handleSearchChange}
           onKeyDown={handleSearchKeyDown}
         />
+
+        {/* Date range search */}
+        <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
       </div>
 
       {/* Danh sách đơn hàng */}

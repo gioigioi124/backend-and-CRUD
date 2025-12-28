@@ -83,6 +83,24 @@ const orderSchema = new mongoose.Schema(
       },
     ],
 
+    // Ngày đơn hàng (cho phép hôm nay hoặc tương lai, không cho phép quá khứ)
+    orderDate: {
+      type: Date,
+      required: [true, "Ngày đơn hàng là bắt buộc"],
+      validate: {
+        validator: function (value) {
+          // Chỉ cho phép ngày hôm nay hoặc tương lai
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const orderDate = new Date(value);
+          orderDate.setHours(0, 0, 0, 0);
+          return orderDate >= today;
+        },
+        message: "Ngày đơn hàng không được là ngày trong quá khứ",
+      },
+      default: Date.now,
+    },
+
     // Thông tin xe (ban đầu chưa có)
     vehicle: {
       type: mongoose.Schema.Types.ObjectId, //tham chiếu đến schema của vehicle

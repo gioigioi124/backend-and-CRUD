@@ -40,9 +40,24 @@ export const getAllOrders = async (req, res) => {
       };
     }
 
+    // Filter theo khoảng ngày (orderDate)
+    if (req.query.fromDate || req.query.toDate) {
+      filter.orderDate = {};
+      if (req.query.fromDate) {
+        const fromDate = new Date(req.query.fromDate);
+        fromDate.setHours(0, 0, 0, 0); // Start of day
+        filter.orderDate.$gte = fromDate;
+      }
+      if (req.query.toDate) {
+        const toDate = new Date(req.query.toDate);
+        toDate.setHours(23, 59, 59, 999); // End of day
+        filter.orderDate.$lte = toDate;
+      }
+    }
+
     const orders = await Order.find(filter)
       .populate("vehicle") // Lấy thông tin xe
-      .sort({ createdAt: -1 }); // Mới nhất trước
+      .sort({ orderDate: -1, createdAt: -1 }); // Sắp xếp theo orderDate, sau đó createdAt
 
     res.status(200).json(orders);
   } catch (error) {
