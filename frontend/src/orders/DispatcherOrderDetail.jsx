@@ -268,7 +268,13 @@ const DispatcherOrderDetail = ({
                           isItemSelected(item.orderId) ? "bg-blue-50" : ""
                         }
                       >
-                        <TableCell className="text-center">
+                        <TableCell
+                          className={`text-center ${
+                            isItemSelected(item.orderId)
+                              ? "border-l-4 border-l-blue-500"
+                              : ""
+                          }`}
+                        >
                           {index + 1}
                         </TableCell>
                         <TableCell>
@@ -296,15 +302,19 @@ const DispatcherOrderDetail = ({
                   localItems.map((item, index) => (
                     <TableRow
                       key={index}
-                      className={`${
+                      className={
                         isItemSelected(item.orderId) ? "bg-blue-50" : ""
-                      } ${
-                        item.orderId === selectedOrder?._id
-                          ? "border-l-4 border-l-blue-500"
-                          : ""
-                      }`}
+                      }
                     >
-                      <TableCell className="text-center">{index + 1}</TableCell>
+                      <TableCell
+                        className={`text-center ${
+                          isItemSelected(item.orderId)
+                            ? "border-l-4 border-l-blue-500"
+                            : ""
+                        }`}
+                      >
+                        {index + 1}
+                      </TableCell>
                       <TableCell>
                         <div className="text-[10px] text-gray-400 uppercase font-bold">
                           {item.customerName}
