@@ -5,6 +5,7 @@ import AssignOrderDialog from "@/orders/AssignOrderDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
+import OrderPrintPreview from "@/orders/OrderPrintPreview";
 import DateRangeSearch from "@/components/DateRangeSearch";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
@@ -45,6 +46,10 @@ const HomePage = () => {
   const [staffList, setStaffList] = useState([]);
   const [selectedStaff, setSelectedStaff] = useState("all");
 
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+  const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
+  const [ordersToPrint, setOrdersToPrint] = useState([]);
+
   const todayDate = getTodayDate();
   const [dateRange, setDateRange] = useState({
     fromDate: todayDate,
@@ -68,6 +73,11 @@ const HomePage = () => {
     };
     fetchStaff();
   }, [user]);
+
+  // Reset selection when vehicle changes
+  useEffect(() => {
+    setSelectedOrderIds([]);
+  }, [selectedVehicle]);
 
   const handleAssignSuccess = () => {
     setRefreshTrigger((prev) => prev + 1);
@@ -136,6 +146,27 @@ const HomePage = () => {
   const handleDateSearch = (fromDate, toDate) => {
     setDateRange({ fromDate, toDate });
     setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const handleToggleSelectOrder = (orderId) => {
+    setSelectedOrderIds((prev) =>
+      prev.includes(orderId)
+        ? prev.filter((id) => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const handleSelectAllOrders = (allOrderIds) => {
+    if (selectedOrderIds.length === allOrderIds.length) {
+      setSelectedOrderIds([]);
+    } else {
+      setSelectedOrderIds(allOrderIds);
+    }
+  };
+
+  const handlePrint = (orders) => {
+    setOrdersToPrint(orders);
+    setPrintPreviewOpen(true);
   };
 
   return (
@@ -235,6 +266,10 @@ const HomePage = () => {
             refreshTrigger={refreshTrigger}
             fromDate={dateRange.fromDate}
             toDate={dateRange.toDate}
+            selectedOrderIds={selectedOrderIds}
+            onToggleSelect={handleToggleSelectOrder}
+            onSelectAll={handleSelectAllOrders}
+            onPrint={handlePrint}
           />
         </div>
 
@@ -276,6 +311,12 @@ const HomePage = () => {
         open={openVehicleDialog}
         onOpenChange={setOpenVehicleDialog}
         onSuccess={triggerVehicleRefresh}
+      />
+
+      <OrderPrintPreview
+        open={printPreviewOpen}
+        onOpenChange={setPrintPreviewOpen}
+        selectedOrders={ordersToPrint}
       />
     </div>
   );

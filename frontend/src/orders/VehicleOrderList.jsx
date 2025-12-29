@@ -14,6 +14,10 @@ const VehicleOrderList = ({
   fromDate,
   toDate,
   onOrdersLoaded,
+  selectedOrderIds = [],
+  onToggleSelect,
+  onSelectAll,
+  onPrint,
 }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -91,6 +95,9 @@ const VehicleOrderList = ({
     }
   };
 
+  const isAllSelected =
+    orders.length > 0 && selectedOrderIds.length === orders.length;
+
   if (!vehicle) {
     return (
       <div className="text-gray-500 text-center py-4">
@@ -111,11 +118,38 @@ const VehicleOrderList = ({
     <div>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Đơn hàng trong xe</h2>
-        <Button size="sm" onClick={onAssignClick}>
-          <Package className="w-4 h-4 mr-1" />
-          Gán đơn vào xe
-        </Button>
+        <div className="flex gap-2">
+          {orders.length > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onSelectAll(orders.map((o) => o._id))}
+              className={
+                isAllSelected ? "bg-blue-50 text-blue-600 border-blue-200" : ""
+              }
+            >
+              {isAllSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
+            </Button>
+          )}
+          <Button size="sm" onClick={onAssignClick}>
+            <Package className="w-4 h-4 mr-1" />
+            Gán đơn
+          </Button>
+        </div>
       </div>
+
+      {orders.length > 0 && selectedOrderIds.length > 0 && (
+        <div className="mb-4">
+          <Button
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() =>
+              onPrint(orders.filter((o) => selectedOrderIds.includes(o._id)))
+            }
+          >
+            In {selectedOrderIds.length} đơn đã chọn
+          </Button>
+        </div>
+      )}
 
       {orders.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
@@ -134,18 +168,40 @@ const VehicleOrderList = ({
         <div className="space-y-2">
           {orders.map((order) => {
             const totalItems = order.items?.length || 0;
+            const isSelected = selectedOrderIds.includes(order._id);
             return (
               <div
                 key={order._id}
                 onClick={() => onSelectOrder(order)}
-                className={`relative p-3 border rounded transition-colors group cursor-pointer ${
+                className={`relative p-3 border rounded transition-colors group cursor-pointer flex gap-3 ${
                   selectedOrder?._id === order._id
                     ? "bg-blue-50 border-blue-500"
                     : "hover:bg-gray-50"
-                }`}
+                } ${isSelected ? "ring-2 ring-blue-400 ring-inset" : ""}`}
               >
+                {/* Checkbox */}
+                <div
+                  className="flex items-start pt-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSelect(order._id);
+                  }}
+                >
+                  <div
+                    className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                      isSelected
+                        ? "bg-blue-600 border-blue-600"
+                        : "bg-white border-gray-300"
+                    }`}
+                  >
+                    {isSelected && (
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Thông tin đơn hàng */}
-                <div>
+                <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <div className="text-sm font-medium text-gray-900">
                       {order.customer?.name || "Không có tên"}
@@ -168,10 +224,10 @@ const VehicleOrderList = ({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="h-7 text-[10px] text-red-600 hover:text-red-700 hover:bg-red-50 p-1"
                     onClick={(e) => handleUnassign(order, e)}
                   >
-                    <X className="w-4 h-4 mr-1" />
+                    <X className="w-3 h-3 mr-1" />
                     Bỏ gán
                   </Button>
                 </div>
