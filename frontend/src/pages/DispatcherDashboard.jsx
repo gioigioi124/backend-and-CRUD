@@ -2,7 +2,9 @@ import VehicleList from "@/vehicles/VehicleList";
 import VehicleOrderList from "@/orders/VehicleOrderList";
 import DispatcherOrderDetail from "@/orders/DispatcherOrderDetail";
 import DateRangeSearch from "@/components/DateRangeSearch";
-import { List, PlusCircle, Truck } from "lucide-react";
+import OrderPrintPreview from "@/orders/OrderPrintPreview";
+import DispatchManifestPreview from "@/orders/DispatchManifestPreview";
+import { List, PlusCircle, Truck, Printer } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -10,7 +12,6 @@ import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { userService } from "@/services/userService";
 import { orderService } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import {
@@ -38,6 +39,13 @@ const DispatcherDashboard = () => {
   const [staffList, setStaffList] = useState([]);
   const [selectedStaff, setSelectedStaff] = useState("all");
 
+  const [manifestPreviewOpen, setManifestPreviewOpen] = useState(false);
+  const [manifestItems, setManifestItems] = useState([]);
+
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+  const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
+  const [ordersToPrint, setOrdersToPrint] = useState([]);
+
   const todayDate = getTodayDate();
   const [dateRange, setDateRange] = useState({
     fromDate: todayDate,
@@ -63,6 +71,11 @@ const DispatcherDashboard = () => {
     fetchStaff();
   }, [user]);
 
+  // Reset selection when vehicle changes
+  useEffect(() => {
+    setSelectedOrderIds([]);
+  }, [selectedVehicle]);
+
   const handleDateSearch = (fromDate, toDate) => {
     setDateRange({ fromDate, toDate });
     setRefreshTrigger((prev) => prev + 1);
@@ -81,6 +94,32 @@ const DispatcherDashboard = () => {
 
   const handleOrdersLoaded = (orders) => {
     setVehicleOrders(orders);
+  };
+
+  const handleToggleSelectOrder = (orderId) => {
+    setSelectedOrderIds((prev) =>
+      prev.includes(orderId)
+        ? prev.filter((id) => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const handleSelectAllOrders = (allOrderIds) => {
+    if (selectedOrderIds.length === allOrderIds.length) {
+      setSelectedOrderIds([]);
+    } else {
+      setSelectedOrderIds(allOrderIds);
+    }
+  };
+
+  const handlePrint = (orders) => {
+    setOrdersToPrint(orders);
+    setPrintPreviewOpen(true);
+  };
+
+  const handlePrintManifest = (items) => {
+    setManifestItems(items);
+    setManifestPreviewOpen(true);
   };
 
   const handleCreateOrder = () => {
@@ -192,6 +231,10 @@ const DispatcherDashboard = () => {
             fromDate={dateRange.fromDate}
             toDate={dateRange.toDate}
             onOrdersLoaded={handleOrdersLoaded}
+            selectedOrderIds={selectedOrderIds}
+            onToggleSelect={handleToggleSelectOrder}
+            onSelectAll={handleSelectAllOrders}
+            onPrint={handlePrint}
           />
         </div>
 
@@ -201,8 +244,8 @@ const DispatcherDashboard = () => {
             orders={vehicleOrders}
             selectedOrder={selectedOrder}
             vehicle={selectedVehicle}
-            onUnassign={handleUnassign}
             onRefresh={handleRefresh}
+            onPrintManifest={handlePrintManifest}
           />
         </div>
       </div>
@@ -218,6 +261,19 @@ const DispatcherDashboard = () => {
         open={openVehicleDialog}
         onOpenChange={setOpenVehicleDialog}
         onSuccess={triggerVehicleRefresh}
+      />
+
+      <OrderPrintPreview
+        open={printPreviewOpen}
+        onOpenChange={setPrintPreviewOpen}
+        selectedOrders={ordersToPrint}
+      />
+
+      <DispatchManifestPreview
+        open={manifestPreviewOpen}
+        onOpenChange={setManifestPreviewOpen}
+        vehicle={selectedVehicle}
+        items={manifestItems}
       />
     </div>
   );

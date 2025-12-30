@@ -14,11 +14,11 @@ import {
   Truck,
   Package,
   Calendar,
-  X,
-  Eye,
   CheckCircle2,
   CheckSquare,
   Zap,
+  Printer,
+  Eye,
 } from "lucide-react";
 import { orderService } from "@/services/orderService";
 import { toast } from "sonner";
@@ -27,8 +27,8 @@ const DispatcherOrderDetail = ({
   orders = [],
   selectedOrder,
   vehicle,
-  onUnassign,
   onRefresh,
+  onPrintManifest,
 }) => {
   const [viewMode, setViewMode] = useState(1); // 1: Staff, 2: Confirm, 3: Final
   const [localItems, setLocalItems] = useState([]);
@@ -226,6 +226,16 @@ const DispatcherOrderDetail = ({
               </Button>
             </div>
           )}
+          {viewMode === 3 && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onPrintManifest(finalItems)}
+              className="gap-1 h-8 border-blue-200 text-blue-600 hover:bg-blue-50"
+            >
+              <Printer className="w-3.5 h-3.5" /> In Bảng kê
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="border rounded-lg overflow-hidden">
@@ -291,7 +301,7 @@ const DispatcherOrderDetail = ({
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
+                        colSpan={3}
                         className="text-center py-4 text-gray-500 italic"
                       >
                         Chưa có hàng hóa nào được chốt (hoặc tất cả SL = 0)
