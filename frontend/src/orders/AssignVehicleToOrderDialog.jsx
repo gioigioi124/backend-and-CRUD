@@ -25,6 +25,7 @@ const AssignVehicleToOrderDialog = ({
     new Date().toISOString().split("T")[0]
   );
   const [orderCounts, setOrderCounts] = useState({});
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
 
   useEffect(() => {
     if (open) {
@@ -33,6 +34,7 @@ const AssignVehicleToOrderDialog = ({
         dateToUse = new Date(order.createdAt).toISOString().split("T")[0];
       }
       setSelectedDate(dateToUse);
+      setSelectedVehicle(null); // Reset selection khi mở dialog
       fetchVehicles(dateToUse);
     }
   }, [open, order]);
@@ -66,18 +68,36 @@ const AssignVehicleToOrderDialog = ({
     }
   };
 
-  const handleAssign = async (vehicle) => {
-    if (!order) return;
+  const handleAssign = async () => {
+    if (!order || !selectedVehicle) return;
 
     try {
       setAssigning(true);
-      await orderService.assignOrder(order._id, vehicle._id);
-      toast.success(`Đã gán đơn hàng vào xe ${vehicle.carName || "này"}`);
+      await orderService.assignOrder(order._id, selectedVehicle._id);
+      toast.success(`Đã gán đơn hàng vào xe ${selectedVehicle.carName || "này"}`);
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
       toast.error(
         "Gán xe thất bại: " + (error.response?.data?.message || error.message)
+      );
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const handleUnassign = async () => {
+    if (!order) return;
+
+    try {
+      setAssigning(true);
+      await orderService.unassignOrder(order._id);
+      toast.success("Đã bỏ gán xe cho đơn hàng");
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error) {
+      toast.error(
+        "Bỏ gán xe thất bại: " + (error.response?.data?.message || error.message)
       );
     } finally {
       setAssigning(false);
@@ -121,9 +141,11 @@ const AssignVehicleToOrderDialog = ({
             vehicles.map((vehicle) => (
               <div
                 key={vehicle._id}
-                onClick={() => handleAssign(vehicle)}
+                onClick={() => setSelectedVehicle(vehicle)}
                 className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-blue-50 hover:border-blue-300 ${
-                  order?.vehicle === vehicle._id // Highlight xe hiện tại (nếu có)
+                  selectedVehicle?._id === vehicle._id
+                    ? "bg-blue-50 border-blue-500 ring-2 ring-blue-500"
+                    : order?.vehicle === vehicle._id
                     ? "bg-green-50 border-green-500 ring-1 ring-green-500"
                     : "bg-white"
                 }`}
@@ -152,6 +174,38 @@ const AssignVehicleToOrderDialog = ({
               </div>
             ))
           )}
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex justify-between gap-2 pt-3 border-t">
+          <div>
+            {order?.vehicle && (
+              <Button
+                variant="destructive"
+                onClick={handleUnassign}
+                disabled={assigning}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Bỏ gán xe
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={assigning}
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleAssign}
+              disabled={!selectedVehicle || assigning}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {assigning ? "Đang gán..." : "Xác nhận gán xe"}
+            </Button>
+          </div>
         </div>
         
         {assigning && (
