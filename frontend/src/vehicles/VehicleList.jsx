@@ -118,6 +118,40 @@ const VehicleList = ({
     }
   };
 
+  // Xử lý toggle trạng thái đã in (optimistic update)
+  const handleTogglePrinted = async (vehicle) => {
+    const newPrintedStatus = !vehicle.isPrinted;
+    
+    // Cập nhật UI ngay lập tức (optimistic update)
+    setVehicles(prevVehicles => 
+      prevVehicles.map(v => 
+        v._id === vehicle._id 
+          ? { ...v, isPrinted: newPrintedStatus }
+          : v
+      )
+    );
+
+    try {
+      // Gọi API ở background
+      await vehicleService.updateVehicle(vehicle._id, { isPrinted: newPrintedStatus });
+      toast.success(newPrintedStatus ? "Đã đánh dấu đã in" : "Đã bỏ đánh dấu đã in");
+    } catch (error) {
+      // Nếu lỗi, rollback lại state cũ
+      setVehicles(prevVehicles => 
+        prevVehicles.map(v => 
+          v._id === vehicle._id 
+            ? { ...v, isPrinted: !newPrintedStatus }
+            : v
+        )
+      );
+      toast.error(
+        "Cập nhật trạng thái thất bại: " +
+          (error.response?.data?.message || error.message)
+      );
+      console.error(error);
+    }
+  };
+
   //loading và error
   if (loading) return <div className="text-center py-4">Đang tải...</div>;
   if (error)
@@ -147,6 +181,7 @@ const VehicleList = ({
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   hasOrders={hasOrders}
+                  onTogglePrinted={handleTogglePrinted}
                 />
               );
             })}

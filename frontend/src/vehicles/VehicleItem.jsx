@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Check } from "lucide-react";
 
 const VehicleItem = ({
   vehicle,
@@ -8,6 +8,7 @@ const VehicleItem = ({
   onEdit,
   onDelete,
   hasOrders,
+  onTogglePrinted,
 }) => {
   return (
     <div onClick={() => onSelect(vehicle)}>
@@ -18,19 +19,42 @@ const VehicleItem = ({
         }`}
       >
         {/* Thông tin xe */}
-        <div className="cursor-pointer">
-          <div className="flex">
-            <div className="text-sm text-gray-600">
-              {vehicle.weight} - {vehicle.destination} -{" "}
-              {new Date(vehicle.vehicleDate).toLocaleDateString("vi-VN")}
-            </div>
+        <div className="flex gap-3">
+          {/* Nút đánh dấu đã in */}
+          <div className="flex items-start pt-1">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onTogglePrinted?.(vehicle);
+              }}
+              className={`w-6 h-6 rounded border flex items-center justify-center transition-all ${
+                vehicle.isPrinted
+                  ? "bg-yellow-400 border-yellow-500 hover:bg-yellow-500"
+                  : "bg-white border-gray-300 hover:bg-gray-100"
+              }`}
+              title={vehicle.isPrinted ? "Đã in đơn" : "Chưa in đơn"}
+            >
+              {vehicle.isPrinted && (
+                <Check className="w-4 h-4 text-white" />
+              )}
+            </button>
           </div>
-          <div className="text-xs text-gray-500">{vehicle.time}</div>
-          {vehicle.note && (
-            <div className="text-xs text-gray-400 mt-1 italic">
-              {vehicle.note}
+
+          {/* Thông tin xe */}
+          <div className="cursor-pointer flex-1">
+            <div className="flex">
+              <div className="text-sm text-gray-600">
+                {vehicle.weight} - {vehicle.destination} -{" "}
+                {new Date(vehicle.vehicleDate).toLocaleDateString("vi-VN")}
+              </div>
             </div>
-          )}
+            <div className="text-xs text-gray-500">{vehicle.time}</div>
+            {vehicle.note && (
+              <div className="text-xs text-gray-400 mt-1 italic">
+                {vehicle.note}
+              </div>
+            )}
+          </div>
         </div>
         {/* Nút sửa, xóa */}
         <div className="absolute bottom-2 right-2 hidden group-hover:flex space-x-1 bg-white/90 p-1 rounded-md shadow-sm">

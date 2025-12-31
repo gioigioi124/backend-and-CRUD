@@ -70,19 +70,24 @@ export const updateVehicle = async (req, res) => {
   try {
     const vehicle = await Vehicle.findById(req.params.id);
     if (!vehicle) return res.status(404).json({ message: "Không có xe này" });
-    vehicle.carName = req.body.carName;
-    vehicle.time = req.body.time;
-    vehicle.weight = req.body.weight;
-    vehicle.destination = req.body.destination;
-    vehicle.note = req.body.note;
+
+    // Chỉ cập nhật nếu dữ liệu được gửi lên
+    if (req.body.carName) vehicle.carName = req.body.carName;
+    if (req.body.time) vehicle.time = req.body.time;
+    if (req.body.weight) vehicle.weight = req.body.weight;
+    if (req.body.destination) vehicle.destination = req.body.destination;
+    if (req.body.note !== undefined) vehicle.note = req.body.note;
     if (req.body.vehicleDate) {
       vehicle.vehicleDate = req.body.vehicleDate;
     }
+    if (req.body.isPrinted !== undefined) {
+      vehicle.isPrinted = req.body.isPrinted;
+    }
+
     await vehicle.save();
     res.status(200).json(vehicle);
   } catch (error) {
     console.log("Lỗi khi cập nhật thông tin xe - ", error.message);
-    console.log("Lỗi khi cập nhật thông tin xe");
     res.status(500).json({ message: "Lỗi khi cập nhật thông tin xe" });
   }
 };

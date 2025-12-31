@@ -64,6 +64,11 @@ const vehicleSchema = new mongoose.Schema(
       },
       default: Date.now,
     },
+    // Trạng thái đã in đơn
+    isPrinted: {
+      type: Boolean,
+      default: false,
+    },
     // Người tạo xe
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
