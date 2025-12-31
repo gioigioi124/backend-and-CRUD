@@ -77,6 +77,8 @@ const DispatcherDashboard = () => {
   // Reset selection when vehicle changes
   useEffect(() => {
     setSelectedOrderIds([]);
+    setSelectedOrder(null); // Reset đơn hàng đang chọn khi đổi xe
+    setVehicleOrders([]); // Reset danh sách đơn hàng khi đổi xe để tránh hiển thị dữ liệu cũ
   }, [selectedVehicle]);
 
   const handleDateSearch = (fromDate, toDate) => {
@@ -97,6 +99,18 @@ const DispatcherDashboard = () => {
 
   const handleOrdersLoaded = (orders) => {
     setVehicleOrders(orders);
+
+    // Logic update data mới nhất cho đơn hàng đang chọn (nếu có)
+    // KHÔNG tự động chọn đơn hàng mới khi đổi xe
+    if (selectedOrder && orders.length > 0) {
+      const found = orders.find((o) => o._id === selectedOrder._id);
+      if (found) {
+        setSelectedOrder(found);
+      } else {
+        // Nếu đơn hàng đang chọn không còn trong danh sách (do bị xóa hoặc đổi xe) -> Bỏ chọn
+        setSelectedOrder(null);
+      }
+    }
   };
 
   const handleToggleSelectOrder = (orderId) => {

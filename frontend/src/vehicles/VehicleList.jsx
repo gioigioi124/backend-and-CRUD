@@ -134,13 +134,47 @@ const VehicleList = ({
     try {
       // Gọi API ở background
       await vehicleService.updateVehicle(vehicle._id, { isPrinted: newPrintedStatus });
-      toast.success(newPrintedStatus ? "Đã đánh dấu đã in" : "Đã bỏ đánh dấu đã in");
+      toast.info(newPrintedStatus ? "Đã đánh dấu đã in" : "Đã bỏ đánh dấu đã in");
     } catch (error) {
       // Nếu lỗi, rollback lại state cũ
       setVehicles(prevVehicles => 
         prevVehicles.map(v => 
           v._id === vehicle._id 
             ? { ...v, isPrinted: !newPrintedStatus }
+            : v
+        )
+      );
+      toast.error(
+        "Cập nhật trạng thái thất bại: " +
+          (error.response?.data?.message || error.message)
+      );
+      console.error(error);
+    }
+  };
+
+  // Xử lý toggle trạng thái hoàn thành (optimistic update)
+  const handleToggleCompleted = async (vehicle) => {
+    const newCompletedStatus = !vehicle.isCompleted;
+    
+    // Cập nhật UI ngay lập tức (optimistic update)
+    setVehicles(prevVehicles => 
+      prevVehicles.map(v => 
+        v._id === vehicle._id 
+          ? { ...v, isCompleted: newCompletedStatus }
+          : v
+      )
+    );
+
+    try {
+      // Gọi API ở background
+      await vehicleService.updateVehicle(vehicle._id, { isCompleted: newCompletedStatus });
+      toast.success(newCompletedStatus ? "Đã đánh dấu hoàn thành" : "Đã bỏ đánh dấu hoàn thành");
+    } catch (error) {
+      // Nếu lỗi, rollback lại state cũ
+      setVehicles(prevVehicles => 
+        prevVehicles.map(v => 
+          v._id === vehicle._id 
+            ? { ...v, isCompleted: !newCompletedStatus }
             : v
         )
       );
@@ -182,6 +216,7 @@ const VehicleList = ({
                   onDelete={handleDelete}
                   hasOrders={hasOrders}
                   onTogglePrinted={handleTogglePrinted}
+                  onToggleCompleted={handleToggleCompleted}
                 />
               );
             })}

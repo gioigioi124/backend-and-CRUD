@@ -69,6 +69,11 @@ const vehicleSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Trạng thái đã hoàn thành
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
     // Người tạo xe
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

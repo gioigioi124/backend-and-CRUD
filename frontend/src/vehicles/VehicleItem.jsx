@@ -9,36 +9,50 @@ const VehicleItem = ({
   onDelete,
   hasOrders,
   onTogglePrinted,
+  onToggleCompleted,
 }) => {
   return (
     <div onClick={() => onSelect(vehicle)}>
       <div
         className={`relative p-3 border rounded transition-colors group ${
-          //hiệu ứng khi select
-          isSelected ? "bg-blue-50 border-blue-500" : "hover:bg-gray-50"
+          // Màu viền: Ưu tiên blue khi select, sau đó là green khi hoàn thành, cuối cùng là mặc định
+          isSelected
+            ? "border-blue-600 ring-3 ring-blue-600/30"
+            : vehicle.isCompleted
+            ? "border-green-500"
+            : "border-gray-200"
+        } ${
+          // Màu nền: Success khi hoàn thành, Blue nhạt khi select (nếu chưa hoàn thành), mặc định là hover
+          vehicle.isCompleted
+            ? "bg-green-100"
+            : isSelected
+            ? "bg-blue-50"
+            : "hover:bg-gray-50"
         }`}
       >
         {/* Thông tin xe */}
         <div className="flex gap-3">
-          {/* Nút đánh dấu đã in */}
-          <div className="flex items-start pt-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onTogglePrinted?.(vehicle);
-              }}
-              className={`w-6 h-6 rounded border flex items-center justify-center transition-all ${
-                vehicle.isPrinted
-                  ? "bg-yellow-400 border-yellow-500 hover:bg-yellow-500"
-                  : "bg-white border-gray-300 hover:bg-gray-100"
-              }`}
-              title={vehicle.isPrinted ? "Đã in đơn" : "Chưa in đơn"}
-            >
-              {vehicle.isPrinted && (
-                <Check className="w-4 h-4 text-white" />
-              )}
-            </button>
-          </div>
+          {/* Nút đánh dấu đã in - chỉ hiển thị khi xe chưa hoàn thành */}
+          {!vehicle.isCompleted && (
+            <div className="flex items-start pt-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTogglePrinted?.(vehicle);
+                }}
+                className={`w-6 h-6 rounded border flex items-center justify-center transition-all ${
+                  vehicle.isPrinted
+                    ? "bg-yellow-400 border-yellow-500 hover:bg-yellow-500"
+                    : "bg-white border-gray-300 hover:bg-gray-100"
+                }`}
+                title={vehicle.isPrinted ? "Đã in đơn" : "Chưa in đơn"}
+              >
+                {vehicle.isPrinted && (
+                  <Check className="w-4 h-4 text-white" />
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Thông tin xe */}
           <div className="cursor-pointer flex-1">
@@ -56,8 +70,20 @@ const VehicleItem = ({
             )}
           </div>
         </div>
-        {/* Nút sửa, xóa */}
+        {/* Nút sửa, xóa, hoàn thành */}
         <div className="absolute bottom-2 right-2 hidden group-hover:flex space-x-1 bg-white/90 p-1 rounded-md shadow-sm">
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCompleted?.(vehicle);
+            }}
+            title={vehicle.isCompleted ? "Đã hoàn thành" : "Đánh dấu hoàn thành"}
+          >
+            <Check className={`w-4 h-4 mr-1 ${vehicle.isCompleted ? "text-green-600" : ""}`} />
+          </Button>
           <Button
             size="sm"
             variant="outline"

@@ -83,6 +83,9 @@ export const updateVehicle = async (req, res) => {
     if (req.body.isPrinted !== undefined) {
       vehicle.isPrinted = req.body.isPrinted;
     }
+    if (req.body.isCompleted !== undefined) {
+      vehicle.isCompleted = req.body.isCompleted;
+    }
 
     await vehicle.save();
     res.status(200).json(vehicle);

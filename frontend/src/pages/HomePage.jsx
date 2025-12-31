@@ -80,6 +80,7 @@ const HomePage = () => {
   // Reset selection when vehicle changes
   useEffect(() => {
     setSelectedOrderIds([]);
+    setSelectedOrder(null); // Reset đơn hàng đang chọn để tránh hiện thông tin của xe cũ
   }, [selectedVehicle]);
 
   const handleAssignSuccess = () => {
