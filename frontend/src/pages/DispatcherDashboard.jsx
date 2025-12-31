@@ -13,7 +13,7 @@ import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { userService } from "@/services/userService";
 import { orderService } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
-import AssignOrderDialog from "@/orders/AssignOrderDialog";
+import AssignOrdersToVehicleDialog from "@/vehicles/AssignOrdersToVehicleDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import {
@@ -289,12 +289,11 @@ const DispatcherDashboard = () => {
         </div>
       </div>
 
-      <AssignOrderDialog
+      <AssignOrdersToVehicleDialog
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
         vehicle={selectedVehicle}
         onSuccess={handleRefresh}
-        creator={selectedStaff === "all" ? "" : selectedStaff}
       />
 
       <OrderEditDialog

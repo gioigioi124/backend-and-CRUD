@@ -1,7 +1,7 @@
 import VehicleList from "@/vehicles/VehicleList";
 import VehicleOrderList from "@/orders/VehicleOrderList";
 import OrderDetail from "@/orders/OrderDetail";
-import AssignOrderDialog from "@/orders/AssignOrderDialog";
+import AssignOrdersToVehicleDialog from "@/vehicles/AssignOrdersToVehicleDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
@@ -307,12 +307,11 @@ const HomePage = () => {
         </div>
       </div>
 
-      <AssignOrderDialog
+      <AssignOrdersToVehicleDialog
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
         vehicle={selectedVehicle}
         onSuccess={handleAssignSuccess}
-        creator={selectedStaff === "all" ? "" : selectedStaff}
       />
 
       <OrderEditDialog
