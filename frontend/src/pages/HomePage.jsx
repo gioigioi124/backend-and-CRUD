@@ -6,6 +6,7 @@ import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import OrderPrintPreview from "@/orders/OrderPrintPreview";
+import OrderConfirmedPrintPreview from "@/orders/OrderConfirmedPrintPreview";
 import DateRangeSearch from "@/components/DateRangeSearch";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
@@ -16,7 +17,7 @@ import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { toast } from "sonner";
 import { orderService } from "@/services/orderService";
 import { userService } from "@/services/userService";
-import { PlusCircle, Truck, List } from "lucide-react";
+import { PlusCircle, Truck, List, Warehouse } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -48,7 +49,9 @@ const HomePage = () => {
 
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
+  const [printConfirmedPreviewOpen, setPrintConfirmedPreviewOpen] = useState(false);
   const [ordersToPrint, setOrdersToPrint] = useState([]);
+  const [ordersToConfirmedPrint, setOrdersToConfirmedPrint] = useState([]);
 
   const todayDate = getTodayDate();
   const [dateRange, setDateRange] = useState({
@@ -169,6 +172,11 @@ const HomePage = () => {
     setPrintPreviewOpen(true);
   };
 
+  const handlePrintConfirmed = (orders) => {
+    setOrdersToConfirmedPrint(orders);
+    setPrintConfirmedPreviewOpen(true);
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-none">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -187,6 +195,19 @@ const HomePage = () => {
               Đơn hàng
             </Button>
           </Link>
+
+          {/* Nút Dashboard Kho */}
+          {user?.role === "warehouse" && (
+            <Link to="/warehouse">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm font-medium text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                <Warehouse className="w-4 h-4" />
+                Dashboard Kho
+              </Button>
+            </Link>
+          )}
 
           {/* Nút Điều vận */}
           {user?.role === "leader" && (
@@ -270,6 +291,7 @@ const HomePage = () => {
             onToggleSelect={handleToggleSelectOrder}
             onSelectAll={handleSelectAllOrders}
             onPrint={handlePrint}
+            onPrintConfirmed={handlePrintConfirmed}
           />
         </div>
 
@@ -317,6 +339,12 @@ const HomePage = () => {
         open={printPreviewOpen}
         onOpenChange={setPrintPreviewOpen}
         selectedOrders={ordersToPrint}
+      />
+
+      <OrderConfirmedPrintPreview
+        open={printConfirmedPreviewOpen}
+        onOpenChange={setPrintConfirmedPreviewOpen}
+        selectedOrders={ordersToConfirmedPrint}
       />
     </div>
   );

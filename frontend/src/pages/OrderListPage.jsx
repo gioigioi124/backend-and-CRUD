@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { PlusCircle, Truck, List } from "lucide-react";
+import { PlusCircle, Truck, List, Warehouse } from "lucide-react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 
 const OrderListPage = () => {
@@ -99,6 +99,19 @@ const OrderListPage = () => {
             <List className="w-4 h-4" />
             Đơn hàng
           </Button>
+
+          {/* Nút Dashboard Kho */}
+          {user?.role === "warehouse" && (
+            <Link to="/warehouse">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm font-medium text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                <Warehouse className="w-4 h-4" />
+                Dashboard Kho
+              </Button>
+            </Link>
+          )}
 
           {/* Nút Điều vận */}
           {user?.role === "leader" && (

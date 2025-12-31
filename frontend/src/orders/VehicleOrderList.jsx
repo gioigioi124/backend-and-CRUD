@@ -18,6 +18,7 @@ const VehicleOrderList = ({
   onToggleSelect,
   onSelectAll,
   onPrint,
+  onPrintConfirmed,
 }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -139,14 +140,22 @@ const VehicleOrderList = ({
       </div>
 
       {orders.length > 0 && selectedOrderIds.length > 0 && (
-        <div className="mb-4">
+        <div className="mb-4 flex gap-2">
           <Button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             onClick={() =>
               onPrint(orders.filter((o) => selectedOrderIds.includes(o._id)))
             }
           >
             In {selectedOrderIds.length} đơn đã chọn
+          </Button>
+          <Button
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+            onClick={() =>
+              onPrintConfirmed(orders.filter((o) => selectedOrderIds.includes(o._id)))
+            }
+          >
+            In đơn chốt
           </Button>
         </div>
       )}

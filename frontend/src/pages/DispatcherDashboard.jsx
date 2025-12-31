@@ -3,8 +3,9 @@ import VehicleOrderList from "@/orders/VehicleOrderList";
 import DispatcherOrderDetail from "@/orders/DispatcherOrderDetail";
 import DateRangeSearch from "@/components/DateRangeSearch";
 import OrderPrintPreview from "@/orders/OrderPrintPreview";
+import OrderConfirmedPrintPreview from "@/orders/OrderConfirmedPrintPreview";
 import DispatchManifestPreview from "@/orders/DispatchManifestPreview";
-import { List, PlusCircle, Truck, Printer } from "lucide-react";
+import { List, PlusCircle, Truck, Printer, Warehouse } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -44,7 +45,9 @@ const DispatcherDashboard = () => {
 
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
+  const [printConfirmedPreviewOpen, setPrintConfirmedPreviewOpen] = useState(false);
   const [ordersToPrint, setOrdersToPrint] = useState([]);
+  const [ordersToConfirmedPrint, setOrdersToConfirmedPrint] = useState([]);
 
   const todayDate = getTodayDate();
   const [dateRange, setDateRange] = useState({
@@ -117,6 +120,11 @@ const DispatcherDashboard = () => {
     setPrintPreviewOpen(true);
   };
 
+  const handlePrintConfirmed = (orders) => {
+    setOrdersToConfirmedPrint(orders);
+    setPrintConfirmedPreviewOpen(true);
+  };
+
   const handlePrintManifest = (items) => {
     setManifestItems(items);
     setManifestPreviewOpen(true);
@@ -154,6 +162,19 @@ const DispatcherDashboard = () => {
               Đơn hàng
             </Button>
           </Link>
+
+          {/* Nút Dashboard Kho */}
+          {user?.role === "warehouse" && (
+            <Link to="/warehouse">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm font-medium text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                <Warehouse className="w-4 h-4" />
+                Dashboard Kho
+              </Button>
+            </Link>
+          )}
 
           {/* Nút Điều vận (Đang ở trang này) */}
           <Button
@@ -235,6 +256,7 @@ const DispatcherDashboard = () => {
             onToggleSelect={handleToggleSelectOrder}
             onSelectAll={handleSelectAllOrders}
             onPrint={handlePrint}
+            onPrintConfirmed={handlePrintConfirmed}
           />
         </div>
 
@@ -267,6 +289,12 @@ const DispatcherDashboard = () => {
         open={printPreviewOpen}
         onOpenChange={setPrintPreviewOpen}
         selectedOrders={ordersToPrint}
+      />
+
+      <OrderConfirmedPrintPreview
+        open={printConfirmedPreviewOpen}
+        onOpenChange={setPrintConfirmedPreviewOpen}
+        selectedOrders={ordersToConfirmedPrint}
       />
 
       <DispatchManifestPreview
