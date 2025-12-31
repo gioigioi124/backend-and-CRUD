@@ -32,6 +32,27 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
     });
   };
 
+  // Hàm sắp xếp items theo kho (K02→K03→K04→K01) và tên+kích thước
+  const sortItems = (items) => {
+    const warehouseOrder = { K02: 1, K03: 2, K04: 3, K01: 4 };
+    
+    return [...items].sort((a, b) => {
+      // Ưu tiên 1: Sắp xếp theo kho
+      const warehouseA = warehouseOrder[a.warehouse] || 999;
+      const warehouseB = warehouseOrder[b.warehouse] || 999;
+      
+      if (warehouseA !== warehouseB) {
+        return warehouseA - warehouseB;
+      }
+      
+      // Ưu tiên 2: Sắp xếp theo tên + kích thước
+      const nameA = `${a.productName || ''} ${a.size || ''}`.trim().toLowerCase();
+      const nameB = `${b.productName || ''} ${b.size || ''}`.trim().toLowerCase();
+      
+      return nameA.localeCompare(nameB, 'vi');
+    });
+  };
+
   // Kiểm tra trạng thái gán xe
   const isAssigned = order.vehicle !== null && order.vehicle !== undefined;
 
@@ -41,11 +62,14 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
     order.vehicle &&
     (order.vehicle._id === vehicle._id || order.vehicle === vehicle._id);
 
+  // Sắp xếp items trước khi tính toán
+  const sortedItems = order.items ? sortItems(order.items) : [];
+
   // Tính tổng số lượng và cm
   const totalQuantity =
-    order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+    sortedItems.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
   const totalCmQty =
-    order.items?.reduce((sum, item) => sum + (item.cmQty || 0), 0) || 0;
+    sortedItems.reduce((sum, item) => sum + (item.cmQty || 0), 0) || 0;
 
   return (
     <div className="space-y-4">
@@ -173,10 +197,10 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {order.items.map((item, index) => (
+                    {sortedItems.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell className="text-center">
-                          {item.stt || index + 1}
+                          {index + 1}
                         </TableCell>
                         <TableCell>{item.productName || "-"}</TableCell>
                         <TableCell>{item.size || "-"}</TableCell>
@@ -206,7 +230,7 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
               <div className="text-sm text-gray-600 space-y-1">
                 <div>
                   Tổng số mặt hàng:{" "}
-                  <span className="font-semibold">{order.items.length}</span>
+                  <span className="font-semibold">{sortedItems.length}</span>
                 </div>
                 <div>
                   Tổng số lượng:{" "}

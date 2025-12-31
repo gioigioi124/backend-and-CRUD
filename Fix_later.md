@@ -2,7 +2,7 @@
 
 - Click và hover vào xe cho sang thẻ div bên ngoài
 - Full màn hình với max-w
-- điều vận xác nhận thì người dùng không thể xóa xe và đơn hàng
+- điều vận xác nhận thì người dùng không thể xóa đơn hàng
 
 # CỘT 2
 
