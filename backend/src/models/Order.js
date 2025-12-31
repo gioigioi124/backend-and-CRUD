@@ -73,8 +73,8 @@ const orderSchema = new mongoose.Schema(
         // Xác nhận của tổ trưởng
         leaderConfirm: {
           value: {
-            type: String, // Số lượng thực tế lên xe
-            trim: true,
+            type: Number, // Số lượng thực tế lên xe (chỉ chấp nhận số)
+            min: [0, "Số lượng xác nhận không thể âm"],
           },
           confirmedAt: {
             type: Date,
