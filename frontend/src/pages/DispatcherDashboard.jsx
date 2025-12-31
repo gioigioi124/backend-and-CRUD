@@ -61,8 +61,8 @@ const DispatcherDashboard = () => {
       try {
         const data = await userService.getStaffList();
         setStaffList(data);
-        // Default to current user if staff/leader
-        if (user && (user.role === "staff" || user.role === "leader")) {
+        // Chỉ staff mới mặc định chọn chính mình, các role khác (leader, admin, warehouse) đều chọn "Tất cả"
+        if (user && user.role === "staff") {
           setSelectedStaff(user._id);
         } else {
           setSelectedStaff("all");

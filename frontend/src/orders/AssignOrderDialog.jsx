@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
+import { userService } from "@/services/userService";
 
 const AssignOrderDialog = ({
   open,
@@ -19,9 +20,25 @@ const AssignOrderDialog = ({
   creator,
 }) => {
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [staffList, setStaffList] = useState([]);
+  const [selectedStaff, setSelectedStaff] = useState("all");
+
+  // Fetch danh sách nhân viên
+  useEffect(() => {
+    const fetchStaffList = async () => {
+      try {
+        const data = await userService.getStaffList();
+        setStaffList(data);
+      } catch (error) {
+        console.error("Không thể tải danh sách nhân viên", error);
+      }
+    };
+    fetchStaffList();
+  }, []);
 
   // Fetch danh sách đơn chưa gán
   useEffect(() => {
@@ -30,6 +47,17 @@ const AssignOrderDialog = ({
     }
   }, [open, creator]);
 
+  // Lọc đơn hàng theo nhân viên
+  useEffect(() => {
+    if (selectedStaff === "all") {
+      setFilteredOrders(orders);
+    } else {
+      setFilteredOrders(
+        orders.filter((order) => order.createdBy?._id === selectedStaff)
+      );
+    }
+  }, [selectedStaff, orders]);
+
   const fetchUnassignedOrders = async () => {
     try {
       setLoading(true);
@@ -37,8 +65,24 @@ const AssignOrderDialog = ({
       if (creator) params.creator = creator;
 
       const data = await orderService.getAllOrders(params);
-      setOrders(data);
+      
+      // Lọc đơn hàng có orderDate giống vehicleDate
+      const filteredByDate = data.filter((order) => {
+        if (!vehicle?.vehicleDate || !order.orderDate) return false;
+        
+        const orderDate = new Date(order.orderDate);
+        const vehicleDate = new Date(vehicle.vehicleDate);
+        
+        // So sánh chỉ ngày, bỏ qua giờ
+        orderDate.setHours(0, 0, 0, 0);
+        vehicleDate.setHours(0, 0, 0, 0);
+        
+        return orderDate.getTime() === vehicleDate.getTime();
+      });
+      
+      setOrders(filteredByDate);
       setSelectedOrderId(null);
+      setSelectedStaff("all"); // Reset bộ lọc nhân viên
     } catch (error) {
       toast.error("Không thể tải danh sách đơn hàng");
       console.error(error);
@@ -96,22 +140,46 @@ const AssignOrderDialog = ({
             Chọn đơn hàng chưa gán để gán vào xe{" "}
             {vehicle && (
               <span className="font-semibold">
-                {vehicle.weight} - {vehicle.destination}
+                {vehicle.weight} - {vehicle.destination} (
+                {formatDate(vehicle.vehicleDate)})
               </span>
             )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Bộ lọc nhân viên */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              Lọc theo nhân viên:
+            </label>
+            <select
+              value={selectedStaff}
+              onChange={(e) => setSelectedStaff(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Tất cả nhân viên</option>
+              {staffList.map((staff) => (
+                <option key={staff._id} value={staff._id}>
+                  {staff.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {loading ? (
             <div className="text-center py-8">Đang tải...</div>
-          ) : orders.length === 0 ? (
+          ) : filteredOrders.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              Không có đơn hàng chưa gán nào
+              {orders.length === 0
+                ? `Không có đơn hàng chưa gán nào có ngày ${formatDate(
+                    vehicle?.vehicleDate
+                  )}`
+                : "Không có đơn hàng nào của nhân viên này"}
             </div>
           ) : (
             <div className="max-h-[400px] overflow-y-auto space-y-2 border rounded-lg p-2">
-              {orders.map((order) => {
+              {filteredOrders.map((order) => {
                 const totalItems = order.items?.length || 0;
                 const isSelected = selectedOrderId === order._id;
                 return (
@@ -132,7 +200,12 @@ const AssignOrderDialog = ({
                         <div className="text-xs text-gray-500 mt-1">
                           {totalItems}{" "}
                           {totalItems === 1 ? "mặt hàng" : "mặt hàng"} •{" "}
-                          {formatDate(order.createdAt)}
+                          {formatDate(order.orderDate)}
+                          {order.createdBy?.name && (
+                            <span className="ml-2 text-blue-600">
+                              • {order.createdBy.name}
+                            </span>
+                          )}
                         </div>
                         {order.customer?.note && (
                           <div className="text-xs text-gray-400 mt-1 italic">

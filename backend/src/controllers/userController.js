@@ -111,7 +111,7 @@ const deleteUser = async (req, res) => {
 // @access  Private
 const getStaffList = async (req, res) => {
   try {
-    const users = await User.find({ role: { $in: ["staff", "leader"] } })
+    const users = await User.find({ role: "staff" })
       .select("name username role")
       .sort({ name: 1 });
     res.json(users);

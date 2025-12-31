@@ -182,9 +182,12 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                 onChange={(e) => setOrderDate(e.target.value)}
                 min={getTodayDate()}
                 required
+                disabled={!isCreateMode && order?.vehicle}
               />
               <p className="text-xs text-gray-500">
-                Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai
+                {!isCreateMode && order?.vehicle
+                  ? "Không thể sửa ngày đơn hàng đã gán xe"
+                  : "Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai"}
               </p>
             </div>
           </div>

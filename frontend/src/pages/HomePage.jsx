@@ -65,7 +65,7 @@ const HomePage = () => {
       try {
         const data = await userService.getStaffList();
         setStaffList(data);
-        if (user && (user.role === "staff" || user.role === "leader")) {
+        if (user && user.role === "staff") {
           setSelectedStaff(user._id);
         } else {
           setSelectedStaff("all");
