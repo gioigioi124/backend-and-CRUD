@@ -13,11 +13,15 @@ import { useAuth } from "@/context/AuthContext";
 import { PlusCircle, Truck, List, Warehouse } from "lucide-react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 
+import AssignVehicleToOrderDialog from "@/orders/AssignVehicleToOrderDialog"; // Import Dialog
+
 const OrderListPage = () => {
   const { user } = useAuth();
   const { triggerRefresh } = useVehicleContext();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [vehicleAssignDialogOpen, setVehicleAssignDialogOpen] = useState(false); // State cho dialog gán xe
+  const [orderToAssignVehicle, setOrderToAssignVehicle] = useState(null); // Đơn hàng đang gán xe
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
@@ -36,6 +40,24 @@ const OrderListPage = () => {
     setEditingOrder(order);
     setEditDialogOpen(true);
   };
+
+  // Xử lý gán xe cho đơn hàng
+  const handleAssignVehicle = (order) => {
+    setOrderToAssignVehicle(order);
+    setVehicleAssignDialogOpen(true);
+  };
+
+  // Xử lý khi gán xe thành công
+  const handleAssignVehicleSuccess = () => {
+    setRefreshTrigger((prev) => prev + 1);
+    // Nếu đang select đơn hàng vừa gán, reload lại thông tin đơn hàng đó
+    if (selectedOrder && orderToAssignVehicle && selectedOrder._id === orderToAssignVehicle._id) {
+       orderService.getOrder(selectedOrder._id).then((updatedOrder) => {
+          setSelectedOrder(updatedOrder);
+       });
+    }
+  };
+
 
   // Xử lý xóa đơn hàng
   const handleDelete = (order) => {
@@ -161,6 +183,7 @@ const OrderListPage = () => {
               onSelectOrder={setSelectedOrder}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onAssign={handleAssignVehicle} 
               refreshTrigger={refreshTrigger}
             />
           </CardContent>
@@ -200,6 +223,14 @@ const OrderListPage = () => {
         open={openVehicleDialog}
         onOpenChange={setOpenVehicleDialog}
         onSuccess={triggerRefresh}
+      />
+
+      {/* Assign Vehicle Dialog */}
+      <AssignVehicleToOrderDialog
+        open={vehicleAssignDialogOpen}
+        onOpenChange={setVehicleAssignDialogOpen}
+        order={orderToAssignVehicle}
+        onSuccess={handleAssignVehicleSuccess}
       />
     </div>
   );

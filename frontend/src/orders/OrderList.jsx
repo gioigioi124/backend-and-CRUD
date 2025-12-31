@@ -25,6 +25,7 @@ const OrderList = ({
   onSelectOrder,
   onEdit,
   onDelete,
+  onAssign,
   refreshTrigger,
 }) => {
   const { user } = useAuth();
@@ -52,12 +53,10 @@ const OrderList = ({
     const fetchStaff = async () => {
       try {
         const data = await userService.getStaffList();
-        console.log("Fetched staff list:", data);
         setStaffList(data);
 
         // Mặc định: Chỉ staff mới chọn chính mình, các role khác (warehouse, leader, admin) đều chọn "Tất cả"
         if (user && user.role === "staff") {
-          console.log("Setting default creator filter to user:", user._id);
           setCreatorFilter(user._id);
         } else {
           setCreatorFilter("all");
@@ -181,6 +180,7 @@ const OrderList = ({
             onSelect={onSelectOrder}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onAssign={onAssign}
           />
         ))}
       </div>
