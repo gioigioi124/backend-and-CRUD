@@ -13,6 +13,7 @@ import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { userService } from "@/services/userService";
 import { orderService } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
+import AssignOrderDialog from "@/orders/AssignOrderDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import {
@@ -34,6 +35,7 @@ const DispatcherDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [vehicleOrders, setVehicleOrders] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
   const [orderToEdit, setOrderToEdit] = useState(null);
@@ -262,6 +264,7 @@ const DispatcherDashboard = () => {
             selectedOrder={selectedOrder}
             onSelectOrder={setSelectedOrder}
             onUnassign={handleUnassign}
+            onAssignClick={() => setAssignDialogOpen(true)}
             refreshTrigger={refreshTrigger}
             fromDate={dateRange.fromDate}
             toDate={dateRange.toDate}
@@ -285,6 +288,14 @@ const DispatcherDashboard = () => {
           />
         </div>
       </div>
+
+      <AssignOrderDialog
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        vehicle={selectedVehicle}
+        onSuccess={handleRefresh}
+        creator={selectedStaff === "all" ? "" : selectedStaff}
+      />
 
       <OrderEditDialog
         open={editDialogOpen}

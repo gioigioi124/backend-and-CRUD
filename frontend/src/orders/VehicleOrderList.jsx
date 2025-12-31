@@ -54,6 +54,14 @@ const VehicleOrderList = ({
       if (toDate) params.toDate = toDate;
 
       const data = await orderService.getAllOrders(params);
+
+      // Sắp xếp đơn hàng theo tên khách hàng
+      data.sort((a, b) => {
+        const nameA = a.customer?.name || "";
+        const nameB = b.customer?.name || "";
+        return nameA.localeCompare(nameB, "vi");
+      });
+
       setOrders(data);
       if (onOrdersLoaded) onOrdersLoaded(data);
     } catch (err) {
