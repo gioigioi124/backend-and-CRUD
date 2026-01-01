@@ -1,7 +1,7 @@
 # CỘT 1
 
-- Click và hover vào xe cho sang thẻ div bên ngoài
-- Full màn hình với max-w
+- Click và hover vào xe cho sang thẻ div bên ngoài✅
+- Full màn hình với max-w✅
 - Thêm nút tick chọn để xác nhận là xe đã in đơn, và cạnh nút sửa xóa là nút xác nhận đã hoàn thiện đơn hàng ✅
 
 # CỘT 2
@@ -13,7 +13,7 @@
 
 # CỘT 3
 
-- rút gọn UI
+- rút gọn UI ✅
 
 # PRINT PREVIEW
 
@@ -26,9 +26,9 @@
 - console.log linh tinh
 
 - sắp xếp hàng hóa trước khi lưu lại ✅
-- sắp xếp đơn hàng trong xe theo tên KH
+- sắp xếp đơn hàng trong xe theo tên KH ✅
 - validation khách hàng (ép chọn)
-- chọn nhiều đơn để gán xe một lúc
+- chọn nhiều đơn để gán xe một lúc ✅
 
 - thêm nút in đơn ✅, export file cạnh sửa xóa
 

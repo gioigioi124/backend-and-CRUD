@@ -22,7 +22,7 @@ export const createVehicle = async (req, res) => {
 //lấy tất cả dữ liệu
 export const getAllVehicles = async (req, res) => {
   try {
-    const { fromDate, toDate, creator } = req.query;
+    const { fromDate, toDate, creator, page = 1, limit = 10 } = req.query;
     const filter = {};
 
     // Filter theo người tạo
@@ -45,13 +45,34 @@ export const getAllVehicles = async (req, res) => {
       }
     }
 
-    const result = await Vehicle.find(filter)
+    // Tính toán pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Đếm tổng số xe
+    const totalVehicles = await Vehicle.countDocuments(filter);
+    const totalPages = Math.ceil(totalVehicles / limitNum);
+
+    // Lấy dữ liệu xe với pagination
+    const vehicles = await Vehicle.find(filter)
       .populate("createdBy", "name username")
       .sort({
         vehicleDate: -1,
         createdAt: -1,
-      }); // Sắp xếp theo vehicleDate, sau đó createdAt
-    res.status(200).json(result);
+      })
+      .skip(skip)
+      .limit(limitNum);
+
+    // Trả về dữ liệu với metadata
+    res.status(200).json({
+      vehicles,
+      currentPage: pageNum,
+      totalPages,
+      totalVehicles,
+      hasNextPage: pageNum < totalPages,
+      hasPrevPage: pageNum > 1,
+    });
   } catch (error) {
     console.log("Lỗi khi lấy thông tin xe - ", error.message);
     res.status(500).json({ message: "Lỗi khi lấy thông tin toàn bộ xe" });

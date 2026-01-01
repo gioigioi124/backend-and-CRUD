@@ -22,8 +22,8 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
     const printContent = document.getElementById("print-area");
     if (!printContent) return;
 
-    // Tạo cửa sổ mới
-    const printWindow = window.open("", "", "width=800,height=600");
+    // Tạo cửa sổ mới toàn màn hình
+    const printWindow = window.open("", "", "fullscreen=yes,scrollbars=yes");
 
     printWindow.document.write(`
     <!DOCTYPE html>

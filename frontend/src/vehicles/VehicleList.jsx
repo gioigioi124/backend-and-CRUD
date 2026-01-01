@@ -6,6 +6,8 @@ import DeleteVehicleDialog from "./DeleteVehicleDialog";
 import { vehicleService } from "@/services/vehicleService";
 import { orderService } from "@/services/orderService";
 import { useVehicleContext } from "./VehicleContext";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const VehicleList = ({
   selectedVehicle,
@@ -28,19 +30,35 @@ const VehicleList = ({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [orderCounts, setOrderCounts] = useState({}); // { vehicleId: count }
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalVehicles, setTotalVehicles] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  const ITEMS_PER_PAGE = 10;
+
   const lastFetchIdRef = useRef(0);
 
   //chạy lại data khi sửa, xóa, thêm xe hoặc khi date range thay đổi hoặc người tạo thay đổi
   useEffect(() => {
     fetchVehicles();
-  }, [refreshTrigger, fromDate, toDate, creator]);
+  }, [refreshTrigger, fromDate, toDate, creator, currentPage]);
+
+  // Reset về trang 1 khi filter thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [fromDate, toDate, creator]);
 
   //tải danh sách xe
   const fetchVehicles = async () => {
     const fetchId = ++lastFetchIdRef.current;
     try {
       setLoading(true);
-      const params = {};
+      const params = {
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+      };
 
       // Thêm date range nếu có
       if (fromDate) params.fromDate = fromDate;
@@ -52,13 +70,28 @@ const VehicleList = ({
       // Nếu đã có request mới hơn thì bỏ qua kết quả này
       if (fetchId !== lastFetchIdRef.current) return;
 
+      // Xử lý response với pagination metadata
+      const {
+        vehicles: vehicleData,
+        currentPage: page,
+        totalPages: pages,
+        totalVehicles: total,
+        hasNextPage: hasNext,
+        hasPrevPage: hasPrev,
+      } = data;
+
       //Mảng giá trị của các xe
-      setVehicles(data);
+      setVehicles(vehicleData);
+      setCurrentPage(page);
+      setTotalPages(pages);
+      setTotalVehicles(total);
+      setHasNextPage(hasNext);
+      setHasPrevPage(hasPrev);
       setError(null);
 
       // Fetch số lượng đơn hàng của mỗi xe
       const counts = {};
-      for (const vehicle of data) {
+      for (const vehicle of vehicleData) {
         // Nếu đã có request mới hơn thì dừng loop này luôn cho đỡ tốn resource
         if (fetchId !== lastFetchIdRef.current) return;
         try {
@@ -229,7 +262,38 @@ const VehicleList = ({
     <>
       {/* map để tạo hàng loạt xe ra frontend */}
       <div>
-        <h2 className="text-lg font-semibold mb-4">Danh sách xe</h2>
+        {/* Pagination Controls - moved to top */}
+        <div className="mb-4 flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            disabled={!hasPrevPage}
+            className="gap-1"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Trước
+          </Button>
+
+          <div className="text-sm text-gray-600">
+            <span className="font-semibold text-base">
+              Trang {currentPage} / {totalPages}
+            </span>
+            <span className="text-gray-400 ml-2">({totalVehicles} xe)</span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={!hasNextPage}
+            className="gap-1"
+          >
+            Sau
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
         {vehicles.length === 0 ? (
           <p className="text-gray-500 text-center">Chưa có xe nào</p>
         ) : (
