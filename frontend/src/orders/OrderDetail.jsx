@@ -6,7 +6,6 @@ import {
   Truck,
   Package,
   Calendar,
-  X,
   Printer,
 } from "lucide-react";
 import {
@@ -18,14 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const OrderDetail = ({
-  order,
-  onEdit,
-  onDelete,
-  vehicle,
-  onUnassign,
-  onPrint,
-}) => {
+const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
   if (!order) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -75,12 +67,6 @@ const OrderDetail = ({
   // Kiểm tra trạng thái gán xe
   const isAssigned = order.vehicle !== null && order.vehicle !== undefined;
 
-  // Kiểm tra xem order có thuộc xe đang chọn không
-  const belongsToSelectedVehicle =
-    vehicle &&
-    order.vehicle &&
-    (order.vehicle._id === vehicle._id || order.vehicle === vehicle._id);
-
   // Sắp xếp items trước khi tính toán
   const sortedItems = order.items ? sortItems(order.items) : [];
 
@@ -119,89 +105,83 @@ const OrderDetail = ({
           </Button>
         </div>
       </div>
-
-      {/* Thông tin khách hàng */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin khách hàng</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div>
-            <span className="text-sm font-medium text-gray-600">
-              Tên khách hàng:{" "}
-            </span>
-            <span className="text-sm">{order.customer?.name || "N/A"}</span>
-          </div>
-          {order.customer?.note && (
+      <div className="flex gap-2 w-full">
+        {/* Thông tin khách hàng */}
+        <Card className="w-full">
+          <CardContent>
             <div>
-              <span className="text-sm font-medium text-gray-600">
-                Ghi chú:{" "}
+              <span className="text-xl uppercase font-bold">
+                {order.customer?.name || "N/A"}
               </span>
-              <span className="text-sm">{order.customer.note}</span>
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Trạng thái đơn hàng */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Trạng thái</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {isAssigned ? (
-                <>
-                  <Truck className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-green-600 font-medium">
-                    Đã gán xe
-                  </span>
-                  {order.vehicle && (
-                    <span className="text-sm text-gray-600">
-                      - {order.vehicle.weight} - {order.vehicle.destination}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <>
-                  <Package className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm text-orange-600 font-medium">
-                    Chưa gán xe
-                  </span>
-                </>
-              )}
-            </div>
-            {/* Nút bỏ gán khi order thuộc xe đang chọn */}
-            {belongsToSelectedVehicle && onUnassign && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onUnassign(order)}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <X className="w-4 h-4 mr-1" />
-                Bỏ gán khỏi xe
-              </Button>
+            {order.customer?.note && (
+              <div>
+                <span className="text-sm italic">{order.customer.note}</span>
+              </div>
             )}
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="w-4 h-4" />
-            <span>Ngày tạo: {formatDate(order.createdAt)}</span>
-          </div>
-          {order.updatedAt && order.updatedAt !== order.createdAt && (
+          </CardContent>
+        </Card>
+
+        {/* Trạng thái đơn hàng */}
+        <Card className="w-full">
+          <CardContent className="space-y-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {isAssigned ? (
+                  <>
+                    <Truck className="w-4 h-4 text-green-600" />
+                    <span className="text-sm text-green-600 font-medium">
+                      Đã gán xe
+                    </span>
+                    {order.vehicle && (
+                      <span className="text-sm text-gray-600">
+                        - {order.vehicle.weight} - {order.vehicle.destination}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Package className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm text-orange-600 font-medium">
+                      Chưa gán xe
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Calendar className="w-4 h-4" />
-              <span>Cập nhật lần cuối: {formatDate(order.updatedAt)}</span>
+              <span>Ngày tạo: {formatDate(order.createdAt)}</span>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            {order.updatedAt && order.updatedAt !== order.createdAt && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Calendar className="w-4 h-4" />
+                <span>Cập nhật lần cuối: {formatDate(order.updatedAt)}</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Danh sách hàng hóa */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex justify-between">
           <CardTitle>Danh sách hàng hóa</CardTitle>
+          {/* Tổng kết */}
+          <div className="flex text-sm text-gray-600 space-x-4">
+            <div>
+              Tổng số mặt hàng:{" "}
+              <span className="font-semibold">{sortedItems.length}</span>
+            </div>
+            <div>
+              Tổng số lượng:{" "}
+              <span className="font-semibold">{totalQuantity}</span>
+            </div>
+            <div>
+              Tổng số cm:{" "}
+              <span className="font-semibold text-red-600">{totalCmQty}</span>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {!order.items || order.items.length === 0 ? (
@@ -213,15 +193,19 @@ const OrderDetail = ({
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[60px]">STT</TableHead>
-                      <TableHead>Tên hàng hóa</TableHead>
+                      <TableHead className="min-w-[150px] max-w-[250px]">
+                        Tên hàng hóa
+                      </TableHead>
                       <TableHead className="w-[100px]">Kích thước</TableHead>
                       <TableHead className="w-[80px]">ĐVT</TableHead>
                       <TableHead className="w-[100px]">Số lượng</TableHead>
                       <TableHead className="w-[80px]">Kho</TableHead>
                       <TableHead className="w-[80px]">Số cm</TableHead>
-                      <TableHead className="w-[120px]">Kho xác nhận</TableHead>
-                      <TableHead className="w-[120px]">Tổ trưởng XN</TableHead>
-                      <TableHead>Ghi chú</TableHead>
+                      <TableHead className="min-w-[120px] max-w-[200px]">
+                        Ghi chú
+                      </TableHead>
+                      <TableHead className="w-[120px]">Kho</TableHead>
+                      <TableHead className="w-[120px]">Điều vận</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -230,7 +214,9 @@ const OrderDetail = ({
                         <TableCell className="text-center">
                           {index + 1}
                         </TableCell>
-                        <TableCell>{item.productName || "-"}</TableCell>
+                        <TableCell className="break-words whitespace-normal">
+                          {item.productName || "-"}
+                        </TableCell>
                         <TableCell>{item.size || "-"}</TableCell>
                         <TableCell>{item.unit || "-"}</TableCell>
                         <TableCell className="text-right">
@@ -240,34 +226,19 @@ const OrderDetail = ({
                         <TableCell className="text-right">
                           {item.cmQty || 0}
                         </TableCell>
+                        <TableCell className="text-sm text-gray-600 break-words whitespace-normal">
+                          {item.note || "-"}
+                        </TableCell>
                         <TableCell className="text-center">
                           {item.warehouseConfirm?.value || "-"}
                         </TableCell>
                         <TableCell className="text-center">
                           {item.leaderConfirm?.value || "-"}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">
-                          {item.note || "-"}
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              </div>
-              {/* Tổng kết */}
-              <div className="text-sm text-gray-600 space-y-1">
-                <div>
-                  Tổng số mặt hàng:{" "}
-                  <span className="font-semibold">{sortedItems.length}</span>
-                </div>
-                <div>
-                  Tổng số lượng:{" "}
-                  <span className="font-semibold">{totalQuantity}</span>
-                </div>
-                <div>
-                  Tổng số cm:{" "}
-                  <span className="font-semibold">{totalCmQty}</span>
-                </div>
               </div>
             </div>
           )}
