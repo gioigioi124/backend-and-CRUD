@@ -47,9 +47,7 @@ const VehicleItem = ({
                 }`}
                 title={vehicle.isPrinted ? "Đã in đơn" : "Chưa in đơn"}
               >
-                {vehicle.isPrinted && (
-                  <Check className="w-4 h-4 text-white" />
-                )}
+                {vehicle.isPrinted && <Check className="w-4 h-4 text-white" />}
               </button>
             </div>
           )}
@@ -58,11 +56,19 @@ const VehicleItem = ({
           <div className="cursor-pointer flex-1">
             <div className="flex">
               <div className="text-sm text-gray-600">
-                {vehicle.weight} - {vehicle.destination} -{" "}
-                {new Date(vehicle.vehicleDate).toLocaleDateString("vi-VN")}
+                {vehicle.weight} - {vehicle.time} - {vehicle.destination}
+                {vehicle.createdBy && (
+                  <span className="ml-1 text-xs text-blue-400">
+                    {" "}
+                    - (
+                    {typeof vehicle.createdBy === "object"
+                      ? vehicle.createdBy.username || vehicle.createdBy.name
+                      : "..."}
+                    )
+                  </span>
+                )}
               </div>
             </div>
-            <div className="text-xs text-gray-500">{vehicle.time}</div>
             {vehicle.note && (
               <div className="text-xs text-gray-400 mt-1 italic">
                 {vehicle.note}
@@ -80,9 +86,15 @@ const VehicleItem = ({
               e.stopPropagation();
               onToggleCompleted?.(vehicle);
             }}
-            title={vehicle.isCompleted ? "Đã hoàn thành" : "Đánh dấu hoàn thành"}
+            title={
+              vehicle.isCompleted ? "Đã hoàn thành" : "Đánh dấu hoàn thành"
+            }
           >
-            <Check className={`w-4 h-4 mr-1 ${vehicle.isCompleted ? "text-green-600" : ""}`} />
+            <Check
+              className={`w-4 h-4 mr-1 ${
+                vehicle.isCompleted ? "text-green-600" : ""
+              }`}
+            />
           </Button>
           <Button
             size="sm"

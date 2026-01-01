@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Package, Truck } from "lucide-react";
 
-const OrderItem = ({ order, isSelected, onSelect, onEdit, onDelete, onAssign }) => {
+const OrderItem = ({
+  order,
+  isSelected,
+  onSelect,
+  onEdit,
+  onDelete,
+  onAssign,
+}) => {
   // Format ngày tạo
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -61,7 +68,7 @@ const OrderItem = ({ order, isSelected, onSelect, onEdit, onDelete, onAssign }) 
         </div>
         {/* Nút sửa, xóa */}
         <div className="absolute bottom-2 right-2 hidden group-hover:flex space-x-1 bg-white/90 p-1 rounded-md shadow-sm">
-           <Button
+          <Button
             size="sm"
             variant="outline"
             className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"

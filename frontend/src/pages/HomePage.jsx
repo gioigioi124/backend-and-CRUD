@@ -49,7 +49,8 @@ const HomePage = () => {
 
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
-  const [printConfirmedPreviewOpen, setPrintConfirmedPreviewOpen] = useState(false);
+  const [printConfirmedPreviewOpen, setPrintConfirmedPreviewOpen] =
+    useState(false);
   const [ordersToPrint, setOrdersToPrint] = useState([]);
   const [ordersToConfirmedPrint, setOrdersToConfirmedPrint] = useState([]);
 
@@ -178,6 +179,11 @@ const HomePage = () => {
     setPrintConfirmedPreviewOpen(true);
   };
 
+  const handlePrintSingleOrder = (order) => {
+    setOrdersToPrint([order]);
+    setPrintPreviewOpen(true);
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-none">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -303,6 +309,7 @@ const HomePage = () => {
             onDelete={handleDelete}
             vehicle={selectedVehicle}
             onUnassign={handleUnassign}
+            onPrint={handlePrintSingleOrder}
           />
         </div>
       </div>

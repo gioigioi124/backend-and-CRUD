@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import VehicleItem from "./VehicleItem";
 import VehicleFormDialog from "./VehicleFormDialog";
@@ -27,6 +27,8 @@ const VehicleList = ({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [orderCounts, setOrderCounts] = useState({}); // { vehicleId: count }
 
+  const lastFetchIdRef = useRef(0);
+
   //chạy lại data khi sửa, xóa, thêm xe hoặc khi date range thay đổi hoặc người tạo thay đổi
   useEffect(() => {
     fetchVehicles();
@@ -34,6 +36,7 @@ const VehicleList = ({
 
   //tải danh sách xe
   const fetchVehicles = async () => {
+    const fetchId = ++lastFetchIdRef.current;
     try {
       setLoading(true);
       const params = {};
@@ -44,6 +47,10 @@ const VehicleList = ({
       if (creator) params.creator = creator;
 
       const data = await vehicleService.getAllVehicles(params);
+
+      // Nếu đã có request mới hơn thì bỏ qua kết quả này
+      if (fetchId !== lastFetchIdRef.current) return;
+
       //Mảng giá trị của các xe
       setVehicles(data);
       setError(null);
@@ -51,6 +58,8 @@ const VehicleList = ({
       // Fetch số lượng đơn hàng của mỗi xe
       const counts = {};
       for (const vehicle of data) {
+        // Nếu đã có request mới hơn thì dừng loop này luôn cho đỡ tốn resource
+        if (fetchId !== lastFetchIdRef.current) return;
         try {
           const orders = await orderService.getOrdersByVehicle(vehicle._id);
           counts[vehicle._id] = orders.length;
@@ -58,12 +67,17 @@ const VehicleList = ({
           counts[vehicle._id] = 0;
         }
       }
+
+      if (fetchId !== lastFetchIdRef.current) return;
       setOrderCounts(counts);
     } catch (err) {
+      if (fetchId !== lastFetchIdRef.current) return;
       setError("Không thể tải danh sách xe");
       console.log("Không thể tải xe", err.message);
     } finally {
-      setLoading(false);
+      if (fetchId === lastFetchIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -121,27 +135,27 @@ const VehicleList = ({
   // Xử lý toggle trạng thái đã in (optimistic update)
   const handleTogglePrinted = async (vehicle) => {
     const newPrintedStatus = !vehicle.isPrinted;
-    
+
     // Cập nhật UI ngay lập tức (optimistic update)
-    setVehicles(prevVehicles => 
-      prevVehicles.map(v => 
-        v._id === vehicle._id 
-          ? { ...v, isPrinted: newPrintedStatus }
-          : v
+    setVehicles((prevVehicles) =>
+      prevVehicles.map((v) =>
+        v._id === vehicle._id ? { ...v, isPrinted: newPrintedStatus } : v
       )
     );
 
     try {
       // Gọi API ở background
-      await vehicleService.updateVehicle(vehicle._id, { isPrinted: newPrintedStatus });
-      toast.info(newPrintedStatus ? "Đã đánh dấu đã in" : "Đã bỏ đánh dấu đã in");
+      await vehicleService.updateVehicle(vehicle._id, {
+        isPrinted: newPrintedStatus,
+      });
+      toast.info(
+        newPrintedStatus ? "Đã đánh dấu đã in" : "Đã bỏ đánh dấu đã in"
+      );
     } catch (error) {
       // Nếu lỗi, rollback lại state cũ
-      setVehicles(prevVehicles => 
-        prevVehicles.map(v => 
-          v._id === vehicle._id 
-            ? { ...v, isPrinted: !newPrintedStatus }
-            : v
+      setVehicles((prevVehicles) =>
+        prevVehicles.map((v) =>
+          v._id === vehicle._id ? { ...v, isPrinted: !newPrintedStatus } : v
         )
       );
       toast.error(
@@ -155,27 +169,29 @@ const VehicleList = ({
   // Xử lý toggle trạng thái hoàn thành (optimistic update)
   const handleToggleCompleted = async (vehicle) => {
     const newCompletedStatus = !vehicle.isCompleted;
-    
+
     // Cập nhật UI ngay lập tức (optimistic update)
-    setVehicles(prevVehicles => 
-      prevVehicles.map(v => 
-        v._id === vehicle._id 
-          ? { ...v, isCompleted: newCompletedStatus }
-          : v
+    setVehicles((prevVehicles) =>
+      prevVehicles.map((v) =>
+        v._id === vehicle._id ? { ...v, isCompleted: newCompletedStatus } : v
       )
     );
 
     try {
       // Gọi API ở background
-      await vehicleService.updateVehicle(vehicle._id, { isCompleted: newCompletedStatus });
-      toast.success(newCompletedStatus ? "Đã đánh dấu hoàn thành" : "Đã bỏ đánh dấu hoàn thành");
+      await vehicleService.updateVehicle(vehicle._id, {
+        isCompleted: newCompletedStatus,
+      });
+      toast.success(
+        newCompletedStatus
+          ? "Đã đánh dấu hoàn thành"
+          : "Đã bỏ đánh dấu hoàn thành"
+      );
     } catch (error) {
       // Nếu lỗi, rollback lại state cũ
-      setVehicles(prevVehicles => 
-        prevVehicles.map(v => 
-          v._id === vehicle._id 
-            ? { ...v, isCompleted: !newCompletedStatus }
-            : v
+      setVehicles((prevVehicles) =>
+        prevVehicles.map((v) =>
+          v._id === vehicle._id ? { ...v, isCompleted: !newCompletedStatus } : v
         )
       );
       toast.error(

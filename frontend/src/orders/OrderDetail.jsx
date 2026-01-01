@@ -1,6 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Truck, Package, Calendar, X } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Truck,
+  Package,
+  Calendar,
+  X,
+  Printer,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,7 +18,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
+const OrderDetail = ({
+  order,
+  onEdit,
+  onDelete,
+  vehicle,
+  onUnassign,
+  onPrint,
+}) => {
   if (!order) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -35,21 +50,25 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
   // Hàm sắp xếp items theo kho (K02→K03→K04→K01) và tên+kích thước
   const sortItems = (items) => {
     const warehouseOrder = { K02: 1, K03: 2, K04: 3, K01: 4 };
-    
+
     return [...items].sort((a, b) => {
       // Ưu tiên 1: Sắp xếp theo kho
       const warehouseA = warehouseOrder[a.warehouse] || 999;
       const warehouseB = warehouseOrder[b.warehouse] || 999;
-      
+
       if (warehouseA !== warehouseB) {
         return warehouseA - warehouseB;
       }
-      
+
       // Ưu tiên 2: Sắp xếp theo tên + kích thước
-      const nameA = `${a.productName || ''} ${a.size || ''}`.trim().toLowerCase();
-      const nameB = `${b.productName || ''} ${b.size || ''}`.trim().toLowerCase();
-      
-      return nameA.localeCompare(nameB, 'vi');
+      const nameA = `${a.productName || ""} ${a.size || ""}`
+        .trim()
+        .toLowerCase();
+      const nameB = `${b.productName || ""} ${b.size || ""}`
+        .trim()
+        .toLowerCase();
+
+      return nameA.localeCompare(nameB, "vi");
     });
   };
 
@@ -73,13 +92,22 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onUnassign }) => {
 
   return (
     <div className="space-y-4">
-      {/* Header với nút Edit và Delete */}
+      {/* Header với nút Edit, Print và Delete */}
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Chi tiết đơn hàng</h2>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => onEdit(order)}>
             <Pencil className="w-4 h-4 mr-1" />
             Sửa
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPrint?.(order)}
+            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-200"
+          >
+            <Printer className="w-4 h-4 mr-1" />
+            In đơn
           </Button>
           <Button
             variant="destructive"

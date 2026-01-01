@@ -5,6 +5,7 @@ import OrderDetail from "@/orders/OrderDetail";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
+import OrderPrintPreview from "@/orders/OrderPrintPreview";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
@@ -28,6 +29,8 @@ const OrderListPage = () => {
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
+  const [orderToPrint, setOrderToPrint] = useState(null);
 
   // Xử lý tạo đơn hàng mới
   const handleCreateOrder = () => {
@@ -51,13 +54,16 @@ const OrderListPage = () => {
   const handleAssignVehicleSuccess = () => {
     setRefreshTrigger((prev) => prev + 1);
     // Nếu đang select đơn hàng vừa gán, reload lại thông tin đơn hàng đó
-    if (selectedOrder && orderToAssignVehicle && selectedOrder._id === orderToAssignVehicle._id) {
-       orderService.getOrder(selectedOrder._id).then((updatedOrder) => {
-          setSelectedOrder(updatedOrder);
-       });
+    if (
+      selectedOrder &&
+      orderToAssignVehicle &&
+      selectedOrder._id === orderToAssignVehicle._id
+    ) {
+      orderService.getOrder(selectedOrder._id).then((updatedOrder) => {
+        setSelectedOrder(updatedOrder);
+      });
     }
   };
-
 
   // Xử lý xóa đơn hàng
   const handleDelete = (order) => {
@@ -100,6 +106,11 @@ const OrderListPage = () => {
       });
     }
     setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const handlePrint = (order) => {
+    setOrderToPrint(order);
+    setPrintPreviewOpen(true);
   };
 
   return (
@@ -183,7 +194,7 @@ const OrderListPage = () => {
               onSelectOrder={setSelectedOrder}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onAssign={handleAssignVehicle} 
+              onAssign={handleAssignVehicle}
               refreshTrigger={refreshTrigger}
             />
           </CardContent>
@@ -196,6 +207,7 @@ const OrderListPage = () => {
               order={selectedOrder}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onPrint={handlePrint}
             />
           </CardContent>
         </Card>
@@ -231,6 +243,13 @@ const OrderListPage = () => {
         onOpenChange={setVehicleAssignDialogOpen}
         order={orderToAssignVehicle}
         onSuccess={handleAssignVehicleSuccess}
+      />
+
+      {/* Print Preview Dialog */}
+      <OrderPrintPreview
+        open={printPreviewOpen}
+        onOpenChange={setPrintPreviewOpen}
+        selectedOrders={orderToPrint ? [orderToPrint] : []}
       />
     </div>
   );

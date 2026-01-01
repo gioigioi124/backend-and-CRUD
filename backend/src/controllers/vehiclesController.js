@@ -8,7 +8,11 @@ export const createVehicle = async (req, res) => {
       ...req.body,
       createdBy: req.user._id, // Gán người tạo từ token
     });
-    res.status(201).json(vehicle);
+    const populatedVehicle = await Vehicle.findById(vehicle._id).populate(
+      "createdBy",
+      "name username"
+    );
+    res.status(201).json(populatedVehicle);
   } catch (error) {
     console.log("Lỗi khi thêm xe - ", error.message);
     res.status(500).json({ message: "Lỗi khi thêm xe" });
@@ -88,6 +92,7 @@ export const updateVehicle = async (req, res) => {
     }
 
     await vehicle.save();
+    await vehicle.populate("createdBy", "name username");
     res.status(200).json(vehicle);
   } catch (error) {
     console.log("Lỗi khi cập nhật thông tin xe - ", error.message);
