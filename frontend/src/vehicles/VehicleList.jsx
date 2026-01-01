@@ -245,6 +245,9 @@ const VehicleList = ({
         onOpenChange={setEditDialogOpen}
         onSuccess={fetchVehicles}
         editData={editingVehicle}
+        hasOrders={
+          editingVehicle ? (orderCounts[editingVehicle._id] || 0) > 0 : false
+        }
       />
       {/* Delete Dialog */}
       <DeleteVehicleDialog

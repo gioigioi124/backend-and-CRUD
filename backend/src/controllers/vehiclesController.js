@@ -75,6 +75,23 @@ export const updateVehicle = async (req, res) => {
     const vehicle = await Vehicle.findById(req.params.id);
     if (!vehicle) return res.status(404).json({ message: "Không có xe này" });
 
+    // Kiểm tra nếu đang cố gắng thay đổi ngày xe
+    if (
+      req.body.vehicleDate &&
+      req.body.vehicleDate !== vehicle.vehicleDate.toISOString()
+    ) {
+      // Kiểm tra xem có đơn hàng nào đang gán vào xe không
+      const ordersWithVehicle = await Order.countDocuments({
+        vehicle: req.params.id,
+      });
+
+      if (ordersWithVehicle > 0) {
+        return res.status(400).json({
+          message: `Không thể thay đổi ngày xe. Có ${ordersWithVehicle} đơn hàng đang được gán vào xe này. Vui lòng bỏ gán các đơn hàng trước khi thay đổi ngày xe.`,
+        });
+      }
+    }
+
     // Chỉ cập nhật nếu dữ liệu được gửi lên
     if (req.body.carName) vehicle.carName = req.body.carName;
     if (req.body.time) vehicle.time = req.body.time;

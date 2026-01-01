@@ -38,7 +38,13 @@ const WEIGHT_OPTIONS = [
   "Cont 40",
 ];
 
-const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
+const VehicleFormDialog = ({
+  open,
+  onOpenChange,
+  onSuccess,
+  editData,
+  hasOrders = false,
+}) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     carName: "",
@@ -234,9 +240,12 @@ const VehicleFormDialog = ({ open, onOpenChange, onSuccess, editData }) => {
               onChange={(e) => handleChange("vehicleDate", e.target.value)}
               min={getTodayDate()}
               required
+              disabled={isEditMode && hasOrders}
             />
             <p className="text-xs text-gray-500">
-              Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai
+              {isEditMode && hasOrders
+                ? "Không thể thay đổi ngày xe khi đã có đơn hàng. Vui lòng bỏ gán các đơn hàng trước."
+                : "Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai"}
             </p>
           </div>
 
