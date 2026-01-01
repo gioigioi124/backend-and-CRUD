@@ -76,19 +76,22 @@ export const updateVehicle = async (req, res) => {
     if (!vehicle) return res.status(404).json({ message: "Không có xe này" });
 
     // Kiểm tra nếu đang cố gắng thay đổi ngày xe
-    if (
-      req.body.vehicleDate &&
-      req.body.vehicleDate !== vehicle.vehicleDate.toISOString()
-    ) {
-      // Kiểm tra xem có đơn hàng nào đang gán vào xe không
-      const ordersWithVehicle = await Order.countDocuments({
-        vehicle: req.params.id,
-      });
+    if (req.body.vehicleDate) {
+      // So sánh chỉ phần ngày (YYYY-MM-DD), bỏ qua phần giờ
+      const currentDate = vehicle.vehicleDate.toISOString().split("T")[0];
+      const newDate = req.body.vehicleDate.split("T")[0];
 
-      if (ordersWithVehicle > 0) {
-        return res.status(400).json({
-          message: `Không thể thay đổi ngày xe. Có ${ordersWithVehicle} đơn hàng đang được gán vào xe này. Vui lòng bỏ gán các đơn hàng trước khi thay đổi ngày xe.`,
+      if (currentDate !== newDate) {
+        // Kiểm tra xem có đơn hàng nào đang gán vào xe không
+        const ordersWithVehicle = await Order.countDocuments({
+          vehicle: req.params.id,
         });
+
+        if (ordersWithVehicle > 0) {
+          return res.status(400).json({
+            message: `Không thể thay đổi ngày xe. Có ${ordersWithVehicle} đơn hàng đang được gán vào xe này. Vui lòng bỏ gán các đơn hàng trước khi thay đổi ngày xe.`,
+          });
+        }
       }
     }
 
