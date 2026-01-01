@@ -34,24 +34,36 @@ const DispatcherOrderDetail = ({
   const [localItems, setLocalItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Hàm sắp xếp items theo kho (K02→K03→K04→K01) và tên+kích thước
+  // Hàm sắp xếp items theo đơn hàng (khách hàng) → kho (K02→K03→K04→K01) → tên+kích thước
   const sortItems = (items) => {
     const warehouseOrder = { K02: 1, K03: 2, K04: 3, K01: 4 };
-    
+
     return [...items].sort((a, b) => {
-      // Ưu tiên 1: Sắp xếp theo kho
+      // Ưu tiên 1: Sắp xếp theo đơn hàng (tên khách hàng)
+      const customerA = (a.customerName || "").toLowerCase();
+      const customerB = (b.customerName || "").toLowerCase();
+
+      if (customerA !== customerB) {
+        return customerA.localeCompare(customerB, "vi");
+      }
+
+      // Ưu tiên 2: Sắp xếp theo kho
       const warehouseA = warehouseOrder[a.warehouse] || 999;
       const warehouseB = warehouseOrder[b.warehouse] || 999;
-      
+
       if (warehouseA !== warehouseB) {
         return warehouseA - warehouseB;
       }
-      
-      // Ưu tiên 2: Sắp xếp theo tên + kích thước
-      const nameA = `${a.productName || ''} ${a.size || ''}`.trim().toLowerCase();
-      const nameB = `${b.productName || ''} ${b.size || ''}`.trim().toLowerCase();
-      
-      return nameA.localeCompare(nameB, 'vi');
+
+      // Ưu tiên 3: Sắp xếp theo tên + kích thước
+      const nameA = `${a.productName || ""} ${a.size || ""}`
+        .trim()
+        .toLowerCase();
+      const nameB = `${b.productName || ""} ${b.size || ""}`
+        .trim()
+        .toLowerCase();
+
+      return nameA.localeCompare(nameB, "vi");
     });
   };
 
@@ -75,16 +87,16 @@ const DispatcherOrderDetail = ({
           });
         }
       });
-      
+
       // Sắp xếp items theo kho và tên
       const sortedItems = sortItems(allItems);
-      
+
       // Cập nhật lại STT sau khi sắp xếp
       const itemsWithNewStt = sortedItems.map((item, index) => ({
         ...item,
         stt: index + 1,
       }));
-      
+
       setLocalItems(itemsWithNewStt);
     } else {
       setLocalItems([]);
