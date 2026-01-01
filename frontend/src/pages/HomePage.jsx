@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { toast } from "sonner";
 import { orderService } from "@/services/orderService";
@@ -60,6 +60,12 @@ const HomePage = () => {
     toDate: todayDate,
   });
   const { triggerRefresh: triggerVehicleRefresh } = useVehicleContext();
+  const updateOrderCountRef = useRef(null);
+
+  // Lưu hàm updateOrderCount từ VehicleList
+  const handleOrderCountUpdate = (updateFn) => {
+    updateOrderCountRef.current = updateFn;
+  };
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -86,12 +92,18 @@ const HomePage = () => {
 
   const handleAssignSuccess = () => {
     setRefreshTrigger((prev) => prev + 1);
-    triggerVehicleRefresh();
+    // Chỉ cập nhật số lượng đơn hàng cho xe hiện tại thay vì fetch lại toàn bộ danh sách xe
+    if (selectedVehicle?._id && updateOrderCountRef.current) {
+      updateOrderCountRef.current(selectedVehicle._id);
+    }
   };
 
   const handleUnassign = () => {
     setRefreshTrigger((prev) => prev + 1);
-    triggerVehicleRefresh();
+    // Chỉ cập nhật số lượng đơn hàng cho xe hiện tại thay vì fetch lại toàn bộ danh sách xe
+    if (selectedVehicle?._id && updateOrderCountRef.current) {
+      updateOrderCountRef.current(selectedVehicle._id);
+    }
     setSelectedOrder(null);
   };
 
@@ -281,6 +293,7 @@ const HomePage = () => {
             fromDate={dateRange.fromDate}
             toDate={dateRange.toDate}
             creator={selectedStaff === "all" ? "" : selectedStaff}
+            onOrderCountUpdate={handleOrderCountUpdate}
           />
         </div>
 

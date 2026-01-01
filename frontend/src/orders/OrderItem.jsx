@@ -17,8 +17,6 @@ const OrderItem = ({
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
@@ -54,11 +52,13 @@ const OrderItem = ({
               </div>
             )}
           </div>
+          {/* số lượng mặt hàng */}
           <div className="text-xs text-gray-500 mb-1">
             {totalItems} {totalItems === 1 ? "mặt hàng" : "mặt hàng"}
           </div>
+          {/* ngày tạo */}
           <div className="text-xs text-gray-400">
-            {formatDate(order.createdAt)}
+            {formatDate(order.orderDate)}
           </div>
           {order.customer?.note && (
             <div className="text-xs text-gray-400 mt-1 italic">

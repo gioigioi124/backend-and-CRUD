@@ -8,7 +8,7 @@ import DispatchManifestPreview from "@/orders/DispatchManifestPreview";
 import { List, PlusCircle, Truck, Printer, Warehouse } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { userService } from "@/services/userService";
 import { orderService } from "@/services/orderService";
@@ -47,7 +47,8 @@ const DispatcherDashboard = () => {
 
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
-  const [printConfirmedPreviewOpen, setPrintConfirmedPreviewOpen] = useState(false);
+  const [printConfirmedPreviewOpen, setPrintConfirmedPreviewOpen] =
+    useState(false);
   const [ordersToPrint, setOrdersToPrint] = useState([]);
   const [ordersToConfirmedPrint, setOrdersToConfirmedPrint] = useState([]);
 
@@ -57,6 +58,12 @@ const DispatcherDashboard = () => {
     toDate: todayDate,
   });
   const { triggerRefresh: triggerVehicleRefresh } = useVehicleContext();
+  const updateOrderCountRef = useRef(null);
+
+  // Lưu hàm updateOrderCount từ VehicleList
+  const handleOrderCountUpdate = (updateFn) => {
+    updateOrderCountRef.current = updateFn;
+  };
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -90,13 +97,19 @@ const DispatcherDashboard = () => {
 
   const handleUnassign = () => {
     setRefreshTrigger((prev) => prev + 1);
-    triggerVehicleRefresh();
+    // Chỉ cập nhật số lượng đơn hàng cho xe hiện tại
+    if (selectedVehicle?._id && updateOrderCountRef.current) {
+      updateOrderCountRef.current(selectedVehicle._id);
+    }
     setSelectedOrder(null);
   };
 
   const handleRefresh = () => {
     setRefreshTrigger((prev) => prev + 1);
-    triggerVehicleRefresh();
+    // Chỉ cập nhật số lượng đơn hàng cho xe hiện tại
+    if (selectedVehicle?._id && updateOrderCountRef.current) {
+      updateOrderCountRef.current(selectedVehicle._id);
+    }
   };
 
   const handleOrdersLoaded = (orders) => {
@@ -254,6 +267,7 @@ const DispatcherDashboard = () => {
             fromDate={dateRange.fromDate}
             toDate={dateRange.toDate}
             creator={selectedStaff === "all" ? "" : selectedStaff}
+            onOrderCountUpdate={handleOrderCountUpdate}
           />
         </div>
 

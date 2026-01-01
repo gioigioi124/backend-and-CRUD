@@ -13,6 +13,7 @@ const VehicleList = ({
   fromDate,
   toDate,
   creator,
+  onOrderCountUpdate,
 }) => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,23 @@ const VehicleList = ({
       }
     }
   };
+
+  // Cập nhật số lượng đơn hàng cho 1 xe cụ thể (không cần fetch lại toàn bộ)
+  const updateOrderCount = async (vehicleId) => {
+    try {
+      const orders = await orderService.getOrdersByVehicle(vehicleId);
+      setOrderCounts((prev) => ({ ...prev, [vehicleId]: orders.length }));
+    } catch (err) {
+      console.error("Không thể cập nhật số lượng đơn hàng:", err);
+    }
+  };
+
+  // Expose updateOrderCount function to parent
+  useEffect(() => {
+    if (onOrderCountUpdate) {
+      onOrderCountUpdate(updateOrderCount);
+    }
+  }, [onOrderCountUpdate]);
 
   //edit xe
   const handleEdit = (vehicle) => {

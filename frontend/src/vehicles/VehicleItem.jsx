@@ -69,11 +69,10 @@ const VehicleItem = ({
                 )}
               </div>
             </div>
-            {vehicle.note && (
-              <div className="text-xs text-gray-400 mt-1 italic">
-                {vehicle.note}
-              </div>
-            )}
+            <div className="text-xs text-gray-400 mt-1 italic">
+              {new Date(vehicle.vehicleDate).toLocaleDateString("vi-VN")}
+              {vehicle.note && " - " + vehicle.note}
+            </div>
           </div>
         </div>
         {/* Nút sửa, xóa, hoàn thành */}
