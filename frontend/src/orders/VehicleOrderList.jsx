@@ -160,7 +160,9 @@ const VehicleOrderList = ({
           <Button
             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             onClick={() =>
-              onPrintConfirmed(orders.filter((o) => selectedOrderIds.includes(o._id)))
+              onPrintConfirmed(
+                orders.filter((o) => selectedOrderIds.includes(o._id))
+              )
             }
           >
             In đơn chốt
@@ -186,6 +188,11 @@ const VehicleOrderList = ({
           {orders.map((order) => {
             const totalItems = order.items?.length || 0;
             const isSelected = selectedOrderIds.includes(order._id);
+            // Đếm số items chưa được thủ kho xác nhận
+            const unconfirmedCount =
+              order.items?.filter((item) => !item.warehouseConfirm?.value)
+                .length || 0;
+
             return (
               <div
                 key={order._id}
@@ -196,6 +203,28 @@ const VehicleOrderList = ({
                     : "hover:bg-gray-50"
                 } ${isSelected ? "ring-2 ring-blue-400 ring-inset" : ""}`}
               >
+                {/* Badge số lượng chưa xác nhận */}
+                {totalItems > 0 && (
+                  <div className="absolute top-2 right-2">
+                    <div
+                      className={`px-2 py-0.5 rounded-full text-[14px] font-semibold ${
+                        unconfirmedCount > 0
+                          ? "bg-red-100 text-red-700 border border-red-300"
+                          : "bg-green-100 text-green-700 border border-green-300"
+                      }`}
+                      title={
+                        unconfirmedCount > 0
+                          ? `${unconfirmedCount} mặt hàng chưa xác nhận`
+                          : "Đã xác nhận tất cả"
+                      }
+                    >
+                      {unconfirmedCount > 0
+                        ? `${unconfirmedCount}/${totalItems}`
+                        : "✓"}
+                    </div>
+                  </div>
+                )}
+
                 {/* Checkbox */}
                 <div
                   className="flex items-start pt-1"
