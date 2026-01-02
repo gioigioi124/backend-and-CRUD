@@ -65,21 +65,24 @@ const AssignOrderDialog = ({
       if (creator) params.creator = creator;
 
       const data = await orderService.getAllOrders(params);
-      
+
+      // Backend trả về object với property 'orders', không phải array trực tiếp
+      const orderList = data.orders || [];
+
       // Lọc đơn hàng có orderDate giống vehicleDate
-      const filteredByDate = data.filter((order) => {
+      const filteredByDate = orderList.filter((order) => {
         if (!vehicle?.vehicleDate || !order.orderDate) return false;
-        
+
         const orderDate = new Date(order.orderDate);
         const vehicleDate = new Date(vehicle.vehicleDate);
-        
+
         // So sánh chỉ ngày, bỏ qua giờ
         orderDate.setHours(0, 0, 0, 0);
         vehicleDate.setHours(0, 0, 0, 0);
-        
+
         return orderDate.getTime() === vehicleDate.getTime();
       });
-      
+
       setOrders(filteredByDate);
       setSelectedOrderId(null);
       setSelectedStaff("all"); // Reset bộ lọc nhân viên

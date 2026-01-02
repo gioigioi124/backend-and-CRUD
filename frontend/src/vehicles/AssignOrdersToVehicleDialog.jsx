@@ -58,8 +58,10 @@ const AssignOrdersToVehicleDialog = ({
         fromDate: vehicleDate,
         toDate: vehicleDate,
       });
-      setOrders(data);
-      setFilteredOrders(data);
+      // Backend trả về object với property 'orders', không phải array trực tiếp
+      const orderList = data.orders || [];
+      setOrders(orderList);
+      setFilteredOrders(orderList);
     } catch (error) {
       console.error("Lỗi khi tải danh sách đơn hàng:", error);
       toast.error("Không thể tải danh sách đơn hàng");
@@ -141,7 +143,9 @@ const AssignOrdersToVehicleDialog = ({
             Gán đơn hàng cho xe {vehicle?.weight} - {vehicle?.destination}
           </DialogTitle>
           <div className="text-sm text-gray-500 mt-1">
-            Ngày: {vehicle && new Date(vehicle.vehicleDate).toLocaleDateString("vi-VN")}
+            Ngày:{" "}
+            {vehicle &&
+              new Date(vehicle.vehicleDate).toLocaleDateString("vi-VN")}
           </div>
         </DialogHeader>
 

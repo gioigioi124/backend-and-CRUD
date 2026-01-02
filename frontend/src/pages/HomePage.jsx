@@ -305,8 +305,6 @@ const HomePage = () => {
             onUnassign={handleUnassign}
             onAssignClick={() => setAssignDialogOpen(true)}
             refreshTrigger={refreshTrigger}
-            fromDate={dateRange.fromDate}
-            toDate={dateRange.toDate}
             selectedOrderIds={selectedOrderIds}
             onToggleSelect={handleToggleSelectOrder}
             onSelectAll={handleSelectAllOrders}

@@ -280,8 +280,6 @@ const DispatcherDashboard = () => {
             onUnassign={handleUnassign}
             onAssignClick={() => setAssignDialogOpen(true)}
             refreshTrigger={refreshTrigger}
-            fromDate={dateRange.fromDate}
-            toDate={dateRange.toDate}
             onOrdersLoaded={handleOrdersLoaded}
             selectedOrderIds={selectedOrderIds}
             onToggleSelect={handleToggleSelectOrder}

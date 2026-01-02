@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { vehicleService } from "@/services/vehicleService";
 import { orderService } from "@/services/orderService";
+import { userService } from "@/services/userService";
 import { toast } from "sonner";
 import { Truck, Calendar } from "lucide-react";
 
@@ -19,6 +20,7 @@ const AssignVehicleToOrderDialog = ({
   onSuccess,
 }) => {
   const [vehicles, setVehicles] = useState([]);
+  const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [selectedDate, setSelectedDate] = useState(
@@ -26,6 +28,21 @@ const AssignVehicleToOrderDialog = ({
   );
   const [orderCounts, setOrderCounts] = useState({});
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [staffList, setStaffList] = useState([]);
+  const [selectedStaff, setSelectedStaff] = useState("all");
+
+  // Fetch danh sách nhân viên
+  useEffect(() => {
+    const fetchStaffList = async () => {
+      try {
+        const data = await userService.getStaffList();
+        setStaffList(data);
+      } catch (error) {
+        console.error("Không thể tải danh sách nhân viên", error);
+      }
+    };
+    fetchStaffList();
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -35,9 +52,21 @@ const AssignVehicleToOrderDialog = ({
       }
       setSelectedDate(dateToUse);
       setSelectedVehicle(null); // Reset selection khi mở dialog
+      setSelectedStaff("all"); // Reset staff filter
       fetchVehicles(dateToUse);
     }
   }, [open, order]);
+
+  // Lọc xe theo nhân viên tạo
+  useEffect(() => {
+    if (selectedStaff === "all") {
+      setFilteredVehicles(vehicles);
+    } else {
+      setFilteredVehicles(
+        vehicles.filter((vehicle) => vehicle.createdBy?._id === selectedStaff)
+      );
+    }
+  }, [selectedStaff, vehicles]);
 
   const fetchVehicles = async (date) => {
     try {
@@ -47,11 +76,13 @@ const AssignVehicleToOrderDialog = ({
         fromDate: date,
         toDate: date,
       });
-      setVehicles(data);
+      // Backend trả về object với property 'vehicles', không phải array trực tiếp
+      const vehicleList = data.vehicles || [];
+      setVehicles(vehicleList);
 
       // Fetch order counts for each vehicle
       const counts = {};
-      for (const vehicle of data) {
+      for (const vehicle of vehicleList) {
         try {
           const orders = await orderService.getOrdersByVehicle(vehicle._id);
           counts[vehicle._id] = orders.length;
@@ -74,7 +105,9 @@ const AssignVehicleToOrderDialog = ({
     try {
       setAssigning(true);
       await orderService.assignOrder(order._id, selectedVehicle._id);
-      toast.success(`Đã gán đơn hàng vào xe ${selectedVehicle.carName || "này"}`);
+      toast.success(
+        `Đã gán đơn hàng vào xe ${selectedVehicle.carName || "này"}`
+      );
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
@@ -97,7 +130,8 @@ const AssignVehicleToOrderDialog = ({
       onSuccess?.();
     } catch (error) {
       toast.error(
-        "Bỏ gán xe thất bại: " + (error.response?.data?.message || error.message)
+        "Bỏ gán xe thất bại: " +
+          (error.response?.data?.message || error.message)
       );
     } finally {
       setAssigning(false);
@@ -110,7 +144,10 @@ const AssignVehicleToOrderDialog = ({
         <DialogHeader>
           <DialogTitle>Chọn xe cho đơn hàng</DialogTitle>
           <div className="text-sm text-gray-500 mt-1">
-             Khách hàng: <span className="font-medium text-black">{order?.customer?.name}</span>
+            Khách hàng:{" "}
+            <span className="font-medium text-black">
+              {order?.customer?.name}
+            </span>
           </div>
         </DialogHeader>
 
@@ -129,16 +166,39 @@ const AssignVehicleToOrderDialog = ({
           </span>
         </div>
 
+        {/* Bộ lọc nhân viên */}
+        <div className="flex items-center gap-2 py-2 border-b">
+          <label className="text-sm font-medium text-gray-700">
+            Người tạo xe:
+          </label>
+          <select
+            value={selectedStaff}
+            onChange={(e) => setSelectedStaff(e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">Tất cả</option>
+            {staffList.map((staff) => (
+              <option key={staff._id} value={staff._id}>
+                {staff.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="flex-1 overflow-y-auto min-h-[300px] py-2 space-y-2">
           {loading ? (
             <div className="text-center py-4 text-gray-500">Đang tải xe...</div>
-          ) : vehicles.length === 0 ? (
+          ) : filteredVehicles.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Truck className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-              <p>Không có xe nào trong ngày này</p>
+              <p>
+                {vehicles.length === 0
+                  ? "Không có xe nào trong ngày này"
+                  : "Không có xe nào của nhân viên này"}
+              </p>
             </div>
           ) : (
-            vehicles.map((vehicle) => (
+            filteredVehicles.map((vehicle) => (
               <div
                 key={vehicle._id}
                 onClick={() => setSelectedVehicle(vehicle)}
@@ -162,7 +222,9 @@ const AssignVehicleToOrderDialog = ({
                       {vehicle.destination} - {vehicle.time}
                     </div>
                     {vehicle.note && (
-                        <div className="text-xs text-gray-400 italic mt-1">{vehicle.note}</div>
+                      <div className="text-xs text-gray-400 italic mt-1">
+                        {vehicle.note}
+                      </div>
                     )}
                   </div>
                   <div className="text-right">
@@ -207,11 +269,11 @@ const AssignVehicleToOrderDialog = ({
             </Button>
           </div>
         </div>
-        
+
         {assigning && (
-             <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-50">
-                <div className="text-sm font-medium">Đang xử lý...</div>
-             </div>
+          <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-50">
+            <div className="text-sm font-medium">Đang xử lý...</div>
+          </div>
         )}
       </DialogContent>
     </Dialog>

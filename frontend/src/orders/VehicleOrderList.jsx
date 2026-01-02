@@ -11,8 +11,6 @@ const VehicleOrderList = ({
   onUnassign,
   onAssignClick,
   refreshTrigger,
-  fromDate,
-  toDate,
   onOrdersLoaded,
   selectedOrderIds = [],
   onToggleSelect,
@@ -49,21 +47,23 @@ const VehicleOrderList = ({
       setError(null);
       const params = { vehicle: vehicle._id };
 
-      // Thêm date range nếu có
-      if (fromDate) params.fromDate = fromDate;
-      if (toDate) params.toDate = toDate;
+      // Không filter theo ngày - hiển thị tất cả đơn hàng trong xe
+      // Date range chỉ áp dụng cho danh sách xe, không áp dụng cho đơn hàng trong xe
 
       const data = await orderService.getAllOrders(params);
 
+      // API trả về object { orders: [...], currentPage, ... }, không phải array trực tiếp
+      const ordersArray = data.orders || data;
+
       // Sắp xếp đơn hàng theo tên khách hàng
-      data.sort((a, b) => {
+      ordersArray.sort((a, b) => {
         const nameA = a.customer?.name || "";
         const nameB = b.customer?.name || "";
         return nameA.localeCompare(nameB, "vi");
       });
 
-      setOrders(data);
-      if (onOrdersLoaded) onOrdersLoaded(data);
+      setOrders(ordersArray);
+      if (onOrdersLoaded) onOrdersLoaded(ordersArray);
     } catch (err) {
       setError("Không thể tải danh sách đơn hàng");
       console.error("Không thể tải đơn hàng", err.message);
@@ -71,7 +71,7 @@ const VehicleOrderList = ({
     } finally {
       setLoading(false);
     }
-  }, [vehicle?._id, fromDate, toDate]);
+  }, [vehicle?._id]);
 
   // Fetch khi vehicle thay đổi hoặc refreshTrigger thay đổi
   useEffect(() => {
