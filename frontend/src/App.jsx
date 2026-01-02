@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import UsersPage from "./pages/UsersPage";
 import WarehouseDashboard from "./pages/WarehouseDashboard";
 import DispatcherDashboard from "./pages/DispatcherDashboard";
+import VehicleReportPage from "./pages/VehicleReportPage";
 import PrivateRoute from "./components/PrivateRoute";
 import { VehicleProvider } from "./vehicles/VehicleContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -54,6 +55,10 @@ function App() {
                       <Route
                         path="dispatcher"
                         element={<DispatcherDashboard />}
+                      />
+                      <Route
+                        path="vehicle-report"
+                        element={<VehicleReportPage />}
                       />
                     </Route>
                   </Route>

@@ -5,7 +5,14 @@ import DateRangeSearch from "@/components/DateRangeSearch";
 import OrderPrintPreview from "@/orders/OrderPrintPreview";
 import OrderConfirmedPrintPreview from "@/orders/OrderConfirmedPrintPreview";
 import DispatchManifestPreview from "@/orders/DispatchManifestPreview";
-import { List, PlusCircle, Truck, Printer, Warehouse } from "lucide-react";
+import {
+  List,
+  PlusCircle,
+  Truck,
+  Printer,
+  Warehouse,
+  FileText,
+} from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
@@ -224,6 +231,19 @@ const DispatcherDashboard = () => {
               <Truck className="w-4 h-4" />
               Tạo xe
             </Button>
+          )}
+
+          {/* Nút Báo cáo xe */}
+          {user?.role !== "warehouse" && (
+            <Link to="/vehicle-report">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm font-medium text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <FileText className="w-4 h-4" />
+                Báo cáo xe
+              </Button>
+            </Link>
           )}
 
           {/* Nút Tạo đơn hàng */}
