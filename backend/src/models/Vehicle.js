@@ -47,13 +47,18 @@ const vehicleSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
-    // Ngày xe (cho phép hôm nay hoặc tương lai, không cho phép quá khứ)
+    // Ngày xe (cho phép hôm nay hoặc tương lai khi tạo mới, cho phép giữ nguyên ngày cũ khi update)
     vehicleDate: {
       type: Date,
       required: [true, "Ngày xe là bắt buộc"],
       validate: {
         validator: function (value) {
-          // Chỉ cho phép ngày hôm nay hoặc tương lai
+          // Chỉ validate khi tạo mới hoặc khi thay đổi ngày
+          if (!this.isNew && !this.isModified("vehicleDate")) {
+            return true; // Bỏ qua validation nếu không thay đổi ngày
+          }
+
+          // Chỉ cho phép ngày hôm nay hoặc tương lai khi tạo mới hoặc thay đổi ngày
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           const vehicleDate = new Date(value);

@@ -83,13 +83,18 @@ const orderSchema = new mongoose.Schema(
       },
     ],
 
-    // Ngày đơn hàng (cho phép hôm nay hoặc tương lai, không cho phép quá khứ)
+    // Ngày đơn hàng (cho phép hôm nay hoặc tương lai khi tạo mới, cho phép giữ nguyên ngày cũ khi update)
     orderDate: {
       type: Date,
       required: [true, "Ngày đơn hàng là bắt buộc"],
       validate: {
         validator: function (value) {
-          // Chỉ cho phép ngày hôm nay hoặc tương lai
+          // Chỉ validate khi tạo mới hoặc khi thay đổi ngày
+          if (!this.isNew && !this.isModified("orderDate")) {
+            return true; // Bỏ qua validation nếu không thay đổi ngày
+          }
+
+          // Chỉ cho phép ngày hôm nay hoặc tương lai khi tạo mới hoặc thay đổi ngày
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           const orderDate = new Date(value);

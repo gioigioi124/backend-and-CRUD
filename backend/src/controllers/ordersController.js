@@ -171,14 +171,20 @@ export const updateOrder = async (req, res) => {
       }
     }
 
-    const order = await Order.findByIdAndUpdate(
-      id,
-      req.body,
-      { new: true, runValidators: true } // Trả về document mới và chạy validation
-    ).populate("vehicle");
+    // Cập nhật từng field để validator có context this đúng
+    if (req.body.customer) existingOrder.customer = req.body.customer;
+    if (req.body.items) existingOrder.items = req.body.items;
+    if (req.body.orderDate) existingOrder.orderDate = req.body.orderDate;
+    if (req.body.vehicle !== undefined)
+      existingOrder.vehicle = req.body.vehicle;
 
-    res.status(200).json(order);
+    // Save để trigger validator với context đúng
+    await existingOrder.save();
+    await existingOrder.populate("vehicle");
+
+    res.status(200).json(existingOrder);
   } catch (error) {
+    console.log("Lỗi khi cập nhật đơn hàng - ", error.message);
     res.status(400).json({
       message: "Cập nhật đơn hàng thất bại",
       error: error.message,

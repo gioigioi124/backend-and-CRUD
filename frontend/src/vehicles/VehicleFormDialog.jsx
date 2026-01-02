@@ -238,13 +238,15 @@ const VehicleFormDialog = ({
               type="date"
               value={formData.vehicleDate}
               onChange={(e) => handleChange("vehicleDate", e.target.value)}
-              min={getTodayDate()}
+              min={isEditMode ? undefined : getTodayDate()}
               required
               disabled={isEditMode && hasOrders}
             />
             <p className="text-xs text-gray-500">
               {isEditMode && hasOrders
                 ? "Không thể thay đổi ngày xe khi đã có đơn hàng. Vui lòng bỏ gán các đơn hàng trước."
+                : isEditMode
+                ? "Có thể giữ nguyên ngày cũ hoặc chọn ngày mới"
                 : "Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai"}
             </p>
           </div>

@@ -33,21 +33,25 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   // Hàm sắp xếp items theo kho (K02→K03→K04→K01) và tên+kích thước
   const sortItems = (items) => {
     const warehouseOrder = { K02: 1, K03: 2, K04: 3, K01: 4 };
-    
+
     return [...items].sort((a, b) => {
       // Ưu tiên 1: Sắp xếp theo kho
       const warehouseA = warehouseOrder[a.warehouse] || 999;
       const warehouseB = warehouseOrder[b.warehouse] || 999;
-      
+
       if (warehouseA !== warehouseB) {
         return warehouseA - warehouseB;
       }
-      
+
       // Ưu tiên 2: Sắp xếp theo tên + kích thước
-      const nameA = `${a.productName || ''} ${a.size || ''}`.trim().toLowerCase();
-      const nameB = `${b.productName || ''} ${b.size || ''}`.trim().toLowerCase();
-      
-      return nameA.localeCompare(nameB, 'vi');
+      const nameA = `${a.productName || ""} ${a.size || ""}`
+        .trim()
+        .toLowerCase();
+      const nameB = `${b.productName || ""} ${b.size || ""}`
+        .trim()
+        .toLowerCase();
+
+      return nameA.localeCompare(nameB, "vi");
     });
   };
 
@@ -65,18 +69,18 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
           ...item,
           stt: item.stt || index + 1,
         }));
-        
+
         // Sắp xếp items theo kho và tên
         const sortedItems = sortItems(itemsWithStt);
-        
+
         // Cập nhật lại STT sau khi sắp xếp
         const itemsWithNewStt = sortedItems.map((item, index) => ({
           ...item,
           stt: index + 1,
         }));
-        
+
         setItems(itemsWithNewStt);
-        
+
         // Load orderDate
         if (order.orderDate) {
           const date = new Date(order.orderDate);
@@ -212,14 +216,16 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                 type="date"
                 value={orderDate}
                 onChange={(e) => setOrderDate(e.target.value)}
-                min={getTodayDate()}
+                min={isCreateMode ? getTodayDate() : undefined}
                 required
                 disabled={!isCreateMode && order?.vehicle}
               />
               <p className="text-xs text-gray-500">
                 {!isCreateMode && order?.vehicle
                   ? "Không thể sửa ngày đơn hàng đã gán xe"
-                  : "Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai"}
+                  : isCreateMode
+                  ? "Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai"
+                  : "Có thể giữ nguyên ngày cũ hoặc chọn ngày mới"}
               </p>
             </div>
           </div>
