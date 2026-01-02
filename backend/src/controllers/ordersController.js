@@ -19,7 +19,16 @@ export const createOrder = async (req, res) => {
 // GET ALL - Lấy tất cả đơn hàng
 export const getAllOrders = async (req, res) => {
   try {
-    const { vehicle, status, search, creator, fromDate, toDate } = req.query; // Lọc theo xe, trạng thái, và tìm kiếm
+    const {
+      vehicle,
+      status,
+      search,
+      creator,
+      fromDate,
+      toDate,
+      page = 1,
+      limit = 10,
+    } = req.query; // Lọc theo xe, trạng thái, và tìm kiếm
 
     const filter = {};
 
@@ -63,12 +72,32 @@ export const getAllOrders = async (req, res) => {
       }
     }
 
+    // Tính toán pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Đếm tổng số đơn hàng
+    const totalOrders = await Order.countDocuments(filter);
+    const totalPages = Math.ceil(totalOrders / limitNum);
+
+    // Lấy dữ liệu đơn hàng với pagination
     const orders = await Order.find(filter)
       .populate("vehicle") // Lấy thông tin xe
       .populate("createdBy", "name username") // Lấy thông tin người tạo
-      .sort({ orderDate: -1, createdAt: -1 }); // Sắp xếp theo orderDate, sau đó createdAt
+      .sort({ orderDate: -1, createdAt: -1 }) // Sắp xếp theo orderDate, sau đó createdAt
+      .skip(skip)
+      .limit(limitNum);
 
-    res.status(200).json(orders);
+    // Trả về dữ liệu với metadata
+    res.status(200).json({
+      orders,
+      currentPage: pageNum,
+      totalPages,
+      totalOrders,
+      hasNextPage: pageNum < totalPages,
+      hasPrevPage: pageNum > 1,
+    });
   } catch (error) {
     res.status(500).json({
       message: "Lấy danh sách đơn hàng thất bại",

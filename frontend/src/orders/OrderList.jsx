@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select";
 import { userService } from "@/services/userService";
 import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Helper function để lấy ngày hôm nay
 const getTodayDate = () => {
@@ -42,6 +44,14 @@ const OrderList = ({
     user && user.role === "staff" ? user._id : "all"
   );
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  const ITEMS_PER_PAGE = 10;
+
   // Khởi tạo dateRange với ngày hôm nay
   const todayDate = getTodayDate();
   const [dateRange, setDateRange] = useState({
@@ -70,11 +80,19 @@ const OrderList = ({
     }
   }, [user]);
 
+  // Reset về trang 1 khi filter thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, activeSearchQuery, dateRange, creatorFilter]);
+
   // Tải danh sách đơn hàng
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const params = {};
+      const params = {
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+      };
 
       // Thêm filter theo người tạo
       if (creatorFilter !== "all") {
@@ -100,7 +118,23 @@ const OrderList = ({
       }
 
       const data = await orderService.getAllOrders(params);
-      setOrders(data);
+
+      // Xử lý response với pagination metadata
+      const {
+        orders: orderData,
+        currentPage: page,
+        totalPages: pages,
+        totalOrders: total,
+        hasNextPage: hasNext,
+        hasPrevPage: hasPrev,
+      } = data;
+
+      setOrders(orderData);
+      setCurrentPage(page);
+      setTotalPages(pages);
+      setTotalOrders(total);
+      setHasNextPage(hasNext);
+      setHasPrevPage(hasPrev);
       setError(null);
     } catch (err) {
       setError("Không thể tải danh sách đơn hàng");
@@ -109,7 +143,7 @@ const OrderList = ({
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, activeSearchQuery, dateRange, creatorFilter]);
+  }, [statusFilter, activeSearchQuery, dateRange, creatorFilter, currentPage]);
 
   // Fetch orders khi filter hoặc search thay đổi
   useEffect(() => {
@@ -189,7 +223,37 @@ const OrderList = ({
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">Danh sách đơn hàng</h2>
+      {/* Pagination Controls - moved to top */}
+      <div className="mb-4 flex items-center justify-between">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage((prev) => prev - 1)}
+          disabled={!hasPrevPage}
+          className="gap-1"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Trước
+        </Button>
+
+        <div className="text-sm text-gray-600">
+          <span className="font-semibold text-base">
+            Trang {currentPage} / {totalPages}
+          </span>
+          <span className="text-gray-400 ml-2">({totalOrders} đơn)</span>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          disabled={!hasNextPage}
+          className="gap-1"
+        >
+          Sau
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
 
       {/* Filter và Search */}
       <div className="mb-4 space-y-2 max-w-75">
