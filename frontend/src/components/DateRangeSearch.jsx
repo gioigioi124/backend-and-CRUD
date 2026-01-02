@@ -54,7 +54,7 @@ const DateRangeSearch = ({ onSearch, defaultToToday = false }) => {
           value={fromDate}
           onChange={(e) => setFromDate(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="w-36"
+          className="w-36 bg-gray-50"
         />
       </div>
       <div className="space-y-1">
@@ -67,7 +67,7 @@ const DateRangeSearch = ({ onSearch, defaultToToday = false }) => {
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="w-36"
+          className="w-36 bg-gray-50"
         />
       </div>
       <Button onClick={handleSearch} size="sm">

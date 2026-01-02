@@ -14,7 +14,7 @@ import {
 import { userService } from "@/services/userService";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 // Helper function để lấy ngày hôm nay
 const getTodayDate = () => {
@@ -167,11 +167,9 @@ const OrderList = ({
     setSearchQuery(e.target.value);
   };
 
-  // Xử lý khi nhấn Enter trong search input
-  const handleSearchKeyDown = (e) => {
-    if (e.key === "Enter") {
-      setActiveSearchQuery(searchQuery);
-    }
+  // Xử lý khi click nút tìm kiếm
+  const handleSearchClick = () => {
+    setActiveSearchQuery(searchQuery);
   };
 
   // Xử lý tìm kiếm theo ngày
@@ -257,48 +255,54 @@ const OrderList = ({
 
       {/* Filter và Search */}
       <div className="mb-4 space-y-2 max-w-75">
-        {/* Search input */}
-        <Input
-          type="text"
-          placeholder="Tìm kiếm theo tên KH... (Enter để tìm)"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          onKeyDown={handleSearchKeyDown}
-        />
-
-        {/* Filter dropdown */}
-        <Select value={statusFilter} onValueChange={handleFilterChange}>
-          <SelectTrigger className="w-full ">
-            <SelectValue placeholder="Lọc theo trạng thái" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả trạng thái</SelectItem>
-            <SelectItem value="unassigned">Chưa gán xe</SelectItem>
-            <SelectItem value="assigned">Đã gán xe</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Search input với nút tìm kiếm */}
+        <div className="flex gap-2 items-center justify-between">
+          <Input
+            type="text"
+            placeholder="Tìm kiếm theo tên KH..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="bg-gray-50 w-full"
+          />
+          <Button onClick={handleSearchClick} variant="default" size="sm">
+            <Search className="w-4 h-4" />
+            Tìm kiếm
+          </Button>
+        </div>
 
         {/* Date range search */}
         <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
 
-        {/* Filter người tạo - đưa xuống dưới cùng */}
-        <div className="pt-2 border-t border-gray-100">
-          <span className="text-xs font-medium text-gray-500 mb-1 block">
-            Người tạo đơn:
-          </span>
-          <Select value={creatorFilter} onValueChange={setCreatorFilter}>
-            <SelectTrigger className="w-full bg-gray-50">
-              <SelectValue placeholder="Lọc theo người tạo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả các nhân viên</SelectItem>
-              {staffList.map((staff) => (
-                <SelectItem key={staff._id} value={staff._id}>
-                  {staff.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Filter người tạo */}
+        <div className="w-full flex items-center justify-between pt-2 border-t border-gray-100 space-x-2">
+          <div className="w-full">
+            <Select value={creatorFilter} onValueChange={setCreatorFilter}>
+              <SelectTrigger className="w-full bg-gray-50">
+                <SelectValue placeholder="Lọc theo người tạo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Người tạo đơn</SelectItem>
+                {staffList.map((staff) => (
+                  <SelectItem key={staff._id} value={staff._id}>
+                    {staff.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Filter dropdown */}
+          <div className="w-full">
+            <Select value={statusFilter} onValueChange={handleFilterChange}>
+              <SelectTrigger className="w-full bg-gray-50 ">
+                <SelectValue placeholder="Lọc theo trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Gán xe/Chưa gán xe</SelectItem>
+                <SelectItem value="unassigned">Chưa gán xe</SelectItem>
+                <SelectItem value="assigned">Đã gán xe</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
