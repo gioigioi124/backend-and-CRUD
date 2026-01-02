@@ -17,7 +17,14 @@ import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { toast } from "sonner";
 import { orderService } from "@/services/orderService";
 import { userService } from "@/services/userService";
-import { PlusCircle, Truck, List, Warehouse } from "lucide-react";
+import {
+  PlusCircle,
+  Truck,
+  List,
+  Warehouse,
+  FileText,
+  Home,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -207,6 +214,15 @@ const HomePage = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {/* Nút Trang chủ - Đang ở trang này */}
+          <Button
+            variant="outline"
+            className="gap-2 shadow-sm font-medium text-green-600 border-green-200 bg-green-50 cursor-default"
+          >
+            <Home className="w-4 h-4" />
+            Trang chủ
+          </Button>
+
           {/* Nút Danh sách đơn hàng (OrderList) */}
           <Link to="/orders">
             <Button variant="outline" className="gap-2 shadow-sm font-medium">
@@ -251,6 +267,19 @@ const HomePage = () => {
               <Truck className="w-4 h-4" />
               Tạo xe
             </Button>
+          )}
+
+          {/* Nút Báo cáo xe */}
+          {user?.role !== "warehouse" && (
+            <Link to="/vehicle-report">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm font-medium text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <FileText className="w-4 h-4" />
+                Báo cáo xe
+              </Button>
+            </Link>
           )}
 
           {/* Nút Tạo đơn hàng */}

@@ -2,9 +2,20 @@ import { useState } from "react";
 import { vehicleService } from "@/services/vehicleService";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
-import { ArrowLeft, FileText } from "lucide-react";
+import {
+  FileText,
+  List,
+  Truck,
+  PlusCircle,
+  Warehouse,
+  Home,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
+import { useVehicleContext } from "@/vehicles/VehicleContext";
+import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
+import OrderEditDialog from "@/orders/OrderEditDialog";
 import {
   Table,
   TableBody,
@@ -20,11 +31,15 @@ const getTodayDate = () => {
 };
 
 const VehicleReportPage = () => {
+  const { user } = useAuth();
+  const { triggerRefresh: triggerVehicleRefresh } = useVehicleContext();
   const todayDate = getTodayDate();
   const [selectedDate, setSelectedDate] = useState(todayDate);
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState([]);
   const [vehicleTypes, setVehicleTypes] = useState([]);
+  const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const fetchVehicles = async () => {
     setLoading(true);
@@ -110,23 +125,98 @@ const VehicleReportPage = () => {
     return reportData.reduce((sum, row) => sum + row.total, 0);
   };
 
+  const handleCreateOrder = () => {
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    // Refresh nếu cần
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div className="flex flex-wrap items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <FileText className="w-6 h-6" />
-            Báo Cáo Số Lượng Xe
-          </h1>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          <FileText className="w-6 h-6" />
+          Báo Cáo Số Lượng Xe
+        </h1>
 
         <div className="flex flex-wrap gap-2">
-          <Link to="/dispatcher">
-            <Button variant="outline" className="gap-2 shadow-sm font-medium">
-              <ArrowLeft className="w-4 h-4" />
-              Quay lại Điều vận
+          {/* Nút Trang chủ */}
+          <Link to="/">
+            <Button
+              variant="outline"
+              className="gap-2 shadow-sm font-medium text-green-600 border-green-200 hover:bg-green-50"
+            >
+              <Home className="w-4 h-4" />
+              Trang chủ
             </Button>
           </Link>
+
+          <Link to="/orders">
+            <Button variant="outline" className="gap-2 shadow-sm font-medium">
+              <List className="w-4 h-4" />
+              Đơn hàng
+            </Button>
+          </Link>
+
+          {/* Nút Dashboard Kho */}
+          {user?.role === "warehouse" && (
+            <Link to="/warehouse">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm font-medium text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                <Warehouse className="w-4 h-4" />
+                Dashboard Kho
+              </Button>
+            </Link>
+          )}
+
+          {/* Nút Điều vận */}
+          {user?.role === "leader" && (
+            <Link to="/dispatcher">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm font-medium text-orange-600 border-orange-200 hover:bg-orange-50"
+              >
+                <Truck className="w-4 h-4" />
+                Điều vận
+              </Button>
+            </Link>
+          )}
+
+          {/* Nút Tạo xe */}
+          {user?.role !== "warehouse" && (
+            <Button
+              variant="secondary"
+              className="gap-2 shadow-sm font-medium"
+              onClick={() => setOpenVehicleDialog(true)}
+            >
+              <Truck className="w-4 h-4" />
+              Tạo xe
+            </Button>
+          )}
+
+          {/* Nút Báo cáo xe (Đang ở trang này) */}
+          <Button
+            variant="outline"
+            className="gap-2 shadow-sm font-medium text-blue-600 border-blue-200 bg-blue-50 cursor-default"
+          >
+            <FileText className="w-4 h-4" />
+            Báo cáo xe
+          </Button>
+
+          {/* Nút Tạo đơn hàng mới */}
+          {user?.role !== "warehouse" && (
+            <Button
+              onClick={handleCreateOrder}
+              className="gap-2 shadow-sm font-medium"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Tạo đơn hàng mới
+            </Button>
+          )}
         </div>
       </div>
 
@@ -248,6 +338,19 @@ const VehicleReportPage = () => {
           </div>
         )}
       </div>
+
+      <VehicleFormDialog
+        open={openVehicleDialog}
+        onOpenChange={setOpenVehicleDialog}
+        onSuccess={triggerVehicleRefresh}
+      />
+
+      <OrderEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        order={null}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 };

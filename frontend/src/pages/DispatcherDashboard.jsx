@@ -12,6 +12,7 @@ import {
   Printer,
   Warehouse,
   FileText,
+  Home,
 } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -192,6 +193,17 @@ const DispatcherDashboard = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {/* Nút Trang chủ */}
+          <Link to="/">
+            <Button
+              variant="outline"
+              className="gap-2 shadow-sm font-medium text-green-600 border-green-200 hover:bg-green-50"
+            >
+              <Home className="w-4 h-4" />
+              Trang chủ
+            </Button>
+          </Link>
+
           <Link to="/orders">
             <Button variant="outline" className="gap-2 shadow-sm font-medium">
               <List className="w-4 h-4" />

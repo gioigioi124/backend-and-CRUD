@@ -11,7 +11,14 @@ import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { PlusCircle, Truck, List, Warehouse } from "lucide-react";
+import {
+  PlusCircle,
+  Truck,
+  List,
+  Warehouse,
+  FileText,
+  Home,
+} from "lucide-react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 
 import AssignVehicleToOrderDialog from "@/orders/AssignVehicleToOrderDialog"; // Import Dialog
@@ -127,8 +134,22 @@ const OrderListPage = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {/* Nút Danh sách đơn hàng (OrderList) */}
-          <Button variant="outline" className="gap-2 shadow-sm font-medium">
+          {/* Nút Trang chủ */}
+          <Link to="/">
+            <Button
+              variant="outline"
+              className="gap-2 shadow-sm font-medium text-green-600 border-green-200 hover:bg-green-50"
+            >
+              <Home className="w-4 h-4" />
+              Trang chủ
+            </Button>
+          </Link>
+
+          {/* Nút Danh sách đơn hàng (OrderList) - Đang ở trang này */}
+          <Button
+            variant="outline"
+            className="gap-2 shadow-sm font-medium border-gray-300 bg-gray-50 cursor-default"
+          >
             <List className="w-4 h-4" />
             Đơn hàng
           </Button>
@@ -169,6 +190,19 @@ const OrderListPage = () => {
               <Truck className="w-4 h-4" />
               Tạo xe
             </Button>
+          )}
+
+          {/* Nút Báo cáo xe */}
+          {user?.role !== "warehouse" && (
+            <Link to="/vehicle-report">
+              <Button
+                variant="outline"
+                className="gap-2 shadow-sm font-medium text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <FileText className="w-4 h-4" />
+                Báo cáo xe
+              </Button>
+            </Link>
           )}
 
           {/* Nút Tạo đơn hàng */}

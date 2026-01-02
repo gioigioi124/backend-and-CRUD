@@ -18,7 +18,7 @@
 # PRINT PREVIEW
 
 - Rút gọn UI, Header Table
-- Full màn hình khi print
+- Full màn hình khi print ✅
 
 # TỐI ƯU
 
@@ -34,7 +34,6 @@
 
 # DASHBOARD
 
-- Đếm số lượng xe ngày hôm đó
-- Xe còn lại, xe đã hoàn thành
+- Đếm số lượng xe ngày hôm đó✅
 
 # HÀNG CHƯA ĐI CỦA STAFF
