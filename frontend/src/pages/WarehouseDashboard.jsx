@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Search, List, Warehouse } from "lucide-react";
+import { Calendar, Search, List, Warehouse, Home } from "lucide-react";
 import { orderService } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
 
@@ -113,6 +113,17 @@ const WarehouseDashboard = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {/* Nút Trang chủ */}
+          <Link to="/">
+            <Button
+              variant="outline"
+              className="gap-2 shadow-sm font-medium text-green-600 border-green-200 hover:bg-green-50"
+            >
+              <Home className="w-4 h-4" />
+              Trang chủ
+            </Button>
+          </Link>
+
           {/* Nút Danh sách đơn hàng */}
           <Link to="/orders">
             <Button variant="outline" className="gap-2 shadow-sm font-medium">
@@ -120,6 +131,8 @@ const WarehouseDashboard = () => {
               Đơn hàng
             </Button>
           </Link>
+
+          <div className="h-9 w-px bg-primary" />
 
           {/* Nút Dashboard Kho (Đang ở trang này) */}
           <Button

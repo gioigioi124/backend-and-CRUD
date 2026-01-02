@@ -204,12 +204,15 @@ const DispatcherDashboard = () => {
             </Button>
           </Link>
 
+          {/* Nút Danh sách đơn hàng (OrderList) */}
           <Link to="/orders">
             <Button variant="outline" className="gap-2 shadow-sm font-medium">
               <List className="w-4 h-4" />
               Đơn hàng
             </Button>
           </Link>
+
+          <div className="h-9 w-px bg-primary" />
 
           {/* Nút Dashboard Kho */}
           {user?.role === "warehouse" && (
@@ -233,18 +236,6 @@ const DispatcherDashboard = () => {
             Điều vận
           </Button>
 
-          {/* Nút Tạo xe */}
-          {user?.role !== "warehouse" && (
-            <Button
-              variant="secondary"
-              className="gap-2 shadow-sm font-medium"
-              onClick={() => setOpenVehicleDialog(true)}
-            >
-              <Truck className="w-4 h-4" />
-              Tạo xe
-            </Button>
-          )}
-
           {/* Nút Báo cáo xe */}
           {user?.role !== "warehouse" && (
             <Link to="/vehicle-report">
@@ -256,6 +247,20 @@ const DispatcherDashboard = () => {
                 Báo cáo xe
               </Button>
             </Link>
+          )}
+
+          <div className="h-9 w-px bg-primary" />
+
+          {/* Nút Tạo xe */}
+          {user?.role !== "warehouse" && (
+            <Button
+              variant="secondary"
+              className="gap-2 shadow-sm font-medium"
+              onClick={() => setOpenVehicleDialog(true)}
+            >
+              <Truck className="w-4 h-4" />
+              Tạo xe
+            </Button>
           )}
 
           {/* Nút Tạo đơn hàng */}

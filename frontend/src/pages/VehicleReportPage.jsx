@@ -159,12 +159,15 @@ const VehicleReportPage = () => {
             </Button>
           </Link>
 
+          {/* Nút Danh sách đơn hàng (OrderList) */}
           <Link to="/orders">
             <Button variant="outline" className="gap-2 shadow-sm font-medium">
               <List className="w-4 h-4" />
               Đơn hàng
             </Button>
           </Link>
+
+          <div className="h-9 w-px bg-primary" />
 
           {/* Nút Dashboard Kho */}
           {user?.role === "warehouse" && (
@@ -192,6 +195,19 @@ const VehicleReportPage = () => {
             </Link>
           )}
 
+          {/* Nút Báo cáo xe (Đang ở trang này) */}
+          {user?.role !== "warehouse" && (
+            <Button
+              variant="outline"
+              className="gap-2 shadow-sm font-medium text-blue-600 border-blue-200 bg-blue-50 cursor-default"
+            >
+              <FileText className="w-4 h-4" />
+              Báo cáo xe
+            </Button>
+          )}
+
+          <div className="h-9 w-px bg-primary" />
+
           {/* Nút Tạo xe */}
           {user?.role !== "warehouse" && (
             <Button
@@ -203,15 +219,6 @@ const VehicleReportPage = () => {
               Tạo xe
             </Button>
           )}
-
-          {/* Nút Báo cáo xe (Đang ở trang này) */}
-          <Button
-            variant="outline"
-            className="gap-2 shadow-sm font-medium text-blue-600 border-blue-200 bg-blue-50 cursor-default"
-          >
-            <FileText className="w-4 h-4" />
-            Báo cáo xe
-          </Button>
 
           {/* Nút Tạo đơn hàng mới */}
           {user?.role !== "warehouse" && (

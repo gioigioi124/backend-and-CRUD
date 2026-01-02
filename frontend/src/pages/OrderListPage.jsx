@@ -154,6 +154,8 @@ const OrderListPage = () => {
             Đơn hàng
           </Button>
 
+          <div className="h-9 w-px bg-primary" />
+
           {/* Nút Dashboard Kho */}
           {user?.role === "warehouse" && (
             <Link to="/warehouse">
@@ -180,18 +182,6 @@ const OrderListPage = () => {
             </Link>
           )}
 
-          {/* Nút Tạo xe (Tương đương Create Tranpo cũ) */}
-          {user?.role !== "warehouse" && (
-            <Button
-              variant="secondary"
-              className="gap-2 shadow-sm font-medium"
-              onClick={() => setOpenVehicleDialog(true)}
-            >
-              <Truck className="w-4 h-4" />
-              Tạo xe
-            </Button>
-          )}
-
           {/* Nút Báo cáo xe */}
           {user?.role !== "warehouse" && (
             <Link to="/vehicle-report">
@@ -203,6 +193,20 @@ const OrderListPage = () => {
                 Báo cáo xe
               </Button>
             </Link>
+          )}
+
+          <div className="h-9 w-px bg-primary" />
+
+          {/* Nút Tạo xe */}
+          {user?.role !== "warehouse" && (
+            <Button
+              variant="secondary"
+              className="gap-2 shadow-sm font-medium"
+              onClick={() => setOpenVehicleDialog(true)}
+            >
+              <Truck className="w-4 h-4" />
+              Tạo xe
+            </Button>
           )}
 
           {/* Nút Tạo đơn hàng */}

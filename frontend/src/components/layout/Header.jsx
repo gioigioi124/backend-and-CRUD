@@ -36,7 +36,6 @@ const Header = () => {
             {user && (
               <div className="flex items-center gap-3">
                 {/* Nút Đăng xuất đưa ra ngoài */}
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -85,7 +84,9 @@ const Header = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
                 <div className="h-6 w-px bg-gray-200 hidden md:block" />
+
                 <Button
                   variant="ghost"
                   size="sm"
