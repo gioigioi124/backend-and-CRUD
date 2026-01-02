@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { vehicleService } from "@/services/vehicleService";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
@@ -61,6 +61,12 @@ const VehicleReportPage = () => {
       setLoading(false);
     }
   };
+
+  // Tự động tải dữ liệu khi vào trang (ngày hôm nay)
+  useEffect(() => {
+    fetchVehicles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const calculateReport = (vehicleData) => {
     // Lọc xe theo vehicleDate
@@ -134,7 +140,7 @@ const VehicleReportPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-7xl">
+    <div className="container mx-auto p-4 max-w-full items-center ">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <FileText className="w-6 h-6" />
@@ -221,7 +227,7 @@ const VehicleReportPage = () => {
       </div>
 
       {/* Chọn ngày */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100 max-w-7xl mx-auto">
         <div className="flex items-center gap-4">
           <div className="space-y-2">
             <Label htmlFor="selectedDate">Chọn ngày báo cáo</Label>
@@ -246,7 +252,7 @@ const VehicleReportPage = () => {
       </div>
 
       {/* Tổng quan */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100 max-w-7xl mx-auto">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Tổng Quan</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -275,7 +281,7 @@ const VehicleReportPage = () => {
       </div>
 
       {/* Bảng báo cáo */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 max-w-7xl mx-auto">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">
           Báo Cáo Chi Tiết - {formatDate(selectedDate)}
         </h2>

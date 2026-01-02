@@ -36,17 +36,6 @@ const Header = () => {
             {user && (
               <div className="flex items-center gap-3">
                 {/* Nút Đăng xuất đưa ra ngoài */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="text-gray-500 hover:text-red-600 font-medium transition-colors hidden md:flex items-center gap-1.5"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Đăng xuất</span>
-                </Button>
-
-                <div className="h-6 w-px bg-gray-200 hidden md:block" />
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -96,6 +85,16 @@ const Header = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                <div className="h-6 w-px bg-gray-200 hidden md:block" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-gray-500 hover:text-red-600 font-medium transition-colors hidden md:flex items-center gap-1.5"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Đăng xuất</span>
+                </Button>
               </div>
             )}
           </div>
