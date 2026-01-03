@@ -1,14 +1,19 @@
 import { Outlet } from "react-router";
 import Header from "./Header";
+import AppSidebar from "./AppSidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 const MainLayout = () => {
   return (
-    <div className="min-h-screen">
-      <Header />
-      <main>
-        <Outlet />
-      </main>
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <Header />
+        <main className="flex flex-1 flex-col">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 };
 

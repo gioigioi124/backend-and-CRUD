@@ -14,6 +14,7 @@
 # CỘT 3
 
 - rút gọn UI ✅
+- chỉnh lại khung in
 
 # PRINT PREVIEW
 

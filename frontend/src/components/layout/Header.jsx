@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Users, Settings } from "lucide-react";
+import { LogOut, Users } from "lucide-react";
 import { Button } from "../ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,16 +22,18 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <header className="bg-white shadow-sm border-b sticky top-0 z-40">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <Link
-            to="/"
-            className="text-xl font-bold text-primary flex items-center gap-2"
-          >
-            <Settings className="w-6 h-6 text-primary" />
-            <span className="hidden sm:inline">Quản lý kho vận</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <SidebarTrigger />
+            <Link
+              to="/"
+              className="text-xl font-bold text-primary flex items-center gap-2"
+            >
+              <span className="hidden sm:inline">Quản lý kho vận</span>
+            </Link>
+          </div>
 
           <div className="flex items-center gap-4">
             {user && (

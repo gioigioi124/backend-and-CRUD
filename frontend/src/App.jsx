@@ -47,15 +47,21 @@ function App() {
                     </Route>
                     <Route
                       element={
-                        <PrivateRoute
-                          allowedRoles={["admin", "staff", "leader"]}
-                        />
+                        <PrivateRoute allowedRoles={["admin", "leader"]} />
                       }
                     >
                       <Route
                         path="dispatcher"
                         element={<DispatcherDashboard />}
                       />
+                    </Route>
+                    <Route
+                      element={
+                        <PrivateRoute
+                          allowedRoles={["admin", "staff", "leader"]}
+                        />
+                      }
+                    >
                       <Route
                         path="vehicle-report"
                         element={<VehicleReportPage />}
