@@ -80,8 +80,8 @@ const AppSidebar = () => {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b px-6 py-4">
-        <div className="flex items-center gap-2">
+      <SidebarHeader className="border-b px-6 py-4 bg-white shadow-sm">
+        <div className="flex items-center gap-2 mt-1  ">
           <Settings className="w-6 h-6 text-primary" />
           <span className="font-bold text-lg">Quản lý kho vận</span>
         </div>
@@ -104,7 +104,7 @@ const AppSidebar = () => {
                       tooltip={item.title}
                     >
                       <Link to={item.path}>
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-8 h-8" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>

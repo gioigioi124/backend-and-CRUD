@@ -150,10 +150,7 @@ const VehicleReportPage = () => {
         <div className="flex flex-wrap gap-2">
           {/* Nút Trang chủ */}
           <Link to="/">
-            <Button
-              variant="outline"
-              className="gap-2 shadow-sm font-medium text-green-600 border-green-200 hover:bg-green-50"
-            >
+            <Button variant="outline" className="gap-2 shadow-sm font-medium">
               <Home className="w-4 h-4" />
               Trang chủ
             </Button>
@@ -211,7 +208,7 @@ const VehicleReportPage = () => {
           {/* Nút Tạo xe */}
           {user?.role !== "warehouse" && (
             <Button
-              variant="secondary"
+              variant="outline"
               className="gap-2 shadow-sm font-medium"
               onClick={() => setOpenVehicleDialog(true)}
             >

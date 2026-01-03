@@ -82,10 +82,7 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Chi tiết đơn hàng</h2>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => onEdit(order)}>
-            <Pencil className="w-4 h-4 mr-1" />
-            Sửa
-          </Button>
+          {/* nút in đơn hàng */}
           <Button
             variant="outline"
             size="sm"
@@ -95,6 +92,13 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
             <Printer className="w-4 h-4 mr-1" />
             In đơn
           </Button>
+          {/* nút sửa đơn hàng */}
+          <Button variant="outline" size="sm" onClick={() => onEdit(order)}>
+            <Pencil className="w-4 h-4 mr-1" />
+            Sửa
+          </Button>
+
+          {/* nút xóa đơn hàng */}
           <Button
             variant="destructive"
             size="sm"
