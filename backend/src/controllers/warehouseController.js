@@ -5,7 +5,7 @@ import Order from "../models/Order.js";
 // @access  Private (Warehouse only)
 export const getWarehouseItems = async (req, res) => {
   try {
-    const { fromDate, toDate, status } = req.query;
+    const { fromDate, toDate, status, page = 1, limit = 50 } = req.query;
     const warehouseCode = req.user.warehouseCode; // Lấy từ token của user
 
     // Validate permission
@@ -79,7 +79,26 @@ export const getWarehouseItems = async (req, res) => {
       });
     });
 
-    res.json(warehouseItems);
+    // Apply pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const totalItems = warehouseItems.length;
+    const totalPages = Math.ceil(totalItems / limitNum);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Slice the items array for current page
+    const paginatedItems = warehouseItems.slice(skip, skip + limitNum);
+
+    // Return paginated response with metadata
+    res.json({
+      items: paginatedItems,
+      currentPage: pageNum,
+      totalPages,
+      totalItems,
+      itemsPerPage: limitNum,
+      hasNextPage: pageNum < totalPages,
+      hasPrevPage: pageNum > 1,
+    });
   } catch (error) {
     console.error(error);
     res

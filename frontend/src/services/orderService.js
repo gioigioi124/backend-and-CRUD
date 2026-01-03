@@ -65,12 +65,14 @@ export const orderService = {
   },
 
   // Lấy danh sách hàng hóa cho thủ kho
-  getWarehouseItems: async (fromDate, toDate, status) => {
+  getWarehouseItems: async (fromDate, toDate, status, page = 1, limit = 50) => {
     // build query params
     const params = {};
     if (fromDate) params.fromDate = fromDate;
     if (toDate) params.toDate = toDate;
     if (status) params.status = status;
+    if (page) params.page = page;
+    if (limit) params.limit = limit;
 
     const queryString = new URLSearchParams(params).toString();
     const url = queryString

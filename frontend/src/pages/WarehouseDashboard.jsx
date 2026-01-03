@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Search, List, Warehouse, Home } from "lucide-react";
+import {
+  Calendar,
+  Search,
+  List,
+  Warehouse,
+  Home,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { orderService } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
 
@@ -27,6 +35,13 @@ const WarehouseDashboard = () => {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const initialLoadRef = useRef(true);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Date filter
   // Date filter - mặc định là ngày hôm nay
@@ -39,26 +54,72 @@ const WarehouseDashboard = () => {
   const [toDate, setToDate] = useState(getTodayDate());
   const [status, setStatus] = useState("all");
 
-  const fetchItems = async () => {
-    try {
-      setLoading(true);
-      const data = await orderService.getWarehouseItems(
-        fromDate,
-        toDate,
-        status
-      );
-      setItems(data);
-    } catch (error) {
-      console.error(error);
-      toast.error("Không thể tải danh sách hàng hóa");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchItems = useCallback(
+    async (page = currentPage) => {
+      // Check if there are dirty items before navigating
+      const hasDirtyItems = items.some((item) => item.isDirty);
+      if (hasDirtyItems && page !== currentPage) {
+        const confirmNavigation = window.confirm(
+          "Bạn có thay đổi chưa được xác nhận. Nếu chuyển trang, các thay đổi sẽ bị mất. Bạn có chắc chắn muốn tiếp tục?"
+        );
+        if (!confirmNavigation) {
+          return;
+        }
+      }
+
+      try {
+        setLoading(true);
+        const response = await orderService.getWarehouseItems(
+          fromDate,
+          toDate,
+          status,
+          page,
+          itemsPerPage
+        );
+
+        // Handle paginated response
+        setItems(response.items || []);
+        setCurrentPage(response.currentPage || 1);
+        setTotalPages(response.totalPages || 0);
+        setTotalItems(response.totalItems || 0);
+
+        // Scroll to top when changing pages
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (error) {
+        console.error(error);
+        toast.error("Không thể tải danh sách hàng hóa");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentPage, items, fromDate, toDate, status, itemsPerPage]
+  );
 
   useEffect(() => {
-    fetchItems();
-  }, []); // Chỉ fetch lần đầu khi load trang
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      fetchItems(1);
+    }
+  }, [fetchItems]); // Only fetch on initial load
+
+  // Reset to page 1 when filters or items per page change
+  const handleSearch = () => {
+    setCurrentPage(1);
+    fetchItems(1);
+  };
+
+  const handleItemsPerPageChange = (newLimit) => {
+    setItemsPerPage(parseInt(newLimit));
+    setCurrentPage(1);
+    // Fetch will be triggered by useEffect
+  };
+
+  // Fetch when itemsPerPage changes
+  useEffect(() => {
+    if (itemsPerPage) {
+      fetchItems(1);
+    }
+  }, [itemsPerPage]);
 
   const handleConfirmChange = (index, value) => {
     const newItems = [...items];
@@ -142,8 +203,8 @@ const WarehouseDashboard = () => {
         </div>
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
+      <Card className="gap-0  ">
+        <CardHeader>
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Search className="w-4 h-4" />
             Bộ lọc tìm kiếm
@@ -184,7 +245,7 @@ const WarehouseDashboard = () => {
               </Select>
             </div>
 
-            <Button onClick={fetchItems} disabled={loading} className="gap-2">
+            <Button onClick={handleSearch} disabled={loading} className="gap-2">
               <Search className="w-4 h-4" />
               Tìm kiếm
             </Button>
@@ -204,16 +265,20 @@ const WarehouseDashboard = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Ngày</TableHead>
-                <TableHead>Khách hàng</TableHead>
-                <TableHead>Tên hàng hóa</TableHead>
-                <TableHead className="w-[80px]">KT</TableHead>
-                <TableHead className="w-[80px]">ĐVT</TableHead>
-                <TableHead className="w-[80px]">SL</TableHead>
-                <TableHead className="w-[80px]">Kho</TableHead>
-                <TableHead className="w-[80px]">Số cm</TableHead>
-                <TableHead className="min-w-[150px]">Ghi chú</TableHead>
-                <TableHead className="w-[150px]">Xác nhận</TableHead>
+                <TableHead className="w-[100px] text-primary">Ngày</TableHead>
+                <TableHead className="text-primary">Khách hàng</TableHead>
+                <TableHead className="text-primary">Tên hàng hóa</TableHead>
+                <TableHead className="w-[80px] text-primary">KT</TableHead>
+                <TableHead className="w-[80px] text-primary">ĐVT</TableHead>
+                <TableHead className="w-[80px] text-primary">SL</TableHead>
+                <TableHead className="w-[80px] text-primary">Kho</TableHead>
+                <TableHead className="w-[80px] text-primary">Số cm</TableHead>
+                <TableHead className="min-w-[150px] text-primary">
+                  Ghi chú
+                </TableHead>
+                <TableHead className="w-[150px] text-primary">
+                  Xác nhận
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -257,13 +322,11 @@ const WarehouseDashboard = () => {
                     </TableCell>
                     <TableCell>{item.size}</TableCell>
                     <TableCell>{item.unit}</TableCell>
-                    <TableCell className="text-right font-bold">
+                    <TableCell className=" font-bold">
                       {item.quantity}
                     </TableCell>
-                    <TableCell className="text-center">
-                      {user?.warehouseCode}
-                    </TableCell>
-                    <TableCell className="text-right">{item.cmQty}</TableCell>
+                    <TableCell>{user?.warehouseCode}</TableCell>
+                    <TableCell>{item.cmQty}</TableCell>
                     <TableCell
                       className="text-sm text-gray-500 max-w-[200px] truncate"
                       title={item.note}
@@ -288,6 +351,138 @@ const WarehouseDashboard = () => {
             </TableBody>
           </Table>
         </CardContent>
+
+        {/* Pagination Controls */}
+        {totalItems > 0 && (
+          <CardContent className="pt-4 border-t">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              {/* Items info */}
+              <div className="text-sm text-gray-600">
+                Hiển thị{" "}
+                <span className="font-medium">
+                  {(currentPage - 1) * itemsPerPage + 1}
+                </span>{" "}
+                -{" "}
+                <span className="font-medium">
+                  {Math.min(currentPage * itemsPerPage, totalItems)}
+                </span>{" "}
+                trong tổng số <span className="font-medium">{totalItems}</span>{" "}
+                hàng hóa
+              </div>
+
+              {/* Page navigation */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchItems(currentPage - 1)}
+                  disabled={!totalPages || currentPage === 1 || loading}
+                  className="gap-1"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Trước
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {/* First page */}
+                  {currentPage > 3 && (
+                    <>
+                      <Button
+                        variant={1 === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => fetchItems(1)}
+                        disabled={loading}
+                        className="w-9 h-9 p-0"
+                      >
+                        1
+                      </Button>
+                      {currentPage > 4 && (
+                        <span className="text-gray-400 px-1">...</span>
+                      )}
+                    </>
+                  )}
+
+                  {/* Pages around current */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === currentPage ||
+                        page === currentPage - 1 ||
+                        page === currentPage + 1 ||
+                        page === currentPage - 2 ||
+                        page === currentPage + 2
+                    )
+                    .filter((page) => page > 0 && page <= totalPages)
+                    .map((page) => (
+                      <Button
+                        key={page}
+                        variant={page === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => fetchItems(page)}
+                        disabled={loading}
+                        className="w-9 h-9 p-0"
+                      >
+                        {page}
+                      </Button>
+                    ))}
+
+                  {/* Last page */}
+                  {currentPage < totalPages - 2 && (
+                    <>
+                      {currentPage < totalPages - 3 && (
+                        <span className="text-gray-400 px-1">...</span>
+                      )}
+                      <Button
+                        variant={
+                          totalPages === currentPage ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => fetchItems(totalPages)}
+                        disabled={loading}
+                        className="w-9 h-9 p-0"
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchItems(currentPage + 1)}
+                  disabled={
+                    !totalPages || currentPage === totalPages || loading
+                  }
+                  className="gap-1"
+                >
+                  Sau
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Hiển thị:</span>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={handleItemsPerPageChange}
+                  disabled={loading}
+                >
+                  <SelectTrigger className="w-[80px] h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                    <SelectItem value="200">200</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   );
