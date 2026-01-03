@@ -203,7 +203,7 @@ const WarehouseDashboard = () => {
         </div>
       </div>
 
-      <Card className="gap-0  ">
+      <Card className="gap-0  max-w-7xl mx-auto">
         <CardHeader>
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Search className="w-4 h-4" />
@@ -260,24 +260,24 @@ const WarehouseDashboard = () => {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="max-w-7xl mx-auto">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px] text-primary">Ngày</TableHead>
-                <TableHead className="text-primary">Khách hàng</TableHead>
+                <TableHead className=" text-primary">Khách hàng</TableHead>
                 <TableHead className="text-primary">Tên hàng hóa</TableHead>
                 <TableHead className="w-[80px] text-primary">KT</TableHead>
                 <TableHead className="w-[80px] text-primary">ĐVT</TableHead>
                 <TableHead className="w-[80px] text-primary">SL</TableHead>
-                <TableHead className="w-[80px] text-primary">Kho</TableHead>
-                <TableHead className="w-[80px] text-primary">Số cm</TableHead>
-                <TableHead className="min-w-[150px] text-primary">
-                  Ghi chú
-                </TableHead>
-                <TableHead className="w-[150px] text-primary">
+                <TableHead className="w-[80px] text-primary">
                   Xác nhận
+                </TableHead>
+                <TableHead className="w-[80px] text-primary">Kho</TableHead>
+                <TableHead className="text-primary">Số cm</TableHead>
+                <TableHead className="w-[150px] text-primary">
+                  Ghi chú
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -301,49 +301,75 @@ const WarehouseDashboard = () => {
                 items.map((item, index) => (
                   <TableRow
                     key={item.itemId || index}
-                    className={item.isDirty ? "bg-orange-50" : ""}
+                    className={
+                      item.isDirty
+                        ? "bg-orange-50"
+                        : item.warehouseConfirm
+                        ? "border-green-300 bg-green-50"
+                        : "border-gray-200"
+                    }
                   >
+                    {/* ngày tháng */}
                     <TableCell className="font-medium">
                       {formatDate(item.orderDate)}
                     </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{item.customerName}</div>
+                    {/* khách hàng */}
+                    <TableCell className="min-w-[250px] break-words whitespace-normal">
+                      <div className="font-medium break-words whitespace-normal uppercase">
+                        {item.customerName}
+                      </div>
                       {item.customerNote && (
                         <div
-                          className="text-xs text-gray-500 truncate max-w-[150px]"
+                          className="text-xs text-gray-500 break-words whitespace-normal"
                           title={item.customerNote}
                         >
                           {item.customerNote}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium">
+                    {/* tên hàng hóa */}
+                    <TableCell className="font-medium min-w-[350px] break-words whitespace-normal">
                       {item.productName}
                     </TableCell>
-                    <TableCell>{item.size}</TableCell>
+                    {/* kích thước */}
+                    <TableCell className="w-[80px]">{item.size}</TableCell>
+                    {/* đơn vị tính */}
                     <TableCell>{item.unit}</TableCell>
+                    {/* số lượng */}
                     <TableCell className=" font-bold">
                       {item.quantity}
                     </TableCell>
-                    <TableCell>{user?.warehouseCode}</TableCell>
-                    <TableCell>{item.cmQty}</TableCell>
+                    {/* xác nhận */}
                     <TableCell
-                      className="text-sm text-gray-500 max-w-[200px] truncate"
-                      title={item.note}
+                      className={` ${
+                        item.warehouseConfirm
+                          ? "border-green-300"
+                          : "border-gray-200"
+                      }`}
                     >
-                      {item.note}
-                    </TableCell>
-                    <TableCell>
                       <Input
                         value={item.warehouseConfirm}
                         onChange={(e) =>
                           handleConfirmChange(index, e.target.value)
                         }
-                        placeholder="Nhập..."
+                        placeholder="..."
                         className={`h-8 bg-white ${
-                          item.isDirty ? "border-orange-400" : "border-gray-200"
+                          item.isDirty
+                            ? "border-orange-400 bg-orange-50"
+                            : item.warehouseConfirm
+                            ? "border-green-400 bg-green-50"
+                            : "border-gray-200"
                         }`}
                       />
+                    </TableCell>
+                    {/* kho */}
+                    <TableCell>{user?.warehouseCode}</TableCell>
+                    <TableCell className="text-right">{item.cmQty}</TableCell>
+                    <TableCell
+                      className="text-xs text-gray-500 min-w-[250px] break-words whitespace-normal"
+                      title={item.note}
+                    >
+                      {item.note}
                     </TableCell>
                   </TableRow>
                 ))
