@@ -36,5 +36,7 @@
 # DASHBOARD
 
 - Đếm số lượng xe ngày hôm đó✅
+- sắp xếp hàng hóa trong kho
+- hàng hóa thừa thiếu của bán hàng
 
 # HÀNG CHƯA ĐI CỦA STAFF

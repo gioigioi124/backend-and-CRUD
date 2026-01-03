@@ -215,7 +215,7 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                   margin: 0;
                 }
                 .order-page {
-                page-break-inside: avoid;
+                  page-break-inside: avoid;
                   border-bottom: 2px dashed #ccc;
                   padding-bottom: 20px;
                   margin-bottom: 20px;
@@ -238,26 +238,26 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
 
               
                 /* Thêm phần này */
-    .max-w-7xl {
-      max-width: 70rem !important;
-    }
-    
-    /* Đảm bảo table responsive */
-    @media screen {
-      #print-area {
-        min-width: 1000px;
-      }
-      
-      .order-page table {
-        table-layout: fixed;
-        width: 100%;
-      }
-      
-      .order-page th,
-      .order-page td {
-        overflow-wrap: break-word;
-        word-break: break-word;
-      }
+              .max-w-7xl {
+                max-width: 70rem !important;
+              }
+              
+              /* Đảm bảo table responsive */
+              @media screen {
+                #print-area {
+                  min-width: 1000px;
+                }
+                
+                .order-page table {
+                  table-layout: fixed;
+                  width: 100%;
+                }
+                
+                .order-page th,
+                .order-page td {
+                  overflow-wrap: break-word;
+                  word-break: break-word;
+                }
     }
             `}
           </style>
