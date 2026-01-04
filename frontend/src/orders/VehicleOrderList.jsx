@@ -199,7 +199,7 @@ const VehicleOrderList = ({
                 onClick={() => onSelectOrder(order)}
                 className={`relative p-3 border rounded transition-colors group cursor-pointer flex gap-3 ${
                   selectedOrder?._id === order._id
-                    ? "bg-blue-50 border-blue-500"
+                    ? "bg-blue-50 border-blue-500 ring-3 ring-blue-600/30"
                     : "hover:bg-gray-50"
                 } ${isSelected ? "ring-2 ring-blue-400 ring-inset" : ""}`}
               >

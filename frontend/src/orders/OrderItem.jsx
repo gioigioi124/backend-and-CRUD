@@ -30,7 +30,9 @@ const OrderItem = ({
     <div onClick={() => onSelect(order)}>
       <div
         className={`relative p-3 border rounded transition-colors group ${
-          isSelected ? "bg-blue-50 border-blue-500" : "hover:bg-gray-50"
+          isSelected
+            ? "bg-blue-50 border-blue-500 ring-3 ring-blue-600/30"
+            : "hover:bg-gray-50"
         }`}
       >
         {/* Thông tin đơn hàng */}

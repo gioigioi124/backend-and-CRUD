@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import OrderListPage from "./pages/OrderListPage";
 import LoginPage from "./pages/LoginPage";
 import UsersPage from "./pages/UsersPage";
+import CustomerManagementPage from "./pages/CustomerManagementPage";
 import WarehouseDashboard from "./pages/WarehouseDashboard";
 import DispatcherDashboard from "./pages/DispatcherDashboard";
 import VehicleReportPage from "./pages/VehicleReportPage";
@@ -37,6 +38,12 @@ function App() {
                     <Route index element={<HomePage />} />
                     <Route path="orders" element={<OrderListPage />} />
                     <Route path="users" element={<UsersPage />} />
+                    <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
+                      <Route
+                        path="customers"
+                        element={<CustomerManagementPage />}
+                      />
+                    </Route>
                     <Route
                       element={<PrivateRoute allowedRoles={["warehouse"]} />}
                     >

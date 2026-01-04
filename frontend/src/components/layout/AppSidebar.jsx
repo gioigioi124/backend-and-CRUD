@@ -7,6 +7,7 @@ import {
   BarChart3,
   ClipboardList,
   Users,
+  UserCircle,
   Settings,
 } from "lucide-react";
 import {
@@ -62,6 +63,12 @@ const AppSidebar = () => {
       title: "Quản lý nhân viên",
       icon: Users,
       path: "/users",
+      roles: ["admin"],
+    },
+    {
+      title: "Quản lý khách hàng",
+      icon: UserCircle,
+      path: "/customers",
       roles: ["admin"],
     },
   ];

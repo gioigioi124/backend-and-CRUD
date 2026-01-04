@@ -1,0 +1,44 @@
+import mongoose from "mongoose";
+
+const customerSchema = new mongoose.Schema(
+  {
+    customerCode: {
+      type: String,
+      required: [true, "Mã khách hàng là bắt buộc"],
+      unique: true,
+      trim: true,
+      index: true, // Index for fast lookup
+    },
+    name: {
+      type: String,
+      required: [true, "Tên khách hàng là bắt buộc"],
+      trim: true,
+      index: true, // Index for search
+    },
+    address: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    phone: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    // Người upload dữ liệu khách hàng
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+// Text index for search functionality
+customerSchema.index({ name: "text" });
+
+const Customer = mongoose.model("Customer", customerSchema);
+
+export default Customer;
