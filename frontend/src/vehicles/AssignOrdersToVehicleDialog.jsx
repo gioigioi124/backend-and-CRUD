@@ -178,7 +178,7 @@ const AssignOrdersToVehicleDialog = ({
         </div>
 
         {/* Order list */}
-        <div className="flex-1 overflow-y-auto min-h-[300px] py-2 space-y-2">
+        <div className="flex-1 overflow-y-auto min-h-[300px] py-2 space-y-2 px-1">
           {loading ? (
             <div className="text-center py-4 text-gray-500">
               Đang tải đơn hàng...
@@ -197,10 +197,10 @@ const AssignOrdersToVehicleDialog = ({
               <div
                 key={order._id}
                 onClick={() => handleToggleOrder(order)}
-                className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-start gap-3 ${
+                className={`relative p-3 border rounded-lg cursor-pointer transition-all flex items-start gap-3 ${
                   selectedOrders.some((o) => o._id === order._id)
-                    ? "bg-blue-50 border-blue-500 ring-1 ring-blue-500"
-                    : "bg-white hover:bg-gray-50"
+                    ? "bg-blue-50 border-blue-300 border-l-4 border-l-blue-600"
+                    : "bg-white hover:bg-gray-50 border-l-4 border-l-transparent"
                 }`}
               >
                 <input

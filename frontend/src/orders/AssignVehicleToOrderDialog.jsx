@@ -47,8 +47,8 @@ const AssignVehicleToOrderDialog = ({
   useEffect(() => {
     if (open) {
       let dateToUse = new Date().toISOString().split("T")[0];
-      if (order?.createdAt) {
-        dateToUse = new Date(order.createdAt).toISOString().split("T")[0];
+      if (order?.orderDate) {
+        dateToUse = new Date(order.orderDate).toISOString().split("T")[0];
       }
       setSelectedDate(dateToUse);
       setSelectedVehicle(null); // Reset selection khi mở dialog
@@ -80,12 +80,17 @@ const AssignVehicleToOrderDialog = ({
       const vehicleList = data.vehicles || [];
       setVehicles(vehicleList);
 
-      // Fetch order counts for each vehicle
+      // Fetch order counts for each vehicle (chỉ đếm đơn trong ngày được chọn)
       const counts = {};
       for (const vehicle of vehicleList) {
         try {
-          const orders = await orderService.getOrdersByVehicle(vehicle._id);
-          counts[vehicle._id] = orders.length;
+          const response = await orderService.getAllOrders({
+            vehicle: vehicle._id,
+            fromDate: date,
+            toDate: date,
+          });
+          // getAllOrders trả về object với property 'orders'
+          counts[vehicle._id] = response.orders?.length || 0;
         } catch (err) {
           counts[vehicle._id] = 0;
         }
@@ -185,7 +190,7 @@ const AssignVehicleToOrderDialog = ({
           </select>
         </div>
 
-        <div className="flex-1 overflow-y-auto min-h-[300px] py-2 space-y-2">
+        <div className="flex-1 overflow-y-auto min-h-[300px] py-2 space-y-2 px-1">
           {loading ? (
             <div className="text-center py-4 text-gray-500">Đang tải xe...</div>
           ) : filteredVehicles.length === 0 ? (
@@ -202,12 +207,12 @@ const AssignVehicleToOrderDialog = ({
               <div
                 key={vehicle._id}
                 onClick={() => setSelectedVehicle(vehicle)}
-                className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-blue-50 hover:border-blue-300 ${
+                className={`relative p-3 border rounded-lg cursor-pointer transition-all hover:bg-blue-50 hover:border-blue-300 ${
                   selectedVehicle?._id === vehicle._id
-                    ? "bg-blue-50 border-blue-500 ring-2 ring-blue-500"
+                    ? "bg-blue-50 border-blue-300 border-l-4 border-l-blue-600"
                     : order?.vehicle === vehicle._id
-                    ? "bg-green-50 border-green-500 ring-1 ring-green-500"
-                    : "bg-white"
+                    ? "bg-green-50 border-green-300 border-l-4 border-l-green-600"
+                    : "bg-white border-l-4 border-l-transparent"
                 }`}
               >
                 <div className="flex justify-between items-start">
