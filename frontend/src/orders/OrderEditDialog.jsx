@@ -107,7 +107,19 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
           phone: "",
           note: "",
         });
-        setItems([]);
+        // Mặc định có 1 dòng với số lượng = 1
+        setItems([
+          {
+            stt: 1,
+            productName: "",
+            size: "",
+            unit: "Cái",
+            quantity: 1,
+            warehouse: "",
+            cmQty: 0,
+            note: "",
+          },
+        ]);
         setOrderDate(getTodayDate()); // Mặc định là hôm nay
       }
     }
@@ -179,6 +191,14 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
     }
   };
 
+  // Xử lý phím tắt Ctrl+Enter để submit form
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && e.ctrlKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -190,10 +210,20 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
             {isCreateMode
               ? "Điền thông tin khách hàng và danh sách hàng hóa"
               : "Cập nhật thông tin khách hàng và danh sách hàng hóa"}
+            {" • "}
+            <span className="text-blue-600 font-medium">
+              Nhấn Ctrl+Enter để lưu
+            </span>
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault(); // Ngăn submit mặc định
+          }}
+          onKeyDown={handleKeyDown}
+          className="space-y-6"
+        >
           {/* Thông tin khách hàng */}
           <div className="space-y-4">
             {/* Customer Autocomplete */}
@@ -254,14 +284,14 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="button" onClick={handleSubmit} disabled={loading}>
               {loading
                 ? isCreateMode
                   ? "Đang tạo..."
                   : "Đang cập nhật..."
                 : isCreateMode
-                ? "Tạo đơn hàng"
-                : "Cập nhật"}
+                ? "Tạo đơn hàng (Ctrl+Enter)"
+                : "Cập nhật (Ctrl+Enter)"}
             </Button>
           </DialogFooter>
         </form>

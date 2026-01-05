@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getProductShortcut } from "@/config/productShortcuts";
 
 const WAREHOUSES = ["K01", "K02", "K03", "K04"];
 
@@ -53,7 +54,50 @@ const ItemsTable = ({ items, setItems }) => {
       ...newItems[index],
       [field]: value,
     };
+
+    // Nếu đang cập nhật quantity và item có cmQtyPerUnit, tự động tính lại cmQty
+    if (field === "quantity" && newItems[index].cmQtyPerUnit) {
+      newItems[index].cmQty = value * newItems[index].cmQtyPerUnit;
+    }
+
     setItems(newItems);
+  };
+
+  // Xử lý khi người dùng nhập tên sản phẩm
+  const handleProductNameChange = (index, value) => {
+    updateItem(index, "productName", value);
+  };
+
+  // Xử lý khi người dùng blur hoặc nhấn Enter trên trường tên sản phẩm
+  const handleProductNameBlur = (index, value) => {
+    const shortcut = getProductShortcut(value);
+    if (shortcut) {
+      const newItems = [...items];
+      const currentQuantity = newItems[index].quantity || 0;
+
+      newItems[index] = {
+        ...newItems[index],
+        productName: shortcut.productName,
+        warehouse: shortcut.warehouse || newItems[index].warehouse,
+        unit: shortcut.unit || newItems[index].unit,
+        size: shortcut.size || newItems[index].size,
+        note: shortcut.note || newItems[index].note,
+        // Lưu cmQtyPerUnit để tính toán sau này
+        cmQtyPerUnit: shortcut.cmQty,
+        // Tự động tính cmQty = quantity * cmQtyPerUnit
+        cmQty: shortcut.cmQty
+          ? currentQuantity * shortcut.cmQty
+          : newItems[index].cmQty,
+      };
+      setItems(newItems);
+    }
+  };
+
+  // Xử lý khi nhấn phím trong trường tên sản phẩm
+  const handleProductNameKeyDown = (e, index, value) => {
+    if (e.key === "Enter" || e.key === "Tab") {
+      handleProductNameBlur(index, value);
+    }
   };
 
   return (
@@ -107,9 +151,15 @@ const ItemsTable = ({ items, setItems }) => {
                     <Input
                       value={item.productName}
                       onChange={(e) =>
-                        updateItem(index, "productName", e.target.value)
+                        handleProductNameChange(index, e.target.value)
                       }
-                      placeholder="Nhập tên hàng hóa"
+                      onBlur={(e) =>
+                        handleProductNameBlur(index, e.target.value)
+                      }
+                      onKeyDown={(e) =>
+                        handleProductNameKeyDown(e, index, e.target.value)
+                      }
+                      placeholder="Nhập tên hàng hóa hoặc mã tắt"
                     />
                   </TableCell>
 
