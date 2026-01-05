@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Package, X } from "lucide-react";
+import { Package, X, FileDown } from "lucide-react";
 import { orderService } from "@/services/orderService";
+import * as XLSX from "xlsx";
 
 const VehicleOrderList = ({
   vehicle,
@@ -104,6 +105,162 @@ const VehicleOrderList = ({
     }
   };
 
+  // Xử lý export Excel
+  const handleExportExcel = () => {
+    try {
+      const selectedOrders = orders.filter((o) =>
+        selectedOrderIds.includes(o._id)
+      );
+
+      if (selectedOrders.length === 0) {
+        toast.error("Vui lòng chọn ít nhất một đơn hàng");
+        return;
+      }
+
+      // Chuẩn bị dữ liệu cho Excel
+      const excelData = [];
+
+      selectedOrders.forEach((order, orderIndex) => {
+        // Thêm header cho mỗi đơn hàng
+        excelData.push({
+          STT: `ĐƠN HÀNG ${orderIndex + 1}`,
+          "Tên hàng hóa": "",
+          "Kích thước": "",
+          ĐVT: "",
+          "Số lượng": "",
+          Kho: "",
+          "Số cm": "",
+          "Ghi chú": "",
+          "Kho xác nhận": "",
+        });
+
+        // Thông tin khách hàng
+        excelData.push({
+          STT: "Khách hàng:",
+          "Tên hàng hóa": order.customer?.name || "N/A",
+          "Kích thước": "",
+          ĐVT: "",
+          "Số lượng": "",
+          Kho: "",
+          "Số cm": "",
+          "Ghi chú": "",
+          "Kho xác nhận": "",
+        });
+
+        if (order.customer?.customerCode) {
+          excelData.push({
+            STT: "Mã KH:",
+            "Tên hàng hóa": order.customer.customerCode,
+            "Kích thước": "",
+            ĐVT: "",
+            "Số lượng": "",
+            Kho: "",
+            "Số cm": "",
+            "Ghi chú": "",
+            "Kho xác nhận": "",
+          });
+        }
+
+        if (order.customer?.address) {
+          excelData.push({
+            STT: "Địa chỉ:",
+            "Tên hàng hóa": order.customer.address,
+            "Kích thước": "",
+            ĐVT: "",
+            "Số lượng": "",
+            Kho: "",
+            "Số cm": "",
+            "Ghi chú": "",
+            "Kho xác nhận": "",
+          });
+        }
+
+        if (order.customer?.note) {
+          excelData.push({
+            STT: "Ghi chú KH:",
+            "Tên hàng hóa": order.customer.note,
+            "Kích thước": "",
+            ĐVT: "",
+            "Số lượng": "",
+            Kho: "",
+            "Số cm": "",
+            "Ghi chú": "",
+            "Kho xác nhận": "",
+          });
+        }
+
+        // Thêm dòng trống
+        excelData.push({
+          STT: "",
+          "Tên hàng hóa": "",
+          "Kích thước": "",
+          ĐVT: "",
+          "Số lượng": "",
+          Kho: "",
+          "Số cm": "",
+          "Ghi chú": "",
+          "Kho xác nhận": "",
+        });
+
+        // Thêm các items
+        order.items?.forEach((item, itemIndex) => {
+          excelData.push({
+            STT: itemIndex + 1,
+            "Tên hàng hóa": item.productName || "",
+            "Kích thước": item.size || "",
+            ĐVT: item.unit || "",
+            "Số lượng": item.quantity || 0,
+            Kho: item.warehouse || "",
+            "Số cm": item.cmQty || 0,
+            "Ghi chú": item.note || "",
+            "Kho xác nhận": item.warehouseConfirm?.value || "",
+          });
+        });
+
+        // Thêm dòng trống giữa các đơn hàng
+        excelData.push({
+          STT: "",
+          "Tên hàng hóa": "",
+          "Kích thước": "",
+          ĐVT: "",
+          "Số lượng": "",
+          Kho: "",
+          "Số cm": "",
+          "Ghi chú": "",
+          "Kho xác nhận": "",
+        });
+      });
+
+      // Tạo worksheet và workbook
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Don hang");
+
+      // Tạo tên file đơn giản, tránh ký tự đặc biệt
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const seconds = String(now.getSeconds()).padStart(2, "0");
+
+      // Tên file chỉ dùng chữ không dấu, số và gạch dưới
+      const vehicleInfo = vehicle?.weight
+        ? `${vehicle.weight.replace(/\s+/g, "_")}`
+        : "Xe";
+      const fileName = `Don_hang_${vehicleInfo}_${year}${month}${day}_${hours}${minutes}${seconds}.xlsx`;
+
+      // Download file
+      XLSX.writeFile(workbook, fileName);
+
+      toast.success(`Đã export ${selectedOrders.length} đơn hàng ra Excel`);
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Lỗi khi export Excel: " + error.message);
+    }
+  };
+
   const isAllSelected =
     orders.length > 0 && selectedOrderIds.length === orders.length;
 
@@ -155,7 +312,14 @@ const VehicleOrderList = ({
               onPrint(orders.filter((o) => selectedOrderIds.includes(o._id)))
             }
           >
-            In {selectedOrderIds.length} đơn đã chọn
+            In {selectedOrderIds.length} đơn
+          </Button>
+          <Button
+            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+            onClick={handleExportExcel}
+          >
+            <FileDown className="w-4 h-4 mr-1" />
+            Excel
           </Button>
           <Button
             className="flex-1 bg-green-600 hover:bg-green-700 text-white"

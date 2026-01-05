@@ -118,8 +118,23 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
                 {order.customer?.name || "N/A"}
               </span>
             </div>
+            {/* Mã KH và Địa chỉ */}
+            <div className="mt-1 text-sm text-gray-600 space-y-0.5">
+              {order.customer?.customerCode && (
+                <div>
+                  <span className="font-medium">Mã KH:</span>{" "}
+                  {order.customer.customerCode}
+                </div>
+              )}
+              {order.customer?.address && (
+                <div>
+                  <span className="font-medium">Địa chỉ:</span>{" "}
+                  {order.customer.address}
+                </div>
+              )}
+            </div>
             {order.customer?.note && (
-              <div>
+              <div className="mt-2">
                 <span className="text-sm italic">{order.customer.note}</span>
               </div>
             )}

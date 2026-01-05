@@ -14,10 +14,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { orderService } from "@/services/orderService";
 import ItemsTable from "@/orders/ItemsTable";
+import CustomerAutocomplete from "@/components/CustomerAutocomplete";
 
 const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [customer, setCustomer] = useState({ name: "", note: "" });
+  const [customer, setCustomer] = useState({
+    name: "",
+    customerCode: "",
+    address: "",
+    phone: "",
+    note: "",
+  });
   const [items, setItems] = useState([]);
   const [orderDate, setOrderDate] = useState("");
 
@@ -62,6 +69,9 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
         // Edit mode: load dữ liệu từ order
         setCustomer({
           name: order.customer?.name || "",
+          customerCode: order.customer?.customerCode || "",
+          address: order.customer?.address || "",
+          phone: order.customer?.phone || "",
           note: order.customer?.note || "",
         });
         // Copy items và đảm bảo có stt
@@ -90,7 +100,13 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
         }
       } else {
         // Create mode: reset form
-        setCustomer({ name: "", note: "" });
+        setCustomer({
+          name: "",
+          customerCode: "",
+          address: "",
+          phone: "",
+          note: "",
+        });
         setItems([]);
         setOrderDate(getTodayDate()); // Mặc định là hôm nay
       }
@@ -180,19 +196,12 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Thông tin khách hàng */}
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-customerName">
-                Tên khách hàng <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="edit-customerName"
-                value={customer.name}
-                onChange={(e) =>
-                  setCustomer({ ...customer, name: e.target.value })
-                }
-                placeholder="Nhập tên khách hàng"
-              />
-            </div>
+            {/* Customer Autocomplete */}
+            <CustomerAutocomplete
+              value={customer}
+              onChange={setCustomer}
+              required={true}
+            />
 
             <div className="space-y-2">
               <Label htmlFor="edit-customerNote">Ghi chú</Label>

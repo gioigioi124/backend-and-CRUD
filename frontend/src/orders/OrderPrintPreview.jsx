@@ -166,7 +166,9 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           .space-x-4 > * + * {
             margin-left: 1rem;
           }
-          
+          .italic {
+            font-style: italic;
+          }
           @media print {
             body {
               padding: 0;
@@ -341,6 +343,9 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                     <p className="text-2xl font-bold uppercase text-primary">
                       {order.customer?.name || "N/A"}
                     </p>
+                    <p className="text-sm italic">
+                      {order.customer?.customerCode} - {order.customer?.address}
+                    </p>
                   </div>
                   <div className="col-span-2 text-right">
                     <p className="font-medium">
@@ -379,11 +384,14 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                         <TableHead className="w-[80px] text-right font-bold text-black">
                           SL
                         </TableHead>
+                        <TableHead className="font-bold text-black">
+                          Ghi chú
+                        </TableHead>
                         <TableHead className="w-[80px] text-right font-bold text-black">
                           Số cm
                         </TableHead>
-                        <TableHead className="font-bold text-black">
-                          Ghi chú
+                        <TableHead className="w-[80px] text-right font-bold text-black">
+                          Kho
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -401,11 +409,14 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                           <TableCell className="text-right font-bold">
                             {item.quantity}
                           </TableCell>
+                          <TableCell className="text-sm italic text-gray-600">
+                            {item.note || "-"}
+                          </TableCell>
                           <TableCell className="text-right">
                             {item.cmQty || 0}
                           </TableCell>
-                          <TableCell className="text-sm italic text-gray-600">
-                            {item.note || "-"}
+                          <TableCell className="text-right">
+                            {item.warehouseConfirm?.value || "-"}
                           </TableCell>
                         </TableRow>
                       ))}

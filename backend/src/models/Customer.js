@@ -19,6 +19,7 @@ const customerSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+      index: true, // Index for search
     },
     phone: {
       type: String,

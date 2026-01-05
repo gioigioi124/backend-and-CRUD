@@ -9,6 +9,21 @@ const orderSchema = new mongoose.Schema(
         required: [true, "Tên khách hàng là bắt buộc"],
         trim: true,
       },
+      customerCode: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      address: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      phone: {
+        type: String,
+        trim: true,
+        default: "",
+      },
       note: {
         type: String,
         trim: true,

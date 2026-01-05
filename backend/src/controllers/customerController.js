@@ -102,7 +102,8 @@ export const uploadCustomers = async (req, res) => {
   }
 };
 
-// Search customers by name
+// Search customers by customerCode, name, or address
+// Supports multi-word search: e.g., "phương 273" will find customers with "phương" in name and "273" in address
 export const searchCustomers = async (req, res) => {
   try {
     const { q } = req.query;
@@ -113,9 +114,24 @@ export const searchCustomers = async (req, res) => {
         .json({ message: "Vui lòng nhập từ khóa tìm kiếm" });
     }
 
-    // Case-insensitive partial match
+    // Split search query into individual words
+    const searchWords = q
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
+
+    // Build query: each word must match at least one field
+    const searchConditions = searchWords.map((word) => ({
+      $or: [
+        { customerCode: { $regex: word, $options: "i" } },
+        { name: { $regex: word, $options: "i" } },
+        { address: { $regex: word, $options: "i" } },
+      ],
+    }));
+
+    // All words must match (AND logic across words)
     const customers = await Customer.find({
-      name: { $regex: q, $options: "i" },
+      $and: searchConditions,
     })
       .select("customerCode name address phone")
       .limit(20)
