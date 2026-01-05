@@ -14,12 +14,11 @@
 # CỘT 3
 
 - rút gọn UI ✅
-- chỉnh lại khung in
 
 # PRINT PREVIEW
 
 - Rút gọn UI, Header Table
-- Full màn hình khi print ✅
+- Full màn hình khi print
 
 # TỐI ƯU
 
@@ -33,10 +32,11 @@
 
 - thêm nút in đơn ✅, export file cạnh sửa xóa
 
+- phân trang
+
 # DASHBOARD
 
-- Đếm số lượng xe ngày hôm đó✅
-- sắp xếp hàng hóa trong kho
-- hàng hóa thừa thiếu của bán hàng
+- Đếm số lượng xe ngày hôm đó
+- Xe còn lại, xe đã hoàn thành
 
 # HÀNG CHƯA ĐI CỦA STAFF

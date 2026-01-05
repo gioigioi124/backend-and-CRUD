@@ -34,7 +34,7 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
         <style>
           @page {
             size: A4;
-            margin: 10mm;
+            margin: 10mm 10mm 15mm 10mm;
           }
           
           * {
@@ -53,7 +53,7 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
             break-inside: avoid;
             page-break-inside: avoid;
 
-            margin-bottom: 12mm;
+            margin-bottom: 6mm;
             padding-bottom: 6mm;
 
             border-bottom: 1px dashed #ccc;
@@ -118,7 +118,15 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           .grid-cols-2 {
             grid-template-columns: repeat(2, 1fr);
           }
-          
+          .grid-cols-12 {
+            grid-template-columns: repeat(12, 1fr);
+          }
+          .col-span-10 {
+            grid-column: span 10;
+          }
+          .col-span-2 {
+            grid-column: span 2;
+          }
           .gap-8 {
             gap: 2rem;
           }
@@ -128,6 +136,7 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           .mb-6 { margin-bottom: 1.5rem; }
           .mb-12 { margin-bottom: 3rem; }
           .mt-2 { margin-top: 0.5rem; }
+          .mt-4 { margin-top: 1rem; }
           .pb-4 { padding-bottom: 1rem; }
           
           .border-b-2 {
@@ -152,6 +161,10 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           
           .items-end {
             align-items: flex-end;
+          }
+          
+          .space-x-4 > * + * {
+            margin-left: 1rem;
           }
           
           @media print {
@@ -187,6 +200,15 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
     });
   };
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto p-0 gap-0">
@@ -217,8 +239,8 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                 .order-page {
                   page-break-inside: avoid;
                   border-bottom: 2px dashed #ccc;
-                  padding-bottom: 20px;
-                  margin-bottom: 20px;
+                  padding-bottom: 10px;
+                  margin-bottom: 10px;
                   width: 100%;
                 }
                 .order-page:last-child {
@@ -226,7 +248,7 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                 }
               }
               .order-page {
-                margin-bottom: 30px;
+                margin-bottom: 10px;
                 background: white;
                 width: 100%;
               }
@@ -262,6 +284,45 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
             `}
           </style>
 
+          {/* Header chung - chỉ hiện một lần */}
+          {selectedOrders.length > 0 &&
+            (() => {
+              // Tính tổng số cm của tất cả đơn hàng
+              const grandTotalCm = selectedOrders.reduce((total, order) => {
+                const orderCmQty =
+                  order.items?.reduce(
+                    (sum, item) => sum + (item.cmQty || 0),
+                    0
+                  ) || 0;
+                return total + orderCmQty;
+              }, 0);
+
+              return (
+                <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-100">
+                  <div>
+                    <p className="text-lg font-bold">
+                      Ngày: {formatDate(selectedOrders[0].orderDate || "???")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    {selectedOrders[0].vehicle && (
+                      <p className="text-lg font-bold">
+                        Xe:{" "}
+                        {selectedOrders[0].vehicle.weight +
+                          " - " +
+                          selectedOrders[0].vehicle.destination +
+                          " - " +
+                          selectedOrders[0].vehicle.time +
+                          " - " +
+                          grandTotalCm +
+                          " cm"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
           {selectedOrders.map((order, index) => {
             const totalQuantity =
               order.items?.reduce(
@@ -274,52 +335,28 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
 
             return (
               <div key={order._id} className="order-page">
-                {/* Header đơn hàng */}
-                <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-100">
-                  <div>
-                    <h2 className="text-2xl font-bold uppercase text-primary">
-                      Đơn hàng vận chuyển
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      Ngày: {formatDate(order.orderDate || order.createdAt)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-lg">
-                      ID: {order._id.slice(-8).toUpperCase()}
-                    </p>
-                    {order.vehicle && (
-                      <p className="text-sm font-medium">
-                        Xe: {order.vehicle.licensePlate || order.vehicle.weight}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
                 {/* Thông tin khách hàng */}
-                <div className="grid grid-cols-2 gap-8 mb-6">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">
-                      Thông tin khách hàng
-                    </h3>
-                    <p className="text-lg font-bold">
+                <div className="grid grid-cols-12 gap-8 mb-2">
+                  <div className="col-span-10">
+                    <p className="text-2xl font-bold uppercase text-primary">
                       {order.customer?.name || "N/A"}
                     </p>
-                    {order.customer?.note && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded border text-sm italic">
-                        <span className="font-bold not-italic">Ghi chú:</span>{" "}
-                        {order.customer.note}
-                      </div>
-                    )}
                   </div>
-                  <div className="text-right">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">
-                      Người tạo
-                    </h3>
+                  <div className="col-span-2 text-right">
                     <p className="font-medium">
                       {order.createdBy?.name || "Hệ thống"}
                     </p>
+                    <p className="font-medium">
+                      {formatDateTime(new Date().toISOString())}
+                    </p>
                   </div>
+                </div>
+                <div className="mb-2">
+                  {order.customer?.note && (
+                    <div className="mt-2 p-2 bg-gray-50 rounded border text-sm italic">
+                      <span>Ghi chú: {order.customer.note}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Danh sách hàng hóa */}
@@ -378,8 +415,13 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
 
                 {/* Footer đơn hàng */}
                 <div className="flex justify-between items-end">
-                  <div className="text-sm text-gray-500">
-                    <p>Tổng số mặt hàng: {order.items?.length || 0}</p>
+                  <div className="text-sm text-gray-500 flex space-x-4">
+                    <p>
+                      Tổng số mặt hàng:{" "}
+                      <span className="font-bold text-black">
+                        {order.items?.length || 0}
+                      </span>
+                    </p>
                     <p>
                       Tổng số lượng:{" "}
                       <span className="font-bold text-black">
@@ -390,20 +432,6 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                       Tổng số cm:{" "}
                       <span className="font-bold text-black">{totalCmQty}</span>
                     </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-12 text-center pb-4">
-                    <div className="w-32">
-                      <p className="text-sm font-bold mb-12">Người nhận</p>
-                      <p className="text-xs text-gray-400">
-                        (Ký và ghi rõ họ tên)
-                      </p>
-                    </div>
-                    <div className="w-32">
-                      <p className="text-sm font-bold mb-12">Người giao hàng</p>
-                      <p className="text-xs text-gray-400">
-                        (Ký và ghi rõ họ tên)
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
