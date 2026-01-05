@@ -26,9 +26,9 @@ const ItemsTable = ({ items, setItems }) => {
       stt: items.length + 1,
       productName: "",
       size: "",
-      unit: "",
+      unit: "Cái",
       quantity: 0,
-      warehouse: "K01",
+      warehouse: "",
       cmQty: 0,
       note: "",
     };
@@ -120,7 +120,7 @@ const ItemsTable = ({ items, setItems }) => {
                       onChange={(e) =>
                         updateItem(index, "size", e.target.value)
                       }
-                      placeholder="VD: 50kg"
+                      placeholder="169x236"
                     />
                   </TableCell>
 
@@ -131,7 +131,7 @@ const ItemsTable = ({ items, setItems }) => {
                       onChange={(e) =>
                         updateItem(index, "unit", e.target.value)
                       }
-                      placeholder="VD: Bao"
+                      placeholder="Cái"
                     />
                   </TableCell>
 
