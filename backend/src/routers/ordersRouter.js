@@ -9,6 +9,7 @@ import {
   confirmWarehouse,
   confirmLeader,
   confirmOrderDetails,
+  getSurplusDeficitData,
 } from "../controllers/ordersController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -28,6 +29,7 @@ ordersRouter.get("/warehouse-items", protect, getWarehouseItems);
 ordersRouter.post("/warehouse-confirm-batch", protect, confirmWarehouseBatch);
 ordersRouter.get("/dispatcher-items", protect, getDispatcherItems);
 ordersRouter.post("/dispatcher-confirm-batch", protect, confirmDispatcherBatch);
+ordersRouter.get("/surplus-deficit", protect, getSurplusDeficitData);
 
 // CRUD cơ bản
 ordersRouter.post("/", protect, createOrder);

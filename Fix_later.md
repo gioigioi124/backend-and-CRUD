@@ -18,7 +18,7 @@
 # PRINT PREVIEW
 
 - Rút gọn UI, Header Table
-- Full màn hình khi print
+- Full màn hình khi print ✅
 
 # TỐI ƯU
 
@@ -27,16 +27,16 @@
 
 - sắp xếp hàng hóa trước khi lưu lại ✅
 - sắp xếp đơn hàng trong xe theo tên KH ✅
-- validation khách hàng (ép chọn)
+- validation khách hàng (ép chọn) ✅
 - chọn nhiều đơn để gán xe một lúc ✅
 
 - thêm nút in đơn ✅, export file cạnh sửa xóa
+- dialog in đơn, hoàn thành đơn
 
-- phân trang
+- phân trang✅
 
 # DASHBOARD
 
-- Đếm số lượng xe ngày hôm đó
-- Xe còn lại, xe đã hoàn thành
+- Đếm số lượng xe ngày hôm đó✅
 
 # HÀNG CHƯA ĐI CỦA STAFF

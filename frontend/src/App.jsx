@@ -9,6 +9,7 @@ import CustomerManagementPage from "./pages/CustomerManagementPage";
 import WarehouseDashboard from "./pages/WarehouseDashboard";
 import DispatcherDashboard from "./pages/DispatcherDashboard";
 import VehicleReportPage from "./pages/VehicleReportPage";
+import SurplusDeficitDashboard from "./pages/SurplusDeficitDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import { VehicleProvider } from "./vehicles/VehicleContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -72,6 +73,10 @@ function App() {
                       <Route
                         path="vehicle-report"
                         element={<VehicleReportPage />}
+                      />
+                      <Route
+                        path="surplus-deficit"
+                        element={<SurplusDeficitDashboard />}
                       />
                     </Route>
                   </Route>

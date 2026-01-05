@@ -380,3 +380,95 @@ export const confirmOrderDetails = async (req, res) => {
     });
   }
 };
+
+// GET SURPLUS/DEFICIT DATA - Lấy dữ liệu hàng thừa thiếu
+export const getSurplusDeficitData = async (req, res) => {
+  try {
+    const {
+      fromDate,
+      toDate,
+      creator,
+      warehouse,
+      status = "deficit", // "deficit" (thừa thiếu), "all" (tất cả)
+    } = req.query;
+
+    const filter = {};
+
+    // Filter theo ngày
+    if (fromDate || toDate) {
+      filter.orderDate = {};
+      if (fromDate) {
+        const from = new Date(fromDate);
+        from.setHours(0, 0, 0, 0);
+        filter.orderDate.$gte = from;
+      }
+      if (toDate) {
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999);
+        filter.orderDate.$lte = to;
+      }
+    }
+
+    // Filter theo người tạo (role bán hàng)
+    if (creator) {
+      filter.createdBy = creator;
+    }
+
+    // Lấy tất cả đơn hàng theo filter
+    const orders = await Order.find(filter)
+      .populate("vehicle")
+      .populate("createdBy", "name username")
+      .sort({ orderDate: -1, createdAt: -1 });
+
+    // Xử lý dữ liệu để tính toán thừa thiếu
+    const processedData = [];
+
+    orders.forEach((order) => {
+      order.items.forEach((item) => {
+        // Filter theo kho nếu có
+        if (warehouse && item.warehouse !== warehouse) {
+          return;
+        }
+
+        // Chỉ tính những item đã có leaderConfirm
+        if (item.leaderConfirm?.value !== undefined) {
+          const deficit = item.leaderConfirm.value - item.quantity;
+
+          // Filter theo status
+          if (status === "deficit" && deficit === 0) {
+            return; // Bỏ qua những item không có thừa thiếu
+          }
+
+          processedData.push({
+            orderId: order._id,
+            orderDate: order.orderDate,
+            customer: order.customer,
+            vehicle: order.vehicle,
+            createdBy: order.createdBy,
+            itemId: item._id,
+            stt: item.stt,
+            productName: item.productName,
+            size: item.size,
+            unit: item.unit,
+            quantity: item.quantity,
+            warehouse: item.warehouse,
+            leaderConfirm: item.leaderConfirm.value,
+            deficit: deficit, // Số lượng thừa thiếu (dương = thừa, âm = thiếu)
+            warehouseConfirm: item.warehouseConfirm?.value || "",
+            note: item.note,
+          });
+        }
+      });
+    });
+
+    res.status(200).json({
+      data: processedData,
+      total: processedData.length,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Lấy dữ liệu hàng thừa thiếu thất bại",
+      error: error.message,
+    });
+  }
+};

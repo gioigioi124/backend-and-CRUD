@@ -240,7 +240,7 @@ const CustomerAutocomplete = ({
       <p className="text-xs text-muted-foreground">
         {value?.name
           ? "Nhấn nút X để chọn khách hàng khác"
-          : "Ví dụ: gõ 'Phương 273' để tìm khách hàng chị Phương địa chỉ 273 Xã Đàn"}
+          : "Ví dụ: gõ 'Phương 273' "}
       </p>
     </div>
   );

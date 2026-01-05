@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
-import { toast } from "sonner";
 
 const DateRangeSearch = ({ onSearch, defaultToToday = false }) => {
   const [fromDate, setFromDate] = useState("");
@@ -70,7 +69,12 @@ const DateRangeSearch = ({ onSearch, defaultToToday = false }) => {
           className="w-36 bg-gray-50"
         />
       </div>
-      <Button onClick={handleSearch} size="sm">
+      <Button
+        onClick={handleSearch}
+        size="sm"
+        className="bg-primary text-white"
+        variant="outline"
+      >
         <Search className="w-4 h-4 mr-1" />
         Tìm kiếm
       </Button>

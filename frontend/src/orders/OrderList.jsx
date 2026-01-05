@@ -380,7 +380,12 @@ const OrderList = ({
             onChange={handleSearchChange}
             className="bg-gray-50 w-full"
           />
-          <Button onClick={handleSearchClick} variant="default" size="sm">
+          <Button
+            onClick={handleSearchClick}
+            variant="outline"
+            size="sm"
+            className="bg-primary text-white"
+          >
             <Search className="w-4 h-4" />
             Tìm kiếm
           </Button>
@@ -424,7 +429,7 @@ const OrderList = ({
             onClick={handleExportOrders}
             variant="outline"
             size="sm"
-            className="whitespace-nowrap gap-1"
+            className="whitespace-nowrap gap-1 bg-primary text-white"
             disabled={loading || orders.length === 0}
           >
             <Download className="w-4 h-4" />

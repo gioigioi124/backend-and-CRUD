@@ -9,6 +9,7 @@ import {
   Users,
   UserCircle,
   Settings,
+  TrendingDown,
 } from "lucide-react";
 import {
   Sidebar,
@@ -45,6 +46,12 @@ const AppSidebar = () => {
       title: "Báo cáo xe",
       icon: Truck,
       path: "/vehicle-report",
+      roles: ["admin", "staff", "leader"],
+    },
+    {
+      title: "Hàng Thừa Thiếu",
+      icon: TrendingDown,
+      path: "/surplus-deficit",
       roles: ["admin", "staff", "leader"],
     },
     {

@@ -132,4 +132,28 @@ export const orderService = {
     });
     return response.data;
   },
+
+  // Lấy dữ liệu hàng thừa thiếu
+  getSurplusDeficitData: async (
+    fromDate,
+    toDate,
+    creator,
+    warehouse,
+    status
+  ) => {
+    const params = {};
+    if (fromDate) params.fromDate = fromDate;
+    if (toDate) params.toDate = toDate;
+    if (creator) params.creator = creator;
+    if (warehouse) params.warehouse = warehouse;
+    if (status) params.status = status;
+
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString
+      ? `/orders/surplus-deficit?${queryString}`
+      : "/orders/surplus-deficit";
+
+    const response = await api.get(url);
+    return response.data;
+  },
 };
