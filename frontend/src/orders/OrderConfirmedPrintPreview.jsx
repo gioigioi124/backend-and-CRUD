@@ -22,8 +22,8 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
     const printContent = document.getElementById("print-area-confirmed");
     if (!printContent) return;
 
-    // Tạo cửa sổ mới
-    const printWindow = window.open("", "", "width=800,height=600");
+    // Tạo cửa sổ mới toàn màn hình
+    const printWindow = window.open("", "", "fullscreen=yes,scrollbars=yes");
 
     printWindow.document.write(`
     <!DOCTYPE html>
@@ -34,7 +34,7 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
         <style>
           @page {
             size: A4;
-            margin: 10mm;
+            margin: 10mm 10mm 15mm 10mm;
           }
           
           * {
@@ -53,7 +53,7 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
             break-inside: avoid;
             page-break-inside: avoid;
 
-            margin-bottom: 12mm;
+            margin-bottom: 6mm;
             padding-bottom: 6mm;
 
             border-bottom: 1px dashed #ccc;
@@ -118,7 +118,15 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           .grid-cols-2 {
             grid-template-columns: repeat(2, 1fr);
           }
-          
+          .grid-cols-12 {
+            grid-template-columns: repeat(12, 1fr);
+          }
+          .col-span-10 {
+            grid-column: span 10;
+          }
+          .col-span-2 {
+            grid-column: span 2;
+          }
           .gap-8 {
             gap: 2rem;
           }
@@ -128,6 +136,7 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           .mb-6 { margin-bottom: 1.5rem; }
           .mb-12 { margin-bottom: 3rem; }
           .mt-2 { margin-top: 0.5rem; }
+          .mt-4 { margin-top: 1rem; }
           .pb-4 { padding-bottom: 1rem; }
           
           .border-b-2 {
@@ -152,6 +161,10 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           
           .items-end {
             align-items: flex-end;
+          }
+          
+          .space-x-4 > * + * {
+            margin-left: 1rem;
           }
           
           @media print {
@@ -198,13 +211,16 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           </div>
         </DialogHeader>
 
-        <div className="p-8 bg-white print:p-0 w-full" id="print-area-confirmed">
+        <div
+          className="p-8 bg-white print:p-0 w-full"
+          id="print-area-confirmed"
+        >
           <style>
             {`
               @media print {
                 @page {
                   size: A4;
-                  margin: 10mm;
+                  margin: 10mm 10mm 15mm 10mm;
                 }
                 #print-area-confirmed {
                   position: absolute;
@@ -217,8 +233,8 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                 .order-page {
                 page-break-inside: avoid;
                   border-bottom: 2px dashed #ccc;
-                  padding-bottom: 20px;
-                  margin-bottom: 20px;
+                  padding-bottom: 10px;
+                  margin-bottom: 10px;
                   width: 100%;
                 }
                 .order-page:last-child {
@@ -226,7 +242,7 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                 }
               }
               .order-page {
-                margin-bottom: 30px;
+                margin-bottom: 10px;
                 background: white;
                 width: 100%;
               }
@@ -262,22 +278,69 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
             `}
           </style>
 
+          {/* Header chung - chỉ hiện một lần */}
+          {selectedOrders.length > 0 &&
+            (() => {
+              // Tính tổng số cm của tất cả đơn hàng đã chốt
+              const grandTotalCm = selectedOrders.reduce((total, order) => {
+                const confirmedItems =
+                  order.items?.filter((item) => {
+                    const val = parseFloat(item.leaderConfirm?.value);
+                    return !isNaN(val) && val > 0;
+                  }) || [];
+                const orderCmQty = confirmedItems.reduce(
+                  (sum, item) => sum + (item.cmQty || 0),
+                  0
+                );
+                return total + orderCmQty;
+              }, 0);
+
+              return (
+                <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-100">
+                  <div>
+                    <p className="text-lg font-bold">
+                      Ngày: {formatDate(selectedOrders[0].orderDate || "???")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    {selectedOrders[0].vehicle && (
+                      <p className="text-lg font-bold">
+                        Xe:{" "}
+                        {selectedOrders[0].vehicle.weight +
+                          " - " +
+                          selectedOrders[0].vehicle.destination +
+                          " - " +
+                          selectedOrders[0].vehicle.time +
+                          " - " +
+                          grandTotalCm +
+                          " cm"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
           {selectedOrders.map((order, index) => {
             // Lọc chỉ những items có leaderConfirm.value > 0 và không null
-            const confirmedItems = order.items?.filter((item) => {
-              const val = parseFloat(item.leaderConfirm?.value);
-              return !isNaN(val) && val > 0;
-            }) || [];
+            const confirmedItems =
+              order.items?.filter((item) => {
+                const val = parseFloat(item.leaderConfirm?.value);
+                return !isNaN(val) && val > 0;
+              }) || [];
 
             // Nếu không có item nào được chốt, bỏ qua đơn này
             if (confirmedItems.length === 0) {
               return null;
             }
 
-            const totalConfirmedQuantity = confirmedItems.reduce((sum, item) => {
-              const val = parseFloat(item.leaderConfirm?.value);
-              return sum + (!isNaN(val) ? val : 0);
-            }, 0);
+            const totalConfirmedQuantity = confirmedItems.reduce(
+              (sum, item) => {
+                const val = parseFloat(item.leaderConfirm?.value);
+                return sum + (!isNaN(val) ? val : 0);
+              },
+              0
+            );
             const totalCmQty = confirmedItems.reduce(
               (sum, item) => sum + (item.cmQty || 0),
               0
@@ -285,52 +348,25 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
 
             return (
               <div key={order._id} className="order-page">
-                {/* Header đơn hàng */}
-                <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-100">
-                  <div>
-                    <h2 className="text-2xl font-bold uppercase text-primary">
-                      Đơn hàng vận chuyển (Đã chốt)
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      Ngày: {formatDate(order.orderDate || order.createdAt)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-lg">
-                      ID: {order._id.slice(-8).toUpperCase()}
-                    </p>
-                    {order.vehicle && (
-                      <p className="text-sm font-medium">
-                        Xe: {order.vehicle.licensePlate || order.vehicle.weight}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
                 {/* Thông tin khách hàng */}
-                <div className="grid grid-cols-2 gap-8 mb-6">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">
-                      Thông tin khách hàng
-                    </h3>
-                    <p className="text-lg font-bold">
+                <div className="grid grid-cols-12 gap-8 mb-2">
+                  <div className="col-span-10">
+                    <p className="text-2xl font-bold uppercase text-primary">
                       {order.customer?.name || "N/A"}
                     </p>
-                    {order.customer?.note && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded border text-sm italic">
-                        <span className="font-bold not-italic">Ghi chú:</span>{" "}
-                        {order.customer.note}
-                      </div>
-                    )}
                   </div>
-                  <div className="text-right">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">
-                      Người tạo
-                    </h3>
+                  <div className="col-span-2 text-right">
                     <p className="font-medium">
                       {order.createdBy?.name || "Hệ thống"}
                     </p>
                   </div>
+                </div>
+                <div className="mb-2">
+                  {order.customer?.note && (
+                    <div className="mt-2 p-2 bg-gray-50 rounded border text-sm italic">
+                      <span>Ghi chú: {order.customer.note}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Danh sách hàng hóa */}
@@ -389,8 +425,13 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
 
                 {/* Footer đơn hàng */}
                 <div className="flex justify-between items-end">
-                  <div className="text-sm text-gray-500">
-                    <p>Tổng số mặt hàng: {confirmedItems.length}</p>
+                  <div className="text-sm text-gray-500 flex space-x-4">
+                    <p>
+                      Tổng số mặt hàng:{" "}
+                      <span className="font-bold text-black">
+                        {confirmedItems.length}
+                      </span>
+                    </p>
                     <p>
                       Tổng số lượng chốt:{" "}
                       <span className="font-bold text-black">
@@ -401,20 +442,6 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                       Tổng số cm:{" "}
                       <span className="font-bold text-black">{totalCmQty}</span>
                     </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-12 text-center pb-4">
-                    <div className="w-32">
-                      <p className="text-sm font-bold mb-12">Người nhận</p>
-                      <p className="text-xs text-gray-400">
-                        (Ký và ghi rõ họ tên)
-                      </p>
-                    </div>
-                    <div className="w-32">
-                      <p className="text-sm font-bold mb-12">Người giao hàng</p>
-                      <p className="text-xs text-gray-400">
-                        (Ký và ghi rõ họ tên)
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>

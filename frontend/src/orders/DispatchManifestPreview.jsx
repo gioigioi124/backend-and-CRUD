@@ -21,7 +21,8 @@ const DispatchManifestPreview = ({ open, onOpenChange, vehicle, items }) => {
     const printContent = document.getElementById("manifest-print-area");
     if (!printContent) return;
 
-    const printWindow = window.open("", "", "width=800,height=600");
+    // Tạo cửa sổ mới toàn màn hình
+    const printWindow = window.open("", "", "fullscreen=yes,scrollbars=yes");
 
     printWindow.document.write(`
     <!DOCTYPE html>
@@ -32,7 +33,7 @@ const DispatchManifestPreview = ({ open, onOpenChange, vehicle, items }) => {
         <style>
           @page {
             size: A4;
-            margin: 10mm;
+            margin: 10mm 10mm 15mm 10mm;
           }
           
           * {
@@ -45,6 +46,13 @@ const DispatchManifestPreview = ({ open, onOpenChange, vehicle, items }) => {
             font-family: lexend, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             padding: 20px;
             background: white;
+          }
+          
+          .manifest-page {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            margin-bottom: 6mm;
+            padding-bottom: 6mm;
           }
           
           table {
@@ -139,6 +147,10 @@ const DispatchManifestPreview = ({ open, onOpenChange, vehicle, items }) => {
             align-items: flex-end;
           }
           
+          .space-x-4 > * + * {
+            margin-left: 1rem;
+          }
+          
           @media print {
             body {
               padding: 0;
@@ -167,11 +179,6 @@ const DispatchManifestPreview = ({ open, onOpenChange, vehicle, items }) => {
     year: "numeric",
   });
 
-  const totalQuantity = items.reduce((sum, item) => {
-    const qty = item.leaderConfirmValue || 0;
-    return sum + (qty > 0 ? qty : 0);
-  }, 0);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto p-0 gap-0">
@@ -189,7 +196,7 @@ const DispatchManifestPreview = ({ open, onOpenChange, vehicle, items }) => {
               @media print {
                 @page {
                   size: A4;
-                  margin: 10mm;
+                  margin: 10mm 10mm 15mm 10mm;
                 }
                 #manifest-print-area {
                   position: absolute;
@@ -199,10 +206,16 @@ const DispatchManifestPreview = ({ open, onOpenChange, vehicle, items }) => {
                   padding: 0;
                   margin: 0;
                 }
+                .manifest-page {
+                  page-break-inside: avoid;
+                  padding-bottom: 10px;
+                  margin-bottom: 10px;
+                  width: 100%;
+                }
               }
               
               .manifest-page {
-                margin-bottom: 30px;
+                margin-bottom: 10px;
                 background: white;
                 width: 100%;
               }
@@ -235,145 +248,111 @@ const DispatchManifestPreview = ({ open, onOpenChange, vehicle, items }) => {
             `}
           </style>
 
-          <div className="manifest-page">
-            {/* Header bảng kê */}
-            <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-100">
-              <div>
-                <h2 className="text-2xl font-bold uppercase text-blue-600">
-                  Bảng kê điều vận hàng hóa
-                </h2>
-                <p className="text-sm text-gray-500">Ngày: {today}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-lg">
-                  Xe: {vehicle?.licensePlate || "N/A"}
-                </p>
-                {vehicle?.weight && (
-                  <p className="text-sm font-medium">
-                    Trọng tải/Loại xe: {vehicle.weight}
-                  </p>
-                )}
-              </div>
-            </div>
+          {/* Header chung - chỉ hiện một lần */}
+          {items.length > 0 &&
+            (() => {
+              // Tính tổng số lượng chốt
+              const totalQuantity = items.reduce((sum, item) => {
+                const qty = item.leaderConfirmValue || 0;
+                return sum + (qty > 0 ? qty : 0);
+              }, 0);
 
-            {/* Thông tin xe */}
-            <div className="grid grid-cols-2 gap-8 mb-6">
-              <div>
-                <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">
-                  Thông tin xe
-                </h3>
-                <p className="text-lg font-bold">
-                  {vehicle?.licensePlate || "N/A"}
-                </p>
-                {vehicle?.weight && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    Trọng tải: {vehicle.weight}
-                  </p>
-                )}
-              </div>
-              <div className="text-right">
-                <h3 className="text-sm font-bold text-gray-400 uppercase mb-2">
-                  Số liệu
-                </h3>
-                <p className="font-medium">
-                  Tổng số đơn:{" "}
-                  <span className="font-bold">
-                    {new Set(items.map((i) => i.orderId)).size}
-                  </span>
-                </p>
-                <p className="font-medium mt-2">
-                  Tổng số mặt hàng:{" "}
-                  <span className="font-bold">{items.length}</span>
-                </p>
-              </div>
-            </div>
+              return (
+                <>
+                  <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-100">
+                    <div>
+                      <p className="text-lg font-bold">Ngày: {today}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold">
+                        Xe: {vehicle?.weight || ""} -{" "}
+                        {vehicle?.destination || ""} - {vehicle?.time || ""} -{" "}
+                        {totalQuantity} SL
+                      </p>
+                    </div>
+                  </div>
 
-            {/* Danh sách hàng hóa */}
-            <div className="border rounded-lg overflow-hidden mb-4">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50 border-b-2">
-                    <TableHead className="w-[50px] font-bold text-black">
-                      STT
-                    </TableHead>
-                    <TableHead className="w-[120px] font-bold text-black">
-                      Khách hàng
-                    </TableHead>
-                    <TableHead className="font-bold text-black">
-                      Tên hàng hóa
-                    </TableHead>
-                    <TableHead className="w-[120px] font-bold text-black">
-                      Kích thước
-                    </TableHead>
-                    <TableHead className="w-[70px] font-bold text-black">
-                      ĐVT
-                    </TableHead>
-                    <TableHead className="w-[80px] text-right font-bold text-black">
-                      SL Chốt
-                    </TableHead>
-                    <TableHead className="font-bold text-black">
-                      Ghi chú
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item, idx) => {
-                    const qty = item.leaderConfirmValue || 0;
-                    return (
-                      <TableRow key={idx} className="border-b">
-                        <TableCell className="text-center font-bold">
-                          {idx + 1}
-                        </TableCell>
-                        <TableCell className="font-bold uppercase text-xs">
-                          {item.customerName}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {item.productName}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item.size || "-"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item.unit}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-lg">
-                          {qty > 0 ? qty : "-"}
-                        </TableCell>
-                        <TableCell className="text-sm italic text-gray-600">
-                          {item.note || item.customerNote || "-"}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+                  {/* Danh sách hàng hóa */}
+                  <div className="border rounded-lg overflow-hidden mb-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50 border-b-2">
+                          <TableHead className="w-[50px] font-bold text-black">
+                            STT
+                          </TableHead>
+                          <TableHead className="w-[120px] font-bold text-black">
+                            Khách hàng
+                          </TableHead>
+                          <TableHead className="font-bold text-black">
+                            Tên hàng hóa
+                          </TableHead>
+                          <TableHead className="w-[120px] font-bold text-black">
+                            Kích thước
+                          </TableHead>
+                          <TableHead className="w-[70px] font-bold text-black">
+                            ĐVT
+                          </TableHead>
+                          <TableHead className="w-[80px] text-right font-bold text-black">
+                            SL Chốt
+                          </TableHead>
+                          <TableHead className="font-bold text-black">
+                            Ghi chú
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {items.map((item, idx) => {
+                          const qty = item.leaderConfirmValue || 0;
+                          return (
+                            <TableRow key={idx} className="border-b">
+                              <TableCell className="text-center">
+                                {idx + 1}
+                              </TableCell>
+                              <TableCell className="font-bold uppercase text-xs">
+                                {item.customerName}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {item.productName}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {item.size || "-"}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {item.unit}
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-lg">
+                                {qty > 0 ? qty : "-"}
+                              </TableCell>
+                              <TableCell className="text-sm italic text-gray-600">
+                                {item.note || item.customerNote || "-"}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
 
-            {/* Footer bảng kê */}
-            <div className="flex justify-between items-end">
-              <div className="text-sm text-gray-500">
-                <p>Tổng số mặt hàng: {items.length}</p>
-                <p>
-                  Tổng số lượng chốt:{" "}
-                  <span className="font-bold text-black">{totalQuantity}</span>
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-12 text-center pb-4">
-                <div className="w-32">
-                  <p className="text-sm font-bold mb-12">Người lập bảng</p>
-                  <p className="text-xs text-gray-400">(Ký và ghi rõ họ tên)</p>
-                </div>
-                <div className="w-32">
-                  <p className="text-sm font-bold mb-12">Lái xe xác nhận</p>
-                  <p className="text-xs text-gray-400">(Ký và ghi rõ họ tên)</p>
-                </div>
-                <div className="w-32">
-                  <p className="text-sm font-bold mb-12">Xác nhận điều vận</p>
-                  <p className="text-xs text-gray-400">(Ký và ghi rõ họ tên)</p>
-                </div>
-              </div>
-            </div>
-          </div>
+                  {/* Footer */}
+                  <div className="flex justify-between items-end">
+                    <div className="text-sm text-gray-500 flex space-x-4">
+                      <p>
+                        Tổng số mặt hàng:{" "}
+                        <span className="font-bold text-black">
+                          {items.length}
+                        </span>
+                      </p>
+                      <p>
+                        Tổng số lượng chốt:{" "}
+                        <span className="font-bold text-black">
+                          {totalQuantity}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
         </div>
 
         <DialogFooter className="p-6 border-t bg-gray-50 shrink-0 print:hidden">
