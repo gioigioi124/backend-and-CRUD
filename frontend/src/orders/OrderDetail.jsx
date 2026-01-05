@@ -7,6 +7,7 @@ import {
   Package,
   Calendar,
   Printer,
+  FileDown,
 } from "lucide-react";
 import {
   Table,
@@ -16,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import * as XLSX from "xlsx";
 
 const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
   if (!order) {
@@ -76,6 +78,198 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
   const totalCmQty =
     sortedItems.reduce((sum, item) => sum + (item.cmQty || 0), 0) || 0;
 
+  // Xử lý export Excel
+  const handleExportExcel = () => {
+    try {
+      // Chuẩn bị dữ liệu cho Excel
+      const excelData = [];
+
+      // Header đơn hàng
+      excelData.push({
+        STT: "THÔNG TIN ĐƠN HÀNG",
+        "Tên hàng hóa": "",
+        "Kích thước": "",
+        ĐVT: "",
+        "Số lượng": "",
+        Kho: "",
+        "Số cm": "",
+        "Ghi chú": "",
+        "Kho xác nhận": "",
+        "Điều vận xác nhận": "",
+      });
+
+      // Thông tin khách hàng
+      excelData.push({
+        STT: "Khách hàng:",
+        "Tên hàng hóa": order.customer?.name || "N/A",
+        "Kích thước": "",
+        ĐVT: "",
+        "Số lượng": "",
+        Kho: "",
+        "Số cm": "",
+        "Ghi chú": "",
+        "Kho xác nhận": "",
+        "Điều vận xác nhận": "",
+      });
+
+      if (order.customer?.customerCode) {
+        excelData.push({
+          STT: "Mã KH:",
+          "Tên hàng hóa": order.customer.customerCode,
+          "Kích thước": "",
+          ĐVT: "",
+          "Số lượng": "",
+          Kho: "",
+          "Số cm": "",
+          "Ghi chú": "",
+          "Kho xác nhận": "",
+          "Điều vận xác nhận": "",
+        });
+      }
+
+      if (order.customer?.address) {
+        excelData.push({
+          STT: "Địa chỉ:",
+          "Tên hàng hóa": order.customer.address,
+          "Kích thước": "",
+          ĐVT: "",
+          "Số lượng": "",
+          Kho: "",
+          "Số cm": "",
+          "Ghi chú": "",
+          "Kho xác nhận": "",
+          "Điều vận xác nhận": "",
+        });
+      }
+
+      if (order.customer?.note) {
+        excelData.push({
+          STT: "Ghi chú KH:",
+          "Tên hàng hóa": order.customer.note,
+          "Kích thước": "",
+          ĐVT: "",
+          "Số lượng": "",
+          Kho: "",
+          "Số cm": "",
+          "Ghi chú": "",
+          "Kho xác nhận": "",
+          "Điều vận xác nhận": "",
+        });
+      }
+
+      // Thông tin xe nếu có
+      if (isAssigned && order.vehicle) {
+        excelData.push({
+          STT: "Xe:",
+          "Tên hàng hóa": `${order.vehicle.weight} - ${order.vehicle.destination}`,
+          "Kích thước": "",
+          ĐVT: "",
+          "Số lượng": "",
+          Kho: "",
+          "Số cm": "",
+          "Ghi chú": "",
+          "Kho xác nhận": "",
+          "Điều vận xác nhận": "",
+        });
+      }
+
+      // Dòng trống
+      excelData.push({
+        STT: "",
+        "Tên hàng hóa": "",
+        "Kích thước": "",
+        ĐVT: "",
+        "Số lượng": "",
+        Kho: "",
+        "Số cm": "",
+        "Ghi chú": "",
+        "Kho xác nhận": "",
+        "Điều vận xác nhận": "",
+      });
+
+      // Header cho bảng chi tiết hàng hóa
+      excelData.push({
+        STT: "STT",
+        "Tên hàng hóa": "Tên hàng hóa",
+        "Kích thước": "Kích thước",
+        ĐVT: "ĐVT",
+        "Số lượng": "Số lượng",
+        Kho: "Kho",
+        "Số cm": "Số cm",
+        "Ghi chú": "Ghi chú",
+        "Kho xác nhận": "Kho xác nhận",
+        "Điều vận xác nhận": "Điều vận xác nhận",
+      });
+
+      // Thêm các items
+      sortedItems.forEach((item, itemIndex) => {
+        excelData.push({
+          STT: itemIndex + 1,
+          "Tên hàng hóa": item.productName || "",
+          "Kích thước": item.size || "",
+          ĐVT: item.unit || "",
+          "Số lượng": item.quantity || 0,
+          Kho: item.warehouse || "",
+          "Số cm": item.cmQty || 0,
+          "Ghi chú": item.note || "",
+          "Kho xác nhận": item.warehouseConfirm?.value || "",
+          "Điều vận xác nhận": item.leaderConfirm?.value || "",
+        });
+      });
+
+      // Dòng tổng kết
+      excelData.push({
+        STT: "",
+        "Tên hàng hóa": "",
+        "Kích thước": "",
+        ĐVT: "",
+        "Số lượng": "",
+        Kho: "",
+        "Số cm": "",
+        "Ghi chú": "",
+        "Kho xác nhận": "",
+        "Điều vận xác nhận": "",
+      });
+
+      excelData.push({
+        STT: "TỔNG:",
+        "Tên hàng hóa": `${sortedItems.length} mặt hàng`,
+        "Kích thước": "",
+        ĐVT: "",
+        "Số lượng": totalQuantity,
+        Kho: "",
+        "Số cm": totalCmQty,
+        "Ghi chú": "",
+        "Kho xác nhận": "",
+        "Điều vận xác nhận": "",
+      });
+
+      // Tạo worksheet và workbook
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Don hang");
+
+      // Tạo tên file
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const seconds = String(now.getSeconds()).padStart(2, "0");
+
+      const customerName = order.customer?.name
+        ? order.customer.name.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30)
+        : "KH";
+      const fileName = `Don_hang_${customerName}_${year}${month}${day}_${hours}${minutes}${seconds}.xlsx`;
+
+      // Download file
+      XLSX.writeFile(workbook, fileName);
+    } catch (error) {
+      console.error("Export error:", error);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header với nút Edit, Print và Delete */}
@@ -91,6 +285,16 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
           >
             <Printer className="w-4 h-4 mr-1" />
             In đơn
+          </Button>
+          {/* nút export Excel */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200"
+          >
+            <FileDown className="w-4 h-4 mr-1" />
+            Excel
           </Button>
           {/* nút sửa đơn hàng */}
           <Button variant="outline" size="sm" onClick={() => onEdit(order)}>

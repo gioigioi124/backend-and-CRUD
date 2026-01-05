@@ -14,7 +14,8 @@ import {
 import { userService } from "@/services/userService";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 
 // Helper function để lấy ngày hôm nay
 const getTodayDate = () => {
@@ -177,6 +178,121 @@ const OrderList = ({
     setDateRange({ fromDate, toDate });
   };
 
+  // Xử lý export đơn hàng của trang hiện tại
+  const handleExportOrders = () => {
+    try {
+      if (orders.length === 0) {
+        toast.error("Không có đơn hàng để xuất");
+        return;
+      }
+
+      // Tạo dữ liệu Excel
+      const excelData = [];
+
+      // Tạo rows - mỗi item của đơn hàng là một dòng
+      orders.forEach((order) => {
+        const baseInfo = {
+          "Mã đơn": order.orderCode || "",
+          "Mã KH": order.customer?.customerCode || "",
+          "Khách hàng": order.customer?.name || "",
+          "Địa chỉ": order.customer?.address || "",
+          "SĐT KH": order.customer?.phone || "",
+          "Ghi chú KH": order.customer?.note || "",
+        };
+
+        const orderInfo = {
+          "Người tạo": order.createdBy?.name || "",
+          "Ngày tạo": order.createdAt
+            ? new Date(order.createdAt).toLocaleDateString("vi-VN")
+            : "",
+          "Trạng thái": order.vehicle ? "Đã gán xe" : "Chưa gán xe",
+          "Biển số xe": order.vehicle?.licensePlate || "",
+        };
+
+        // Nếu đơn hàng có items, tạo một dòng cho mỗi item
+        if (order.items && order.items.length > 0) {
+          // Sắp xếp items theo kho (K02→K03→K04→K01)
+          const warehouseOrder = { K02: 1, K03: 2, K04: 3, K01: 4 };
+          const sortedItems = [...order.items].sort((a, b) => {
+            const warehouseA = warehouseOrder[a.warehouse] || 999;
+            const warehouseB = warehouseOrder[b.warehouse] || 999;
+            if (warehouseA !== warehouseB) {
+              return warehouseA - warehouseB;
+            }
+            const nameA = `${a.productName || ""} ${a.size || ""}`
+              .trim()
+              .toLowerCase();
+            const nameB = `${b.productName || ""} ${b.size || ""}`
+              .trim()
+              .toLowerCase();
+            return nameA.localeCompare(nameB, "vi");
+          });
+
+          sortedItems.forEach((item) => {
+            excelData.push({
+              ...baseInfo,
+              "Tên hàng hóa": item.productName || "",
+              "Kích thước": item.size || "",
+              ĐVT: item.unit || "",
+              "Số lượng": item.quantity || "",
+              Kho: item.warehouse || "",
+              "Số cm": item.cmQty || "",
+              "Ghi chú hàng": item.note || "",
+              "Kho xác nhận": item.warehouseConfirm?.value || "",
+              "Điều vận xác nhận": item.leaderConfirm?.value || "",
+              ...orderInfo,
+            });
+          });
+        } else {
+          // Nếu không có items, tạo một dòng với thông tin đơn hàng
+          excelData.push({
+            ...baseInfo,
+            "Tên hàng hóa": "",
+            "Kích thước": "",
+            ĐVT: "",
+            "Số lượng": "",
+            Kho: "",
+            "Số cm": "",
+            "Ghi chú hàng": "",
+            "Kho xác nhận": "",
+            "Điều vận xác nhận": "",
+            ...orderInfo,
+          });
+        }
+      });
+
+      // Tạo worksheet và workbook
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sach don hang");
+
+      // Tạo tên file với ngày giờ hiện tại
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const seconds = String(now.getSeconds()).padStart(2, "0");
+
+      const fileName = `DonHang_ChiTiet_Trang${currentPage}_${year}${month}${day}_${hours}${minutes}${seconds}.xlsx`;
+
+      // Download file
+      XLSX.writeFile(workbook, fileName);
+
+      const totalItems = orders.reduce(
+        (sum, order) => sum + (order.items?.length || 0),
+        0
+      );
+      toast.success(
+        `Đã xuất ${orders.length} đơn hàng với ${totalItems} mặt hàng`
+      );
+    } catch (error) {
+      console.error("Lỗi khi xuất đơn hàng:", error);
+      toast.error("Không thể xuất đơn hàng");
+    }
+  };
+
   // Xử lý edit và delete - gọi callback từ parent
   const handleEdit = (order) => {
     onEdit?.(order);
@@ -297,12 +413,23 @@ const OrderList = ({
                 <SelectValue placeholder="Lọc theo trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Gán xe/Chưa gán xe</SelectItem>
+                <SelectItem value="all">Gán xe</SelectItem>
                 <SelectItem value="unassigned">Chưa gán xe</SelectItem>
                 <SelectItem value="assigned">Đã gán xe</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {/* Export button */}
+          <Button
+            onClick={handleExportOrders}
+            variant="outline"
+            size="sm"
+            className="whitespace-nowrap gap-1"
+            disabled={loading || orders.length === 0}
+          >
+            <Download className="w-4 h-4" />
+            Xuất
+          </Button>
         </div>
       </div>
 

@@ -202,6 +202,19 @@ const VehicleOrderList = ({
           "Kho xác nhận": "",
         });
 
+        // Header cho bảng chi tiết hàng hóa
+        excelData.push({
+          STT: "STT",
+          "Tên hàng hóa": "Tên hàng hóa",
+          "Kích thước": "Kích thước",
+          ĐVT: "ĐVT",
+          "Số lượng": "Số lượng",
+          Kho: "Kho",
+          "Số cm": "Số cm",
+          "Ghi chú": "Ghi chú",
+          "Kho xác nhận": "Kho xác nhận",
+        });
+
         // Thêm các items
         order.items?.forEach((item, itemIndex) => {
           excelData.push({
