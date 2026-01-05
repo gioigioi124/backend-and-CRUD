@@ -17,7 +17,14 @@ const app = express();
 
 //middleware đọc Json từ request body
 app.use(express.json());
-app.use(cors());
+
+// CORS configuration for production
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || "*",
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 
 //rút gọn URL nhờ router
 app.use("/orders", ordersRouter);
