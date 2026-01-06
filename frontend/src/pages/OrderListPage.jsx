@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import OrderList from "@/orders/OrderList";
 import OrderDetail from "@/orders/OrderDetail";
 import OrderEditDialog from "@/orders/OrderEditDialog";
-import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
+import DeleteOrderDialog from "@/components/confirmations/DeleteOrderDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import OrderPrintPreview from "@/orders/OrderPrintPreview";
 import { Card, CardContent } from "@/components/ui/card";

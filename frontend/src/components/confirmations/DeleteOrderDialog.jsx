@@ -44,4 +44,3 @@ const DeleteOrderDialog = ({
 };
 
 export default DeleteOrderDialog;
-

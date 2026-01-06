@@ -187,9 +187,29 @@ const DispatcherDashboard = () => {
   return (
     <div className="container mx-auto p-4 max-w-none">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-end gap-4">
           <h1 className="text-2xl font-bold text-gray-800">Bảng Điều Vận</h1>
           <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
+
+          {/* Dropdown người tạo */}
+          <div className="flex items-center gap-2 rounded-md w-fit">
+            <span className="text-sm font-medium whitespace-nowrap">
+              Người tạo:
+            </span>
+            <Select value={selectedStaff} onValueChange={setSelectedStaff}>
+              <SelectTrigger className="w-[180px] bg-white h-9">
+                <SelectValue placeholder="Chọn nhân viên" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả nhân viên</SelectItem>
+                {staffList.map((staff) => (
+                  <SelectItem key={staff._id} value={staff._id}>
+                    {staff.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -271,25 +291,6 @@ const DispatcherDashboard = () => {
             </Button>
           )}
         </div>
-      </div>
-
-      <div className="flex items-center gap-2 mb-4 bg-gray-50 p-2 rounded-md border border-gray-100 w-fit">
-        <span className="text-sm font-medium whitespace-nowrap">
-          Người tạo:
-        </span>
-        <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-          <SelectTrigger className="w-[180px] bg-white h-9">
-            <SelectValue placeholder="Chọn nhân viên" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả nhân viên</SelectItem>
-            {staffList.map((staff) => (
-              <SelectItem key={staff._id} value={staff._id}>
-                {staff.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">

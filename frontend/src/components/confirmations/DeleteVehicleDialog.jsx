@@ -27,7 +27,8 @@ const DeleteVehicleDialog = ({
           <AlertDialogDescription>
             {canDelete ? (
               <>
-                Bạn có chắc chắn muốn xóa xe <strong>{vehicle?.carName}</strong>?
+                Bạn có chắc chắn muốn xóa xe <strong>{vehicle?.carName}</strong>
+                ?
                 <br />
                 Hành động này không thể hoàn tác.
               </>

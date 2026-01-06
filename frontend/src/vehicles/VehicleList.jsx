@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import VehicleItem from "./VehicleItem";
 import VehicleFormDialog from "./VehicleFormDialog";
-import DeleteVehicleDialog from "./DeleteVehicleDialog";
+import DeleteVehicleDialog from "@/components/confirmations/DeleteVehicleDialog";
 import { vehicleService } from "@/services/vehicleService";
 import { orderService } from "@/services/orderService";
 import { useVehicleContext } from "./VehicleContext";

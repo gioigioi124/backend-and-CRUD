@@ -3,7 +3,7 @@ import VehicleOrderList from "@/orders/VehicleOrderList";
 import OrderDetail from "@/orders/OrderDetail";
 import AssignOrdersToVehicleDialog from "@/vehicles/AssignOrdersToVehicleDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
-import DeleteOrderDialog from "@/orders/DeleteOrderDialog";
+import DeleteOrderDialog from "@/components/confirmations/DeleteOrderDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import OrderPrintPreview from "@/orders/OrderPrintPreview";
 import OrderConfirmedPrintPreview from "@/orders/OrderConfirmedPrintPreview";
@@ -97,6 +97,13 @@ const HomePage = () => {
     setSelectedOrder(null); // Reset đơn hàng đang chọn để tránh hiện thông tin của xe cũ
   }, [selectedVehicle]);
 
+  // Reset vehicle and order selection when filter changes (staff or date range)
+  useEffect(() => {
+    setSelectedVehicle(null);
+    setSelectedOrder(null);
+    setSelectedOrderIds([]);
+  }, [selectedStaff, dateRange.fromDate, dateRange.toDate]);
+
   const handleAssignSuccess = () => {
     setRefreshTrigger((prev) => prev + 1);
     // Chỉ cập nhật số lượng đơn hàng cho xe hiện tại thay vì fetch lại toàn bộ danh sách xe
@@ -126,11 +133,26 @@ const HomePage = () => {
 
   const handleEditSuccess = async () => {
     setRefreshTrigger((prev) => prev + 1);
-    triggerVehicleRefresh();
+
+    // Chỉ cập nhật số lượng đơn hàng cho xe liên quan, không fetch lại toàn bộ danh sách xe
+    // Điều này tối ưu hơn nhiều so với triggerVehicleRefresh()
+    if (orderToEdit?.vehicle && updateOrderCountRef.current) {
+      updateOrderCountRef.current(orderToEdit.vehicle);
+    }
+
     if (selectedOrder && orderToEdit && selectedOrder._id === orderToEdit._id) {
       try {
         const updatedOrder = await orderService.getOrder(orderToEdit._id);
         setSelectedOrder(updatedOrder);
+
+        // Nếu xe thay đổi, cập nhật cả xe mới
+        if (
+          updatedOrder.vehicle &&
+          updatedOrder.vehicle !== orderToEdit.vehicle &&
+          updateOrderCountRef.current
+        ) {
+          updateOrderCountRef.current(updatedOrder.vehicle);
+        }
       } catch (error) {
         console.error("Không thể tải lại đơn hàng:", error);
       }
@@ -151,7 +173,12 @@ const HomePage = () => {
       toast.success("Xóa đơn hàng thành công!");
       setDeleteDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);
-      triggerVehicleRefresh();
+
+      // Chỉ cập nhật số lượng đơn hàng cho xe liên quan, không fetch lại toàn bộ danh sách xe
+      if (orderToDelete?.vehicle && updateOrderCountRef.current) {
+        updateOrderCountRef.current(orderToDelete.vehicle);
+      }
+
       if (selectedOrder && selectedOrder._id === orderToDelete._id) {
         setSelectedOrder(null);
       }
