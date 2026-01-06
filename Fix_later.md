@@ -32,9 +32,9 @@
 - chọn nhiều đơn để gán xe một lúc ✅
 
 - thêm nút in đơn ✅, export file cạnh sửa xóa
-- dialog in đơn, hoàn thành đơn
-
 - phân trang✅
+- dialog in đơn, hoàn thành đơn
+- thêm dòng mặc định số lượng là 1
 
 # DASHBOARD
 

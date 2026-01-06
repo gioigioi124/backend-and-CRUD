@@ -15,9 +15,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { orderService } from "@/services/orderService";
 import ItemsTable from "@/orders/ItemsTable";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete";
+import ShortcutManagerDialog from "@/components/config/ShortcutManagerDialog";
+import { Keyboard } from "lucide-react";
 
 const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  const [showShortcutDialog, setShowShortcutDialog] = useState(false);
   const [customer, setCustomer] = useState({
     name: "",
     customerCode: "",
@@ -200,103 +203,118 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isCreateMode ? "Tạo đơn hàng mới" : "Sửa đơn hàng"}
-          </DialogTitle>
-          <DialogDescription>
-            {isCreateMode
-              ? "Điền thông tin khách hàng và danh sách hàng hóa"
-              : "Cập nhật thông tin khách hàng và danh sách hàng hóa"}
-            {" • "}
-            <span className="text-blue-600 font-medium">
-              Nhấn Ctrl+Enter để lưu
-            </span>
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <ShortcutManagerDialog
+        open={showShortcutDialog}
+        onOpenChange={setShowShortcutDialog}
+      />
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex justify-between items-center">
+              <span>{isCreateMode ? "Tạo đơn hàng mới" : "Sửa đơn hàng"}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                onClick={() => setShowShortcutDialog(true)}
+              >
+                <Keyboard className="w-4 h-4" />
+                Xem phím tắt
+              </Button>
+            </DialogTitle>
+            <DialogDescription>
+              {isCreateMode
+                ? "Điền thông tin khách hàng và danh sách hàng hóa"
+                : "Cập nhật thông tin khách hàng và danh sách hàng hóa"}
+              {" • "}
+              <span className="text-blue-600 font-medium">
+                Nhấn Ctrl+Enter để lưu
+              </span>
+            </DialogDescription>
+          </DialogHeader>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault(); // Ngăn submit mặc định
-          }}
-          onKeyDown={handleKeyDown}
-          className="space-y-6"
-        >
-          {/* Thông tin khách hàng */}
-          <div className="space-y-4">
-            {/* Customer Autocomplete */}
-            <CustomerAutocomplete
-              value={customer}
-              onChange={setCustomer}
-              required={true}
-            />
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-customerNote">Ghi chú</Label>
-              <Textarea
-                id="edit-customerNote"
-                value={customer.note}
-                onChange={(e) =>
-                  setCustomer({ ...customer, note: e.target.value })
-                }
-                placeholder="Ghi chú về khách hàng (tùy chọn)"
-                rows={3}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault(); // Ngăn submit mặc định
+            }}
+            onKeyDown={handleKeyDown}
+            className="space-y-6"
+          >
+            {/* Thông tin khách hàng */}
+            <div className="space-y-4">
+              {/* Customer Autocomplete */}
+              <CustomerAutocomplete
+                value={customer}
+                onChange={setCustomer}
+                required={true}
               />
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-customerNote">Ghi chú</Label>
+                <Textarea
+                  id="edit-customerNote"
+                  value={customer.note}
+                  onChange={(e) =>
+                    setCustomer({ ...customer, note: e.target.value })
+                  }
+                  placeholder="Ghi chú về khách hàng (tùy chọn)"
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-orderDate">
+                  Ngày đơn hàng <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="edit-orderDate"
+                  type="date"
+                  value={orderDate}
+                  onChange={(e) => setOrderDate(e.target.value)}
+                  min={isCreateMode ? getTodayDate() : undefined}
+                  required
+                  disabled={!isCreateMode && order?.vehicle}
+                />
+                <p className="text-xs text-gray-500">
+                  {!isCreateMode && order?.vehicle
+                    ? "Không thể sửa ngày đơn hàng đã gán xe"
+                    : isCreateMode
+                    ? "Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai"
+                    : "Có thể giữ nguyên ngày cũ hoặc chọn ngày mới"}
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-orderDate">
-                Ngày đơn hàng <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="edit-orderDate"
-                type="date"
-                value={orderDate}
-                onChange={(e) => setOrderDate(e.target.value)}
-                min={isCreateMode ? getTodayDate() : undefined}
-                required
-                disabled={!isCreateMode && order?.vehicle}
-              />
-              <p className="text-xs text-gray-500">
-                {!isCreateMode && order?.vehicle
-                  ? "Không thể sửa ngày đơn hàng đã gán xe"
+            {/* Danh sách hàng hóa */}
+            <div>
+              <ItemsTable items={items} setItems={setItems} />
+            </div>
+
+            {/* Nút action */}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={loading}
+              >
+                Hủy
+              </Button>
+              <Button type="button" onClick={handleSubmit} disabled={loading}>
+                {loading
+                  ? isCreateMode
+                    ? "Đang tạo..."
+                    : "Đang cập nhật..."
                   : isCreateMode
-                  ? "Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai"
-                  : "Có thể giữ nguyên ngày cũ hoặc chọn ngày mới"}
-              </p>
-            </div>
-          </div>
-
-          {/* Danh sách hàng hóa */}
-          <div>
-            <ItemsTable items={items} setItems={setItems} />
-          </div>
-
-          {/* Nút action */}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Hủy
-            </Button>
-            <Button type="button" onClick={handleSubmit} disabled={loading}>
-              {loading
-                ? isCreateMode
-                  ? "Đang tạo..."
-                  : "Đang cập nhật..."
-                : isCreateMode
-                ? "Tạo đơn hàng (Ctrl+Enter)"
-                : "Cập nhật (Ctrl+Enter)"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+                  ? "Tạo đơn hàng (Ctrl+Enter)"
+                  : "Cập nhật (Ctrl+Enter)"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

@@ -141,14 +141,12 @@ const DispatcherOrderDetail = ({
   const handleQuickFill = () => {
     const newItems = localItems.map((item) => ({
       ...item,
-      // Ưu tiên lấy từ kho xác nhận, nếu ko có thì lấy từ SL đơn
-      leaderConfirmValue:
-        item.warehouseConfirmValue || item.quantity.toString(),
-      warehouseConfirmValue:
-        item.warehouseConfirmValue || item.quantity.toString(),
+      // Chỉ điền Leader Confirm bằng số lượng đơn hàng
+      // Không thay đổi Warehouse Confirm
+      leaderConfirmValue: item.quantity.toString(),
     }));
     setLocalItems(newItems);
-    toast.success("Đã điền nhanh số lượng thực tế");
+    toast.success("Đã cập nhật số lượng thực tế bằng số lượng đơn hàng");
   };
 
   const handleConfirm = async () => {
