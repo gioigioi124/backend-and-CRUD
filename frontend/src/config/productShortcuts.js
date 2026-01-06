@@ -47,7 +47,7 @@ export const PRODUCT_SHORTCUTS = {
 
   g3a05: {
     productName: "gấp 3 Alias 5F",
-    warehouse: "K03",
+    warehouse: "K04",
     unit: "cái",
     cmQty: 5,
     usePattern: true,
@@ -56,7 +56,7 @@ export const PRODUCT_SHORTCUTS = {
   },
   g3a07: {
     productName: "gấp 3 Alias 7F",
-    warehouse: "K03",
+    warehouse: "K04",
     unit: "cái",
     cmQty: 7,
     usePattern: true,
@@ -65,7 +65,7 @@ export const PRODUCT_SHORTCUTS = {
   },
   g3a09: {
     productName: "gấp 3 Alias 9F",
-    warehouse: "K03",
+    warehouse: "K04",
     unit: "cái",
     cmQty: 9,
     usePattern: true,
@@ -74,7 +74,7 @@ export const PRODUCT_SHORTCUTS = {
   },
   g3a14: {
     productName: "gấp 3 Alias 14F",
-    warehouse: "K03",
+    warehouse: "K04",
     unit: "cái",
     cmQty: 14,
     usePattern: true,
@@ -83,12 +83,102 @@ export const PRODUCT_SHORTCUTS = {
   },
   g3a18: {
     productName: "gấp 3 Alias 18F",
-    warehouse: "K03",
+    warehouse: "K04",
     unit: "cái",
     cmQty: 18,
     usePattern: true,
     // Pattern: g3a18 + kích thước (optional) + mã ghi chú (optional)
     pattern: /^g3a18(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3b05: {
+    productName: "gấp 3 B Vimatt 5F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 5,
+    usePattern: true,
+    // Pattern: g3b05 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3b05(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3b07: {
+    productName: "gấp 3 B Vimatt 7F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 7,
+    usePattern: true,
+    // Pattern: g3b07 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3b07(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3b09: {
+    productName: "gấp 3 B Vimatt 9F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 9,
+    usePattern: true,
+    // Pattern: g3b09 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3b09(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3b14: {
+    productName: "gấp 3 B Vimatt 14F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 14,
+    usePattern: true,
+    // Pattern: g3b14 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3b14(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3b18: {
+    productName: "gấp 3 B Vimatt 18F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 18,
+    usePattern: true,
+    // Pattern: g3b18 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3b18(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3c05: {
+    productName: "gấp 3 See 5F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 5,
+    usePattern: true,
+    // Pattern: g3c05 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3c05(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3c07: {
+    productName: "gấp 3 See 7F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 7,
+    usePattern: true,
+    // Pattern: g3c07 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3c07(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3c09: {
+    productName: "gấp 3 See 9F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 9,
+    usePattern: true,
+    // Pattern: g3c09 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3c09(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3c14: {
+    productName: "gấp 3 See 14F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 14,
+    usePattern: true,
+    // Pattern: g3c14 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3c14(?:(\d+x\d+))?(.+)?$/i,
+  },
+  g3c18: {
+    productName: "gấp 3 See 18F",
+    warehouse: "K04",
+    unit: "cái",
+    cmQty: 18,
+    usePattern: true,
+    // Pattern: g3c18 + kích thước (optional) + mã ghi chú (optional)
+    pattern: /^g3c18(?:(\d+x\d+))?(.+)?$/i,
   },
   // Thêm các mã tắt khác tại đây
 };
