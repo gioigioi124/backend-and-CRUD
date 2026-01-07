@@ -43,6 +43,7 @@ const VehicleList = ({
   //chạy lại data khi sửa, xóa, thêm xe hoặc khi date range thay đổi hoặc người tạo thay đổi
   useEffect(() => {
     fetchVehicles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger, fromDate, toDate, creator, currentPage]);
 
   // Reset về trang 1 khi filter thay đổi
@@ -89,17 +90,10 @@ const VehicleList = ({
       setHasPrevPage(hasPrev);
       setError(null);
 
-      // Fetch số lượng đơn hàng của mỗi xe
+      // Lấy số lượng đơn hàng từ backend (đã được tính sẵn trong orderCount)
       const counts = {};
       for (const vehicle of vehicleData) {
-        // Nếu đã có request mới hơn thì dừng loop này luôn cho đỡ tốn resource
-        if (fetchId !== lastFetchIdRef.current) return;
-        try {
-          const orders = await orderService.getOrdersByVehicle(vehicle._id);
-          counts[vehicle._id] = orders.length;
-        } catch (err) {
-          counts[vehicle._id] = 0;
-        }
+        counts[vehicle._id] = vehicle.orderCount || 0;
       }
 
       if (fetchId !== lastFetchIdRef.current) return;
@@ -148,7 +142,7 @@ const VehicleList = ({
         const orders = await orderService.getOrdersByVehicle(vehicle._id);
         orderCount = orders.length;
         setOrderCounts((prev) => ({ ...prev, [vehicle._id]: orderCount }));
-      } catch (err) {
+      } catch {
         orderCount = 0;
       }
     }

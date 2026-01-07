@@ -23,25 +23,25 @@ export const createVehicle = async (req, res) => {
 export const getAllVehicles = async (req, res) => {
   try {
     const { fromDate, toDate, creator, page = 1, limit = 10 } = req.query;
-    const filter = {};
+    const matchStage = {};
 
     // Filter theo người tạo
     if (creator) {
-      filter.createdBy = creator;
+      matchStage.createdBy = creator;
     }
 
     // Filter theo khoảng ngày (vehicleDate)
     if (fromDate || toDate) {
-      filter.vehicleDate = {};
+      matchStage.vehicleDate = {};
       if (fromDate) {
         const from = new Date(fromDate);
         from.setHours(0, 0, 0, 0); // Start of day
-        filter.vehicleDate.$gte = from;
+        matchStage.vehicleDate.$gte = from;
       }
       if (toDate) {
         const to = new Date(toDate);
         to.setHours(23, 59, 59, 999); // End of day
-        filter.vehicleDate.$lte = to;
+        matchStage.vehicleDate.$lte = to;
       }
     }
 
@@ -51,18 +51,59 @@ export const getAllVehicles = async (req, res) => {
     const skip = (pageNum - 1) * limitNum;
 
     // Đếm tổng số xe
-    const totalVehicles = await Vehicle.countDocuments(filter);
+    const totalVehicles = await Vehicle.countDocuments(matchStage);
     const totalPages = Math.ceil(totalVehicles / limitNum);
 
-    // Lấy dữ liệu xe với pagination
-    const vehicles = await Vehicle.find(filter)
-      .populate("createdBy", "name username")
-      .sort({
-        vehicleDate: -1,
-        createdAt: -1,
-      })
-      .skip(skip)
-      .limit(limitNum);
+    // Sử dụng aggregation để lấy xe kèm theo số lượng đơn hàng trong 1 query duy nhất
+    const vehicles = await Vehicle.aggregate([
+      { $match: matchStage },
+      {
+        $sort: {
+          vehicleDate: -1,
+          createdAt: -1,
+        },
+      },
+      { $skip: skip },
+      { $limit: limitNum },
+      {
+        $lookup: {
+          from: "orders", // Collection name trong MongoDB
+          localField: "_id",
+          foreignField: "vehicle",
+          as: "orders",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "createdBy",
+          foreignField: "_id",
+          as: "createdByUser",
+        },
+      },
+      {
+        $addFields: {
+          orderCount: { $size: "$orders" },
+          createdBy: {
+            $cond: {
+              if: { $gt: [{ $size: "$createdByUser" }, 0] },
+              then: {
+                _id: { $arrayElemAt: ["$createdByUser._id", 0] },
+                name: { $arrayElemAt: ["$createdByUser.name", 0] },
+                username: { $arrayElemAt: ["$createdByUser.username", 0] },
+              },
+              else: null,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          orders: 0,
+          createdByUser: 0,
+        },
+      },
+    ]);
 
     // Trả về dữ liệu với metadata
     res.status(200).json({
