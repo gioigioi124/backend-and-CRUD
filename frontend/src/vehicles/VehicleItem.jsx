@@ -57,21 +57,16 @@ const VehicleItem = ({
             <div className="flex">
               <div className="text-sm text-gray-600">
                 {vehicle.weight} - {vehicle.time} - {vehicle.destination}
-                {vehicle.createdBy && (
-                  <span className="ml-1 text-xs text-blue-400">
-                    {" "}
-                    - (
-                    {typeof vehicle.createdBy === "object"
-                      ? vehicle.createdBy.username || vehicle.createdBy.name
-                      : "..."}
-                    )
-                  </span>
-                )}
               </div>
             </div>
             <div className="text-xs text-gray-400 mt-1 italic">
               {new Date(vehicle.vehicleDate).toLocaleDateString("vi-VN")}
               {vehicle.note && " - " + vehicle.note}
+              {vehicle.createdBy?.name && (
+                <span className="ml-2 text-green-600 font-medium not-italic">
+                  • {vehicle.createdBy.name}
+                </span>
+              )}
             </div>
           </div>
 

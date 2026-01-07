@@ -61,6 +61,11 @@ const OrderItem = ({
           {/* ngày tạo */}
           <div className="text-xs text-gray-400">
             {formatDate(order.orderDate)}
+            {order.createdBy?.name && (
+              <span className="ml-2 text-green-600 font-medium">
+                • {order.createdBy.name}
+              </span>
+            )}
           </div>
           {order.customer?.note && (
             <div className="text-xs text-gray-400 mt-1 italic">

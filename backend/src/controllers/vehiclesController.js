@@ -1,5 +1,6 @@
 import Vehicle from "../models/Vehicle.js";
 import Order from "../models/Order.js";
+import mongoose from "mongoose";
 
 //thêm dữ liệu
 export const createVehicle = async (req, res) => {
@@ -27,7 +28,7 @@ export const getAllVehicles = async (req, res) => {
 
     // Filter theo người tạo
     if (creator) {
-      matchStage.createdBy = creator;
+      matchStage.createdBy = new mongoose.Types.ObjectId(creator);
     }
 
     // Filter theo khoảng ngày (vehicleDate)
