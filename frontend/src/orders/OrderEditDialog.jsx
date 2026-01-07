@@ -209,7 +209,10 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
         onOpenChange={setShowShortcutDialog}
       />
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className="sm:max-w-6xl max-h-[90vh] overflow-y-auto"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle className="flex justify-between items-center">
               <span>{isCreateMode ? "Tạo đơn hàng mới" : "Sửa đơn hàng"}</span>
@@ -223,15 +226,6 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                 Xem phím tắt
               </Button>
             </DialogTitle>
-            <DialogDescription>
-              {isCreateMode
-                ? "Điền thông tin khách hàng và danh sách hàng hóa"
-                : "Cập nhật thông tin khách hàng và danh sách hàng hóa"}
-              {" • "}
-              <span className="text-blue-600 font-medium">
-                Nhấn Ctrl+Enter để lưu
-              </span>
-            </DialogDescription>
           </DialogHeader>
 
           <form
@@ -242,15 +236,18 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
             className="space-y-6"
           >
             {/* Thông tin khách hàng */}
-            <div className="space-y-4">
-              {/* Customer Autocomplete */}
-              <CustomerAutocomplete
-                value={customer}
-                onChange={setCustomer}
-                required={true}
-              />
+            <div className="grid grid-cols-8 gap-4">
+              {/* Customer Autocomplete - 3 columns */}
+              <div className="col-span-3">
+                <CustomerAutocomplete
+                  value={customer}
+                  onChange={setCustomer}
+                  required={true}
+                />
+              </div>
 
-              <div className="space-y-2">
+              {/* Ghi chú - 3 columns */}
+              <div className="col-span-3 space-y-2">
                 <Label htmlFor="edit-customerNote">Ghi chú</Label>
                 <Textarea
                   id="edit-customerNote"
@@ -263,7 +260,8 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                 />
               </div>
 
-              <div className="space-y-2">
+              {/* Ngày đơn hàng - 1 column */}
+              <div className="col-span-2 space-y-2">
                 <Label htmlFor="edit-orderDate">
                   Ngày đơn hàng <span className="text-red-500">*</span>
                 </Label>
