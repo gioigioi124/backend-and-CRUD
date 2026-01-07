@@ -16,7 +16,12 @@ import { orderService } from "@/services/orderService";
 import ItemsTable from "@/orders/ItemsTable";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete";
 import ShortcutManagerDialog from "@/components/config/ShortcutManagerDialog";
-import { Keyboard } from "lucide-react";
+import { Keyboard, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -30,6 +35,11 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   });
   const [items, setItems] = useState([]);
   const [orderDate, setOrderDate] = useState("");
+
+  // Surplus/Deficit auto-fill state
+  const [surplusDeficitItems, setSurplusDeficitItems] = useState([]);
+  const [loadingSurplusDeficit, setLoadingSurplusDeficit] = useState(false);
+  const [showSurplusDeficit, setShowSurplusDeficit] = useState(true);
 
   // Kiểm tra chế độ: tạo mới hay sửa
   const isCreateMode = !order;
@@ -127,6 +137,69 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
       }
     }
   }, [open, order]);
+
+  // Fetch surplus/deficit data when customer changes
+  useEffect(() => {
+    const fetchSurplusDeficit = async () => {
+      if (!open || !customer.name || !customer.name.trim()) {
+        setSurplusDeficitItems([]);
+        return;
+      }
+
+      try {
+        setLoadingSurplusDeficit(true);
+        const response = await orderService.getSurplusDeficitByCustomer(
+          customer.name
+        );
+        // Filter only items with deficit (thiếu - negative values)
+        let deficitItems = (response.data || []).filter(
+          (item) => item.deficit < 0
+        );
+
+        // Sort by order date (most recent first) and limit to 20 items
+        deficitItems = deficitItems
+          .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
+          .slice(0, 20);
+
+        setSurplusDeficitItems(deficitItems);
+      } catch (error) {
+        console.error("Error fetching surplus/deficit:", error);
+        setSurplusDeficitItems([]);
+      } finally {
+        setLoadingSurplusDeficit(false);
+      }
+    };
+
+    fetchSurplusDeficit();
+  }, [open, customer.name]);
+
+  // Handler to auto-fill item from surplus/deficit
+  const handleFillDeficit = (deficitItem) => {
+    // Create new item with deficit quantity (absolute value)
+    const newItem = {
+      stt: items.length + 1,
+      productName: deficitItem.productName,
+      size: deficitItem.size || "",
+      unit: deficitItem.unit,
+      quantity: Math.abs(deficitItem.deficit), // Use absolute value of deficit
+      warehouse: deficitItem.warehouse,
+      cmQty: 0,
+      note: deficitItem.note || "",
+    };
+
+    // Add to items and sort
+    const updatedItems = [...items, newItem];
+    const sortedItems = sortItems(updatedItems);
+
+    // Update STT after sorting
+    const itemsWithNewStt = sortedItems.map((item, index) => ({
+      ...item,
+      stt: index + 1,
+    }));
+
+    setItems(itemsWithNewStt);
+    toast.success(`Đã thêm "${deficitItem.productName}" vào đơn hàng`);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -283,6 +356,84 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                 </p>
               </div>
             </div>
+
+            {/* Surplus/Deficit Auto-Fill Section */}
+            {customer.name &&
+              customer.name.trim() &&
+              surplusDeficitItems.length > 0 && (
+                <Collapsible
+                  open={showSurplusDeficit}
+                  onOpenChange={setShowSurplusDeficit}
+                  className="border rounded-lg p-4 bg-yellow-50"
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full flex items-center justify-between p-2 hover:bg-yellow-100"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-yellow-800">
+                          Hàng còn thiếu từ đơn cũ
+                        </span>
+                        <span className="bg-yellow-600 text-white text-xs px-2 py-1 rounded-full">
+                          {surplusDeficitItems.length}
+                        </span>
+                      </div>
+                      {showSurplusDeficit ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3">
+                    <div className="text-xs text-gray-600 mb-2">
+                      Click vào nút "Thêm" để điền tự động số lượng còn thiếu
+                      vào đơn hàng
+                    </div>
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                      {surplusDeficitItems.map((item, index) => (
+                        <div
+                          key={`${item.orderId}-${item.itemId}-${index}`}
+                          className="flex items-center justify-between p-2 bg-white rounded border border-yellow-200 hover:border-yellow-400 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">
+                              {item.productName}
+                              {item.size && (
+                                <span className="text-gray-500 ml-1">
+                                  ({item.size})
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Kho: {item.warehouse} • Thiếu:{" "}
+                              <span className="font-bold text-red-600">
+                                {Math.abs(item.deficit)} {item.unit}
+                              </span>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="ml-2 gap-1 bg-green-50 border-green-300 hover:bg-green-100 text-green-700"
+                            onClick={() => handleFillDeficit(item)}
+                          >
+                            <Plus className="w-3 h-3" />
+                            Thêm
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+            {loadingSurplusDeficit && (
+              <div className="text-sm text-gray-500 text-center py-2">
+                Đang tải dữ liệu hàng thiếu...
+              </div>
+            )}
 
             {/* Danh sách hàng hóa */}
             <div className="min-h-[250px]">

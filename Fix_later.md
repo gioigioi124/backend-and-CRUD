@@ -3,7 +3,7 @@
 - Click và hover vào xe cho sang thẻ div bên ngoài✅
 - Full màn hình với max-w✅
 - Thêm nút tick chọn để xác nhận là xe đã in đơn, và cạnh nút sửa xóa là nút xác nhận đã hoàn thiện đơn hàng ✅
-- dialog xác nhận hoàn thành và in đơn hàng
+- dialog xác nhận hoàn thành và in đơn hàng✅
 
 # CỘT 2
 
@@ -34,9 +34,9 @@
 - thêm nút in đơn ✅, export file cạnh sửa xóa
 - phân trang✅
 - dialog in đơn, hoàn thành đơn ✅
-- thêm dòng mặc định số lượng là 1
-- hotkey thêm dòng
-- Tạo nút đổi xe
+- thêm dòng mặc định số lượng là 1 ✅
+- hotkey thêm dòng ✅
+- Tạo nút đổi xe ✅
 
 # DASHBOARD
 

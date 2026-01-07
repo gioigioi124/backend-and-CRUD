@@ -156,4 +156,20 @@ export const orderService = {
     const response = await api.get(url);
     return response.data;
   },
+
+  // Lấy dữ liệu hàng thừa thiếu theo khách hàng (dùng cho auto-fill)
+  getSurplusDeficitByCustomer: async (customerName) => {
+    const params = {
+      status: "deficit", // Chỉ lấy items có thừa/thiếu
+    };
+    if (customerName && customerName.trim()) {
+      params.customerName = customerName.trim();
+    }
+
+    const queryString = new URLSearchParams(params).toString();
+    const url = `/orders/surplus-deficit?${queryString}`;
+
+    const response = await api.get(url);
+    return response.data;
+  },
 };

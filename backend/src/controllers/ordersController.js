@@ -389,6 +389,7 @@ export const getSurplusDeficitData = async (req, res) => {
       toDate,
       creator,
       warehouse,
+      customerName,
       status = "deficit", // "deficit" (thừa thiếu), "all" (tất cả)
     } = req.query;
 
@@ -412,6 +413,14 @@ export const getSurplusDeficitData = async (req, res) => {
     // Filter theo người tạo (role bán hàng)
     if (creator) {
       filter.createdBy = creator;
+    }
+
+    // Filter theo tên khách hàng (case-insensitive)
+    if (customerName && customerName.trim()) {
+      filter["customer.name"] = {
+        $regex: customerName.trim(),
+        $options: "i",
+      };
     }
 
     // Lấy tất cả đơn hàng theo filter
