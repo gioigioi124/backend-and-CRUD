@@ -1,4 +1,5 @@
-import { Plus, Trash2 } from "lucide-react";
+import { useEffect, useCallback } from "react";
+import { Plus, Trash2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,19 +23,41 @@ const WAREHOUSES = ["K01", "K02", "K03", "K04"];
 
 const ItemsTable = ({ items, setItems }) => {
   // Thêm dòng mới
-  const addItem = () => {
+  const addItem = useCallback(() => {
     const newItem = {
       stt: items.length + 1,
       productName: "",
       size: "",
       unit: "Cái",
-      quantity: 0,
+      quantity: 1,
       warehouse: "",
       cmQty: 0,
       note: "",
     };
     setItems([...items, newItem]);
-  };
+  }, [items, setItems]);
+
+  // Thêm dòng tương tự dòng cuối (không có kích thước)
+  const addSimilarItem = useCallback(() => {
+    if (items.length === 0) {
+      // Nếu chưa có dòng nào, thêm dòng mới thông thường
+      addItem();
+      return;
+    }
+
+    const lastItem = items[items.length - 1];
+    const newItem = {
+      stt: items.length + 1,
+      productName: lastItem.productName,
+      size: "", // Không copy kích thước
+      unit: lastItem.unit,
+      quantity: 1,
+      warehouse: lastItem.warehouse,
+      cmQty: lastItem.cmQty,
+      note: lastItem.note,
+    };
+    setItems([...items, newItem]);
+  }, [items, setItems, addItem]);
 
   // Xóa dòng
   const removeItem = (index) => {
@@ -78,15 +101,37 @@ const ItemsTable = ({ items, setItems }) => {
     setItems(newItems);
   };
 
+  // Keyboard shortcut: Ctrl + + để thêm dòng tương tự
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl + + (hoặc Ctrl + = vì cùng phím)
+      if ((e.ctrlKey || e.metaKey) && (e.key === "+" || e.key === "=")) {
+        e.preventDefault();
+        addSimilarItem();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [addSimilarItem]); // Dependency on addSimilarItem
+
   return (
     <div className="space-y-4">
       {/* Tiêu đề và nút thêm hàng hóa */}
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Danh sách hàng hóa</h3>
-        <Button type="button" onClick={addItem} size="sm">
-          <Plus className="w-4 h-4 mr-1" />
-          Thêm dòng
-        </Button>
+        <div className="flex gap-2">
+          <Button type="button" onClick={addItem} size="sm" variant="outline">
+            <Plus className="w-4 h-4 mr-1" />
+            Thêm dòng
+          </Button>
+          <Button type="button" onClick={addSimilarItem} size="sm">
+            <Copy className="w-4 h-4 mr-1" />
+            Thêm dòng tương tự (Ctrl +)
+          </Button>
+        </div>
       </div>
       {/* Phần Table */}
       <div className="border rounded-lg">
