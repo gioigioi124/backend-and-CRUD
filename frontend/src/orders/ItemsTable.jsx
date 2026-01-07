@@ -53,7 +53,8 @@ const ItemsTable = ({ items, setItems }) => {
       unit: lastItem.unit,
       quantity: 1,
       warehouse: lastItem.warehouse,
-      cmQty: lastItem.cmQty,
+      cmQty: lastItem.cmQtyPerUnit || lastItem.cmQty, // Tính lại cho quantity = 1
+      cmQtyPerUnit: lastItem.cmQtyPerUnit || 0, // Copy cmQtyPerUnit
       note: lastItem.note,
     };
     setItems([...items, newItem]);
@@ -89,14 +90,18 @@ const ItemsTable = ({ items, setItems }) => {
   // Handler khi chọn sản phẩm từ dropdown
   const handleProductSelect = (index, productData) => {
     const newItems = [...items];
+    const currentQuantity = newItems[index].quantity || 1;
+
     newItems[index] = {
       ...newItems[index],
       productName: productData.productName,
       size: productData.size || newItems[index].size,
       unit: productData.unit || newItems[index].unit,
       warehouse: productData.warehouse || newItems[index].warehouse,
-      cmQty: productData.cmQty || newItems[index].cmQty,
       cmQtyPerUnit: productData.cmQtyPerUnit || 0, // Lưu số cm cho 1 đơn vị
+      cmQty: productData.cmQtyPerUnit
+        ? productData.cmQtyPerUnit * currentQuantity // Tính theo số lượng hiện tại
+        : productData.cmQty || newItems[index].cmQty,
       note: productData.note || newItems[index].note,
     };
     setItems(newItems);

@@ -2,6 +2,7 @@ import VehicleList from "@/vehicles/VehicleList";
 import VehicleOrderList from "@/orders/VehicleOrderList";
 import OrderDetail from "@/orders/OrderDetail";
 import AssignOrdersToVehicleDialog from "@/vehicles/AssignOrdersToVehicleDialog";
+import AssignVehicleToOrderDialog from "@/orders/AssignVehicleToOrderDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/components/confirmations/DeleteOrderDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
@@ -43,6 +44,8 @@ const HomePage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [vehicleAssignDialogOpen, setVehicleAssignDialogOpen] = useState(false);
+  const [orderToAssignVehicle, setOrderToAssignVehicle] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
@@ -230,6 +233,27 @@ const HomePage = () => {
     setPrintPreviewOpen(true);
   };
 
+  const handleAssignVehicle = (order) => {
+    setOrderToAssignVehicle(order);
+    setVehicleAssignDialogOpen(true);
+  };
+
+  const handleAssignVehicleSuccess = () => {
+    setRefreshTrigger((prev) => prev + 1);
+    if (selectedVehicle?._id && updateOrderCountRef.current) {
+      updateOrderCountRef.current(selectedVehicle._id);
+    }
+    if (
+      selectedOrder &&
+      orderToAssignVehicle &&
+      selectedOrder._id === orderToAssignVehicle._id
+    ) {
+      orderService.getOrder(selectedOrder._id).then((updatedOrder) => {
+        setSelectedOrder(updatedOrder);
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-none">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -361,6 +385,7 @@ const HomePage = () => {
             selectedOrder={selectedOrder}
             onSelectOrder={setSelectedOrder}
             onUnassign={handleUnassign}
+            onAssign={handleAssignVehicle}
             onAssignClick={() => setAssignDialogOpen(true)}
             refreshTrigger={refreshTrigger}
             selectedOrderIds={selectedOrderIds}
@@ -421,6 +446,13 @@ const HomePage = () => {
         open={printConfirmedPreviewOpen}
         onOpenChange={setPrintConfirmedPreviewOpen}
         selectedOrders={ordersToConfirmedPrint}
+      />
+
+      <AssignVehicleToOrderDialog
+        open={vehicleAssignDialogOpen}
+        onOpenChange={setVehicleAssignDialogOpen}
+        order={orderToAssignVehicle}
+        onSuccess={handleAssignVehicleSuccess}
       />
     </div>
   );

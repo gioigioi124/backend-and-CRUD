@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Package, X, FileDown } from "lucide-react";
+import { Package, X, FileDown, Truck } from "lucide-react";
 import { orderService } from "@/services/orderService";
 import * as XLSX from "xlsx";
 
@@ -10,6 +10,7 @@ const VehicleOrderList = ({
   selectedOrder,
   onSelectOrder,
   onUnassign,
+  onAssign,
   onAssignClick,
   refreshTrigger,
   onOrdersLoaded,
@@ -442,13 +443,26 @@ const VehicleOrderList = ({
                     </div>
                   )}
                 </div>
-                {/* Nút bỏ gán */}
-                <div className="absolute bottom-2 right-2 hidden group-hover:flex">
+                {/* Nút gán xe và bỏ gán */}
+                <div className="absolute bottom-2 right-2 hidden group-hover:flex space-x-1 bg-white/90 p-1 rounded-md shadow-sm">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-7 text-[10px] text-red-600 hover:text-red-700 hover:bg-red-50 p-1"
+                    className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAssign?.(order);
+                    }}
+                    title="Gán xe"
+                  >
+                    <Truck className="w-4 h-4 mr-1" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                     onClick={(e) => handleUnassign(order, e)}
+                    title="Bỏ gán"
                   >
                     <X className="w-3 h-3 mr-1" />
                     Bỏ gán
