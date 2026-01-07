@@ -111,7 +111,7 @@ const AssignVehicleToOrderDialog = ({
       setAssigning(true);
       await orderService.assignOrder(order._id, selectedVehicle._id);
       toast.success(
-        `Đã gán đơn hàng vào xe ${selectedVehicle.carName || "này"}`
+        `Đã gán đơn hàng vào xe ${selectedVehicle.weight} - ${selectedVehicle.destination} - ${selectedVehicle.time}`
       );
       onOpenChange(false);
       onSuccess?.();
@@ -218,13 +218,7 @@ const AssignVehicleToOrderDialog = ({
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-medium flex items-center gap-2">
-                      {vehicle.carName || "Xe không tên"}
-                      <span className="text-xs text-gray-500 font-normal border px-1 rounded bg-gray-50">
-                        {vehicle.weight}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600 mt-1">
-                      {vehicle.destination} - {vehicle.time}
+                      {vehicle.weight} - {vehicle.destination} - {vehicle.time}
                     </div>
                     {vehicle.note && (
                       <div className="text-xs text-gray-400 italic mt-1">

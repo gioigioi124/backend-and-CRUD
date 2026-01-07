@@ -114,7 +114,9 @@ const AssignOrdersToVehicleDialog = ({
       // Hiển thị kết quả
       if (successCount > 0) {
         toast.success(
-          `Đã gán ${successCount} đơn hàng vào xe ${vehicle.carName || "này"}${
+          `Đã gán ${successCount} đơn hàng vào xe ${vehicle.weight} - ${
+            vehicle.destination
+          } - ${vehicle.time}${
             failCount > 0 ? `. ${failCount} đơn thất bại.` : ""
           }`
         );

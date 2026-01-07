@@ -5,7 +5,7 @@ const vehicleSchema = new mongoose.Schema(
     //thông tin xe: tên xe, trọng tải, thời gian, nơi đến
     carName: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     weight: {

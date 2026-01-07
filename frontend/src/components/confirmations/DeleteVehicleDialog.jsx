@@ -27,7 +27,10 @@ const DeleteVehicleDialog = ({
           <AlertDialogDescription>
             {canDelete ? (
               <>
-                Bạn có chắc chắn muốn xóa xe <strong>{vehicle?.carName}</strong>
+                Bạn có chắc chắn muốn xóa xe{" "}
+                <strong>
+                  {vehicle?.weight} - {vehicle?.destination} - {vehicle?.time}
+                </strong>
                 ?
                 <br />
                 Hành động này không thể hoàn tác.
@@ -37,8 +40,11 @@ const DeleteVehicleDialog = ({
                 <div className="text-red-600 font-semibold mb-2">
                   Không thể xóa xe!
                 </div>
-                Xe <strong>{vehicle?.carName}</strong> đang có{" "}
-                <strong>{orderCount}</strong> đơn hàng được gán vào.
+                Xe{" "}
+                <strong>
+                  {vehicle?.weight} - {vehicle?.destination} - {vehicle?.time}
+                </strong>{" "}
+                đang có <strong>{orderCount}</strong> đơn hàng được gán vào.
                 <br />
                 Vui lòng bỏ gán tất cả đơn hàng trước khi xóa xe.
               </>

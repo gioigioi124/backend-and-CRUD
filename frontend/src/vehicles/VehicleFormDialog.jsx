@@ -98,7 +98,6 @@ const VehicleFormDialog = ({
 
     // Validation các trường bắt buộc
     if (
-      !formData.carName ||
       !formData.weight ||
       !formData.time ||
       !formData.destination ||
@@ -155,19 +154,6 @@ const VehicleFormDialog = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Tên xe */}
-          <div className="space-y-2">
-            <Label htmlFor="carName">
-              Tên xe <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="carName"
-              placeholder="VD: Tranpo 1"
-              value={formData.carName}
-              onChange={(e) => handleChange("carName", e.target.value)}
-            />
-          </div>
-
           {/* Trọng tải */}
           <div className="space-y-2">
             <Label htmlFor="weight">
