@@ -96,6 +96,7 @@ const ItemsTable = ({ items, setItems }) => {
       unit: productData.unit || newItems[index].unit,
       warehouse: productData.warehouse || newItems[index].warehouse,
       cmQty: productData.cmQty || newItems[index].cmQty,
+      cmQtyPerUnit: productData.cmQtyPerUnit || 0, // Lưu số cm cho 1 đơn vị
       note: productData.note || newItems[index].note,
     };
     setItems(newItems);

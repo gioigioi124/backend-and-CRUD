@@ -54,6 +54,7 @@ const ProductAutocomplete = ({ value, onSelect, placeholder }) => {
           unit: parsed.unit || "Cái",
           warehouse: parsed.warehouse || "",
           cmQty: parsed.cmQty || 0,
+          cmQtyPerUnit: parsed.cmQtyPerUnit || 0, // Số cm cho 1 đơn vị
           note: parsed.note || "",
         });
       }

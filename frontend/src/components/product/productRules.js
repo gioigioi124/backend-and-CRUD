@@ -36,6 +36,7 @@ export const PRODUCT_RULES = [
         warehouse: this.warehouse,
         unit: this.unit,
         cmQty: thickness,
+        cmQtyPerUnit: thickness, // Số cm cho 1 đơn vị
         size: match[3] || "",
         note: match[4]?.toUpperCase() || "",
       };
