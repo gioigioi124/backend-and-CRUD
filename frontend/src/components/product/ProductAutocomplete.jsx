@@ -111,7 +111,8 @@ const ProductAutocomplete = ({ value, onSelect, placeholder }) => {
 
   // Handle input focus
   const handleFocus = () => {
-    if (suggestions.length > 0) {
+    // Chỉ mở dropdown khi có text được gõ
+    if (inputValue.trim() && suggestions.length > 0) {
       setIsOpen(true);
     }
   };
