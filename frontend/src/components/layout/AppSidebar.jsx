@@ -57,7 +57,7 @@ const AppSidebar = () => {
       title: "Hàng Thừa Thiếu",
       icon: TrendingDown,
       path: "/surplus-deficit",
-      roles: ["admin", "staff", "leader"],
+      roles: ["admin", "staff", "leader", "warehouse"],
     },
     {
       title: "Dashboard Kho",

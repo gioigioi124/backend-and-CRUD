@@ -27,9 +27,11 @@ import {
   Home,
   ChevronLeft,
   ChevronRight,
+  Download,
 } from "lucide-react";
 import { orderService } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
+import * as XLSX from "xlsx";
 
 const WarehouseDashboard = () => {
   const { user } = useAuth();
@@ -163,6 +165,64 @@ const WarehouseDashboard = () => {
     return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
+  // Excel export function
+  const handleExportExcel = () => {
+    try {
+      // Prepare data for Excel
+      const excelData = items.map((item, index) => ({
+        STT: index + 1,
+        Ngày: formatDate(item.orderDate),
+        "Khách hàng": item.customerName || "",
+        "Ghi chú KH": item.customerNote || "",
+        "Tên hàng hóa": item.productName,
+        "Kích thước": item.size || "",
+        ĐVT: item.unit,
+        "Số lượng": item.quantity,
+        "Xác nhận": item.warehouseConfirm || "",
+        Kho: user?.warehouseCode || "",
+        "Số cm": item.cmQty || "",
+        "Ghi chú": item.note || "",
+      }));
+
+      // Create workbook and worksheet
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Dashboard Kho");
+
+      // Set column widths
+      const colWidths = [
+        { wch: 5 }, // STT
+        { wch: 12 }, // Ngày
+        { wch: 30 }, // Khách hàng
+        { wch: 25 }, // Ghi chú KH
+        { wch: 40 }, // Tên hàng hóa
+        { wch: 12 }, // Kích thước
+        { wch: 8 }, // ĐVT
+        { wch: 10 }, // Số lượng
+        { wch: 10 }, // Xác nhận
+        { wch: 8 }, // Kho
+        { wch: 10 }, // Số cm
+        { wch: 30 }, // Ghi chú
+      ];
+      ws["!cols"] = colWidths;
+
+      // Generate filename with current date and warehouse code
+      const now = new Date();
+      const dateStr = now.toISOString().split("T")[0];
+      const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "");
+      const fileName = `Dashboard_Kho_${
+        user?.warehouseCode || ""
+      }_${dateStr}_${timeStr}.xlsx`;
+
+      // Save file
+      XLSX.writeFile(wb, fileName);
+      toast.success("Xuất file Excel thành công!");
+    } catch (error) {
+      console.error("Error exporting Excel:", error);
+      toast.error("Lỗi khi xuất file Excel");
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -255,6 +315,14 @@ const WarehouseDashboard = () => {
               className="bg-green-600 hover:bg-green-700"
             >
               Xác nhận
+            </Button>
+            <Button
+              onClick={handleExportExcel}
+              disabled={loading || items.length === 0}
+              className="gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <Download className="w-4 h-4" />
+              Xuất Excel
             </Button>
           </div>
         </CardContent>
