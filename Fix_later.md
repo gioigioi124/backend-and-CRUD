@@ -33,8 +33,10 @@
 
 - thêm nút in đơn ✅, export file cạnh sửa xóa
 - phân trang✅
-- dialog in đơn, hoàn thành đơn
+- dialog in đơn, hoàn thành đơn ✅
 - thêm dòng mặc định số lượng là 1
+- hotkey thêm dòng
+- Tạo nút đổi xe
 
 # DASHBOARD
 
@@ -42,3 +44,16 @@
 - Leader confirm lại số lượng thì số cm được update
 
 # HÀNG CHƯA ĐI CỦA STAFF ✅
+
+# BUG FIX DROPDOWN
+
+📝 Tổng kết giải pháp:
+Vấn đề ban đầu: Dropdown bị khuất bởi overflow-x-auto của table container
+
+Giải pháp cuối cùng (KHÔNG dùng React Portal):
+Thay đổi overflow-x-auto → overflow-visible trong file
+table.jsx
+(ShadCN UI component)
+Thêm min-h-[250px] cho wrapper của ItemsTable trong
+OrderEditDialog.jsx
+Giữ nguyên ProductAutocomplete với absolute positioning đơn giản

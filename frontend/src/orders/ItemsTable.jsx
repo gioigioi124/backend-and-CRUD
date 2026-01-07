@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getProductShortcut } from "@/config/productShortcuts";
+import ProductAutocomplete from "@/components/product/ProductAutocomplete";
 
 const WAREHOUSES = ["K01", "K02", "K03", "K04"];
 
@@ -63,41 +63,19 @@ const ItemsTable = ({ items, setItems }) => {
     setItems(newItems);
   };
 
-  // Xử lý khi người dùng nhập tên sản phẩm
-  const handleProductNameChange = (index, value) => {
-    updateItem(index, "productName", value);
-  };
-
-  // Xử lý khi người dùng blur hoặc nhấn Enter trên trường tên sản phẩm
-  const handleProductNameBlur = (index, value) => {
-    const shortcut = getProductShortcut(value);
-    if (shortcut) {
-      const newItems = [...items];
-      const currentQuantity = newItems[index].quantity || 0;
-
-      newItems[index] = {
-        ...newItems[index],
-        productName: shortcut.productName,
-        warehouse: shortcut.warehouse || newItems[index].warehouse,
-        unit: shortcut.unit || newItems[index].unit,
-        size: shortcut.size || newItems[index].size,
-        note: shortcut.note || newItems[index].note,
-        // Lưu cmQtyPerUnit để tính toán sau này
-        cmQtyPerUnit: shortcut.cmQty,
-        // Tự động tính cmQty = quantity * cmQtyPerUnit
-        cmQty: shortcut.cmQty
-          ? currentQuantity * shortcut.cmQty
-          : newItems[index].cmQty,
-      };
-      setItems(newItems);
-    }
-  };
-
-  // Xử lý khi nhấn phím trong trường tên sản phẩm
-  const handleProductNameKeyDown = (e, index, value) => {
-    if (e.key === "Enter" || e.key === "Tab") {
-      handleProductNameBlur(index, value);
-    }
+  // Handler khi chọn sản phẩm từ dropdown
+  const handleProductSelect = (index, productData) => {
+    const newItems = [...items];
+    newItems[index] = {
+      ...newItems[index],
+      productName: productData.productName,
+      size: productData.size || newItems[index].size,
+      unit: productData.unit || newItems[index].unit,
+      warehouse: productData.warehouse || newItems[index].warehouse,
+      cmQty: productData.cmQty || newItems[index].cmQty,
+      note: productData.note || newItems[index].note,
+    };
+    setItems(newItems);
   };
 
   return (
@@ -111,7 +89,7 @@ const ItemsTable = ({ items, setItems }) => {
         </Button>
       </div>
       {/* Phần Table */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-lg">
         <Table>
           {/* Table head */}
           <TableHeader>
@@ -148,18 +126,12 @@ const ItemsTable = ({ items, setItems }) => {
 
                   {/* Tên hàng hóa */}
                   <TableCell>
-                    <Input
+                    <ProductAutocomplete
                       value={item.productName}
-                      onChange={(e) =>
-                        handleProductNameChange(index, e.target.value)
+                      onSelect={(productData) =>
+                        handleProductSelect(index, productData)
                       }
-                      onBlur={(e) =>
-                        handleProductNameBlur(index, e.target.value)
-                      }
-                      onKeyDown={(e) =>
-                        handleProductNameKeyDown(e, index, e.target.value)
-                      }
-                      placeholder="Nhập tên hàng hóa hoặc mã tắt"
+                      placeholder="Nhập tên hàng hóa"
                     />
                   </TableCell>
 

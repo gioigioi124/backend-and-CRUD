@@ -285,7 +285,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
             </div>
 
             {/* Danh sách hàng hóa */}
-            <div>
+            <div className="min-h-[250px]">
               <ItemsTable items={items} setItems={setItems} />
             </div>
 
