@@ -30,11 +30,11 @@ const DispatcherOrderDetail = ({
   onRefresh,
   onPrintManifest,
 }) => {
-  const [viewMode, setViewMode] = useState(1); // 1: Staff, 2: Confirm, 3: Final
+  const [viewMode, setViewMode] = useState(2); // 1: Staff, 2: Confirm, 3: Final
   const [localItems, setLocalItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Hàm sắp xếp items theo đơn hàng (khách hàng) → kho (K02→K03→K04→K01) → tên+kích thước
+  // Hàm sắp xếp items theo đơn hàng (khách hàng) → Order ID → kho (K02→K03→K04→K01) → tên+kích thước
   const sortItems = (items) => {
     const warehouseOrder = { K02: 1, K03: 2, K04: 3, K01: 4 };
 
@@ -47,7 +47,15 @@ const DispatcherOrderDetail = ({
         return customerA.localeCompare(customerB, "vi");
       }
 
-      // Ưu tiên 2: Sắp xếp theo kho
+      // Ưu tiên 2: Sắp xếp theo Order ID (để các items của cùng đơn ở gần nhau)
+      const orderIdA = a.orderId || "";
+      const orderIdB = b.orderId || "";
+
+      if (orderIdA !== orderIdB) {
+        return orderIdA.localeCompare(orderIdB);
+      }
+
+      // Ưu tiên 3: Sắp xếp theo kho
       const warehouseA = warehouseOrder[a.warehouse] || 999;
       const warehouseB = warehouseOrder[b.warehouse] || 999;
 
@@ -55,7 +63,7 @@ const DispatcherOrderDetail = ({
         return warehouseA - warehouseB;
       }
 
-      // Ưu tiên 3: Sắp xếp theo tên + kích thước
+      // Ưu tiên 4: Sắp xếp theo tên + kích thước
       const nameA = `${a.productName || ""} ${a.size || ""}`
         .trim()
         .toLowerCase();
@@ -81,8 +89,8 @@ const DispatcherOrderDetail = ({
               customerName: order.customer?.name || "N/A",
               customerNote: order.customer?.note || "",
               itemIndex: index, // Lưu lại index nguyên bản trong đơn hàng
-              warehouseConfirmValue: item.warehouseConfirm?.value || "",
-              leaderConfirmValue: item.leaderConfirm?.value || "",
+              warehouseConfirmValue: item.warehouseConfirm?.value ?? "",
+              leaderConfirmValue: item.leaderConfirm?.value ?? "",
             });
           });
         }
@@ -188,14 +196,6 @@ const DispatcherOrderDetail = ({
       {/* View Mode Tabs */}
       <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
         <Button
-          variant={viewMode === 1 ? "white" : "ghost"}
-          size="sm"
-          onClick={() => setViewMode(1)}
-          className={`gap-2 ${viewMode === 1 ? "shadow-sm" : ""}`}
-        >
-          <Eye className="w-4 h-4" /> Chi tiết
-        </Button>
-        <Button
           variant={viewMode === 2 ? "white" : "ghost"}
           size="sm"
           onClick={() => setViewMode(2)}
@@ -210,6 +210,14 @@ const DispatcherOrderDetail = ({
           className={`gap-2 ${viewMode === 3 ? "shadow-sm" : ""}`}
         >
           <CheckCircle2 className="w-4 h-4" /> Chốt đơn
+        </Button>
+        <Button
+          variant={viewMode === 1 ? "white" : "ghost"}
+          size="sm"
+          onClick={() => setViewMode(1)}
+          className={`gap-2 ${viewMode === 1 ? "shadow-sm" : ""}`}
+        >
+          <Eye className="w-4 h-4" /> Chi tiết
         </Button>
       </div>
 
@@ -397,7 +405,7 @@ const DispatcherOrderDetail = ({
                                 )
                               }
                               className="h-7 text-xs"
-                              placeholder="K01..."
+                              placeholder="..."
                             />
                           </TableCell>
                           <TableCell>
@@ -412,17 +420,25 @@ const DispatcherOrderDetail = ({
                               }
                               className="h-7 text-xs font-bold text-blue-600"
                               type="text"
-                              placeholder="SL..."
+                              placeholder="..."
                             />
                           </TableCell>
                         </>
                       ) : (
                         <>
                           <TableCell className="text-center text-xs">
-                            {item.warehouseConfirmValue || "-"}
+                            {item.warehouseConfirmValue !== "" &&
+                            item.warehouseConfirmValue !== null &&
+                            item.warehouseConfirmValue !== undefined
+                              ? item.warehouseConfirmValue
+                              : "-"}
                           </TableCell>
                           <TableCell className="text-center text-xs font-medium text-blue-600">
-                            {item.leaderConfirmValue || "-"}
+                            {item.leaderConfirmValue !== "" &&
+                            item.leaderConfirmValue !== null &&
+                            item.leaderConfirmValue !== undefined
+                              ? item.leaderConfirmValue
+                              : "-"}
                           </TableCell>
                         </>
                       )}

@@ -23,6 +23,7 @@ const CustomerAutocomplete = ({
   onChange,
   required = false,
   placeholder = "Nhập mã KH, tên KH hoặc địa chỉ để tìm kiếm...",
+  autoFocus = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -45,6 +46,13 @@ const CustomerAutocomplete = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Auto-focus input when component mounts (if autoFocus is true)
+  useEffect(() => {
+    if (autoFocus && inputRef.current && !value?.name) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus, value?.name]);
 
   // Search customers when query changes
   useEffect(() => {

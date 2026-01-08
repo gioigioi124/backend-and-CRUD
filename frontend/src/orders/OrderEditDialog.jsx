@@ -168,6 +168,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
               orderId: order.orderId,
               orderDate: order.orderDate,
               isCompensationOrder: order.isCompensationOrder || false,
+              customerNote: order.customer?.note || "",
             });
           });
         });
@@ -403,6 +404,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                   value={customer}
                   onChange={setCustomer}
                   required={true}
+                  autoFocus={isCreateMode}
                 />
               </div>
 
@@ -492,9 +494,10 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                           return (
                             <div
                               key={`${item.orderId}-${item.itemId}-${index}`}
-                              className="flex items-center justify-between p-2 bg-white rounded border border-yellow-200 hover:border-yellow-400 transition-colors"
+                              className="grid grid-cols-12 gap-3 items-center p-2 bg-white rounded border border-yellow-200 hover:border-yellow-400 transition-colors"
                             >
-                              <div className="flex-1 min-w-0">
+                              {/* Cột 1 (5/12): Thông tin sản phẩm */}
+                              <div className="col-span-5 min-w-0">
                                 <div className="font-medium text-sm truncate flex items-center gap-1">
                                   {item.productName}
                                   {item.size && (
@@ -508,7 +511,12 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                {item.note && (
+                                  <div className="text-xs text-gray-600 italic mt-0.5 truncate">
+                                    Ghi chú HH: {item.note}
+                                  </div>
+                                )}
+                                <div className="text-xs text-gray-500 mt-0.5">
                                   Kho: {item.warehouse} • Đã bù:{" "}
                                   {item.compensatedQty}/{item.shortageQty} •
                                   <span className="font-bold text-red-600">
@@ -516,7 +524,26 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex gap-1 ml-2">
+
+                              {/* Cột 2 (4/12): Thông tin đơn hàng */}
+                              <div className="col-span-4 min-w-0">
+                                <div className="text-xs">
+                                  <div className="font-medium text-gray-700">
+                                    Ngày đơn:{" "}
+                                    {new Date(
+                                      item.orderDate
+                                    ).toLocaleDateString("vi-VN")}
+                                  </div>
+                                  {item.customerNote && (
+                                    <div className="mt-0.5 italic text-gray-500 truncate">
+                                      Ghi chú KH: {item.customerNote}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Cột 3 (3/12): Nút action */}
+                              <div className="col-span-3 flex gap-1 justify-end">
                                 <Button
                                   type="button"
                                   size="sm"
