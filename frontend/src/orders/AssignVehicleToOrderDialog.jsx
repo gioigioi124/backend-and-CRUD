@@ -80,21 +80,28 @@ const AssignVehicleToOrderDialog = ({
       const vehicleList = data.vehicles || [];
       setVehicles(vehicleList);
 
-      // Fetch order counts for each vehicle (chỉ đếm đơn trong ngày được chọn)
-      const counts = {};
-      for (const vehicle of vehicleList) {
+      // Fetch order counts for each vehicle song song (tối ưu tốc độ)
+      const countPromises = vehicleList.map(async (vehicle) => {
         try {
           const response = await orderService.getAllOrders({
             vehicle: vehicle._id,
             fromDate: date,
             toDate: date,
           });
-          // getAllOrders trả về object với property 'orders'
-          counts[vehicle._id] = response.orders?.length || 0;
+          return {
+            vehicleId: vehicle._id,
+            count: response.orders?.length || 0,
+          };
         } catch (err) {
-          counts[vehicle._id] = 0;
+          return { vehicleId: vehicle._id, count: 0 };
         }
-      }
+      });
+
+      const countResults = await Promise.all(countPromises);
+      const counts = {};
+      countResults.forEach(({ vehicleId, count }) => {
+        counts[vehicleId] = count;
+      });
       setOrderCounts(counts);
     } catch (error) {
       console.error("Lỗi khi tải danh sách xe:", error);

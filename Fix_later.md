@@ -42,6 +42,7 @@
 
 - Đếm số lượng xe ngày hôm đó✅
 - Leader confirm lại số lượng thì số cm được update
+- khi thêm hàng thừa thiếu thì dòng đó tạm thời biến mất
 
 # HÀNG CHƯA ĐI CỦA STAFF ✅
 
