@@ -71,37 +71,47 @@ const AssignVehicleToOrderDialog = ({
   const fetchVehicles = async (date) => {
     try {
       setLoading(true);
-      // Fetch vehicles for the selected date
-      const data = await vehicleService.getAllVehicles({
-        fromDate: date,
-        toDate: date,
-      });
+
+      // Fetch vehicles và orders song song để tối ưu tốc độ
+      const [vehiclesData, ordersData] = await Promise.all([
+        vehicleService.getAllVehicles({
+          fromDate: date,
+          toDate: date,
+        }),
+        orderService.getAllOrders({
+          fromDate: date,
+          toDate: date,
+        }),
+      ]);
+
       // Backend trả về object với property 'vehicles', không phải array trực tiếp
-      const vehicleList = data.vehicles || [];
+      const vehicleList = vehiclesData.vehicles || [];
       setVehicles(vehicleList);
 
-      // Fetch order counts for each vehicle song song (tối ưu tốc độ)
-      const countPromises = vehicleList.map(async (vehicle) => {
-        try {
-          const response = await orderService.getAllOrders({
-            vehicle: vehicle._id,
-            fromDate: date,
-            toDate: date,
-          });
-          return {
-            vehicleId: vehicle._id,
-            count: response.orders?.length || 0,
-          };
-        } catch (err) {
-          return { vehicleId: vehicle._id, count: 0 };
+      // Đếm số lượng đơn hàng cho mỗi xe ở frontend (nhanh hơn nhiều)
+      const allOrders = ordersData.orders || [];
+      const counts = {};
+
+      // Khởi tạo count = 0 cho tất cả xe
+      vehicleList.forEach((vehicle) => {
+        counts[vehicle._id] = 0;
+      });
+
+      // Đếm số đơn hàng cho mỗi xe
+      allOrders.forEach((order) => {
+        // order.vehicle có thể là object hoặc string ID
+        const vehicleId =
+          typeof order.vehicle === "object"
+            ? order.vehicle?._id
+            : order.vehicle;
+        if (
+          vehicleId &&
+          Object.prototype.hasOwnProperty.call(counts, vehicleId)
+        ) {
+          counts[vehicleId]++;
         }
       });
 
-      const countResults = await Promise.all(countPromises);
-      const counts = {};
-      countResults.forEach(({ vehicleId, count }) => {
-        counts[vehicleId] = count;
-      });
       setOrderCounts(counts);
     } catch (error) {
       console.error("Lỗi khi tải danh sách xe:", error);

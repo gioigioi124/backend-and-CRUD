@@ -222,6 +222,10 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
         toast.error(`Dòng ${i + 1}: Thiếu tên hàng hóa`);
         return;
       }
+      if (!item.size || !item.size.trim()) {
+        toast.error(`Dòng ${i + 1}: Thiếu kích thước`);
+        return;
+      }
       if (!item.unit.trim()) {
         toast.error(`Dòng ${i + 1}: Thiếu đơn vị tính`);
         return;
