@@ -328,6 +328,7 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
                 <div>
                   <span className="font-medium">Mã KH:</span>{" "}
                   {order.customer.customerCode}
+                  {order.customer.phone && ` - (${order.customer.phone})`}
                 </div>
               )}
               {order.customer?.address && (

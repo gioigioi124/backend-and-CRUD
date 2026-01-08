@@ -5,6 +5,7 @@ import {
   searchCustomers,
   getAllCustomers,
   deleteCustomer,
+  updateCustomerDebt,
 } from "../controllers/customerController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -44,6 +45,9 @@ router.get("/search", protect, searchCustomers);
 
 // Get all customers with pagination - All authenticated users
 router.get("/", protect, getAllCustomers);
+
+// Update customer debt - Admin only
+router.patch("/:id/debt", protect, authorize("admin"), updateCustomerDebt);
 
 // Delete customer - Admin only
 router.delete("/:id", protect, authorize("admin"), deleteCustomer);

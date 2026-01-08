@@ -26,6 +26,17 @@ const customerSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    // Quản lý công nợ
+    debtLimit: {
+      type: Number,
+      default: 0,
+      min: [0, "Giới hạn nợ không thể âm"],
+    },
+    currentDebt: {
+      type: Number,
+      default: 0,
+      min: [0, "Công nợ không thể âm"],
+    },
     // Người upload dữ liệu khách hàng
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

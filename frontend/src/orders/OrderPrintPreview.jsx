@@ -221,6 +221,66 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
     });
   };
 
+  // Filter out orders with debt limit exceeded
+  const printableOrders = selectedOrders.filter(
+    (order) => !order.isOverDebtLimit
+  );
+  const blockedOrders = selectedOrders.filter((order) => order.isOverDebtLimit);
+
+  // If all orders are blocked, show error
+  if (blockedOrders.length > 0 && printableOrders.length === 0) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">
+              Không thể in đơn hàng
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <svg
+                className="h-6 w-6 text-red-600 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <div>
+                <p className="font-semibold text-red-800">
+                  Đơn hàng vượt hạn mức công nợ
+                </p>
+                <p className="text-sm text-red-700 mt-1">
+                  {blockedOrders.length} đơn hàng không thể in vì khách hàng
+                  vượt quá giới hạn nợ.
+                </p>
+                <p className="text-sm text-red-700 mt-2">
+                  Danh sách khách hàng:
+                </p>
+                <ul className="text-sm text-red-600 mt-1 list-disc list-inside">
+                  {blockedOrders.map((order) => (
+                    <li key={order._id}>{order.customer?.name}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto p-0 gap-0">
@@ -314,10 +374,10 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           </style>
 
           {/* Header chung - chỉ hiện một lần */}
-          {selectedOrders.length > 0 &&
+          {printableOrders.length > 0 &&
             (() => {
               // Tính tổng số cm của tất cả đơn hàng
-              const grandTotalCm = selectedOrders.reduce((total, order) => {
+              const grandTotalCm = printableOrders.reduce((total, order) => {
                 const orderCmQty =
                   order.items?.reduce(
                     (sum, item) => sum + (item.cmQty || 0),
@@ -330,18 +390,18 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                 <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-gray-100">
                   <div>
                     <p className="text-lg font-bold">
-                      Ngày: {formatDate(selectedOrders[0].orderDate || "???")}
+                      Ngày: {formatDate(printableOrders[0].orderDate || "???")}
                     </p>
                   </div>
                   <div className="text-right">
-                    {selectedOrders[0].vehicle && (
+                    {printableOrders[0].vehicle && (
                       <p className="text-lg font-bold">
                         Xe:{" "}
-                        {selectedOrders[0].vehicle.weight +
+                        {printableOrders[0].vehicle.weight +
                           " - " +
-                          selectedOrders[0].vehicle.destination +
+                          printableOrders[0].vehicle.destination +
                           " - " +
-                          selectedOrders[0].vehicle.time +
+                          printableOrders[0].vehicle.time +
                           " - " +
                           grandTotalCm +
                           " cm"}
@@ -352,7 +412,7 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
               );
             })()}
 
-          {selectedOrders.map((order) => {
+          {printableOrders.map((order) => {
             const totalQuantity =
               order.items?.reduce(
                 (sum, item) => sum + (item.quantity || 0),
@@ -372,6 +432,9 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                     </p>
                     <p className="text-sm italic">
                       {order.customer?.customerCode} - {order.customer?.address}
+                      {order.customer?.phone
+                        ? ` (${order.customer.phone})`
+                        : ""}
                     </p>
                   </div>
                   <div className="col-span-2 text-right">

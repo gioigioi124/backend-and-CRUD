@@ -1,8 +1,17 @@
 import { useState, useEffect } from "react";
-import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Edit,
+  Check,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import customerService from "../services/customerService";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import {
   Card,
   CardContent,
@@ -30,7 +39,7 @@ import {
 } from "./ui/alert-dialog";
 import { useAuth } from "../context/AuthContext";
 
-const CustomerList = ({ refreshTrigger }) => {
+const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -41,17 +50,44 @@ const CustomerList = ({ refreshTrigger }) => {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [editingCustomerId, setEditingCustomerId] = useState(null);
+  const [editValues, setEditValues] = useState({});
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const { user } = useAuth();
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const data = await customerService.getAllCustomers(
-        pagination.page,
-        pagination.limit
-      );
-      setCustomers(data.customers);
-      setPagination(data.pagination);
+      // If search query exists, use search API (no pagination)
+      if (debouncedSearchQuery && debouncedSearchQuery.trim()) {
+        const data = await customerService.searchCustomers(
+          debouncedSearchQuery.trim()
+        );
+        setCustomers(data);
+        setPagination({
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+        });
+      } else {
+        // Otherwise use paginated getAllCustomers
+        const data = await customerService.getAllCustomers(
+          pagination.page,
+          pagination.limit
+        );
+        setCustomers(data.customers);
+        setPagination(data.pagination);
+      }
     } catch (error) {
       console.error("Fetch customers error:", error);
       toast.error("Lỗi khi tải danh sách khách hàng");
@@ -62,7 +98,14 @@ const CustomerList = ({ refreshTrigger }) => {
 
   useEffect(() => {
     fetchCustomers();
-  }, [pagination.page, refreshTrigger]);
+  }, [pagination.page, refreshTrigger, debouncedSearchQuery]);
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    if (debouncedSearchQuery !== undefined) {
+      setPagination((prev) => ({ ...prev, page: 1 }));
+    }
+  }, [debouncedSearchQuery]);
 
   const handleDelete = async () => {
     if (!customerToDelete) return;
@@ -88,6 +131,32 @@ const CustomerList = ({ refreshTrigger }) => {
     setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
+  const handleStartEdit = (customer) => {
+    setEditingCustomerId(customer._id);
+    setEditValues({
+      debtLimit: customer.debtLimit || 0,
+      currentDebt: customer.currentDebt || 0,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCustomerId(null);
+    setEditValues({});
+  };
+
+  const handleSaveEdit = async (customerId) => {
+    try {
+      await customerService.updateCustomerDebt(customerId, editValues);
+      toast.success("Cập nhật công nợ thành công");
+      setEditingCustomerId(null);
+      setEditValues({});
+      fetchCustomers();
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error(error.response?.data?.message || "Lỗi khi cập nhật công nợ");
+    }
+  };
+
   const isAdmin = user?.role === "admin";
 
   return (
@@ -96,10 +165,49 @@ const CustomerList = ({ refreshTrigger }) => {
         <CardHeader>
           <CardTitle>Danh Sách Khách Hàng</CardTitle>
           <CardDescription>
-            Tổng số: {pagination.total} khách hàng
+            {searchQuery && searchQuery.trim() ? (
+              <>
+                {searchQuery !== debouncedSearchQuery ? (
+                  <span className="text-blue-600">
+                    Đang tìm kiếm "{searchQuery}"...
+                  </span>
+                ) : (
+                  <>
+                    Tìm thấy:{" "}
+                    <span className="font-semibold">{customers.length}</span>{" "}
+                    kết quả
+                    {customers.length > 0 && ` cho "${searchQuery}"`}
+                  </>
+                )}
+              </>
+            ) : (
+              `Tổng số: ${pagination.total} khách hàng`
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Search Bar */}
+          <div className="mb-4 flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Tìm kiếm theo mã, tên, địa chỉ, số điện thoại..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onSearchChange("")}
+              >
+                Xóa
+              </Button>
+            )}
+          </div>
+
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">
               Đang tải...
@@ -118,40 +226,139 @@ const CustomerList = ({ refreshTrigger }) => {
                       <TableHead>Tên Khách Hàng</TableHead>
                       <TableHead>Địa Chỉ</TableHead>
                       <TableHead className="w-[130px]">Số Điện Thoại</TableHead>
+                      <TableHead className="w-[120px] text-right">
+                        Giới hạn nợ
+                      </TableHead>
+                      <TableHead className="w-[120px] text-right">
+                        Công nợ
+                      </TableHead>
                       {isAdmin && (
-                        <TableHead className="w-[80px]">Thao Tác</TableHead>
+                        <>
+                          <TableHead className="w-[80px]">Sửa</TableHead>
+                          <TableHead className="w-[80px]">Xóa</TableHead>
+                        </>
                       )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {customers.map((customer) => (
-                      <TableRow key={customer._id}>
-                        <TableCell className="font-medium">
-                          {customer.customerCode}
-                        </TableCell>
-                        <TableCell>{customer.name}</TableCell>
-                        <TableCell>{customer.address || "-"}</TableCell>
-                        <TableCell>{customer.phone || "-"}</TableCell>
-                        {isAdmin && (
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDeleteDialog(customer)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                    {customers.map((customer) => {
+                      const isOverLimit =
+                        customer.currentDebt > customer.debtLimit;
+                      const isEditing = editingCustomerId === customer._id;
+
+                      return (
+                        <TableRow key={customer._id}>
+                          <TableCell className="font-medium">
+                            {customer.customerCode}
                           </TableCell>
-                        )}
-                      </TableRow>
-                    ))}
+                          <TableCell>{customer.name}</TableCell>
+                          <TableCell>{customer.address || "-"}</TableCell>
+                          <TableCell>{customer.phone || "-"}</TableCell>
+
+                          {/* Giới hạn nợ - editable */}
+                          <TableCell className="text-right">
+                            {isEditing ? (
+                              <Input
+                                type="number"
+                                value={editValues.debtLimit}
+                                onChange={(e) =>
+                                  setEditValues({
+                                    ...editValues,
+                                    debtLimit: Number(e.target.value),
+                                  })
+                                }
+                                className="w-full text-right"
+                              />
+                            ) : (
+                              <span>
+                                {customer.debtLimit?.toLocaleString("vi-VN")} đ
+                              </span>
+                            )}
+                          </TableCell>
+
+                          {/* Công nợ - editable */}
+                          <TableCell
+                            className={`text-right font-medium ${
+                              isOverLimit ? "text-red-600" : ""
+                            }`}
+                          >
+                            {isEditing ? (
+                              <Input
+                                type="number"
+                                value={editValues.currentDebt}
+                                onChange={(e) =>
+                                  setEditValues({
+                                    ...editValues,
+                                    currentDebt: Number(e.target.value),
+                                  })
+                                }
+                                className="w-full text-right"
+                              />
+                            ) : (
+                              <span>
+                                {customer.currentDebt?.toLocaleString("vi-VN")}{" "}
+                                đ
+                              </span>
+                            )}
+                          </TableCell>
+
+                          {isAdmin && (
+                            <>
+                              <TableCell>
+                                {isEditing ? (
+                                  <div className="flex gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleSaveEdit(customer._id)
+                                      }
+                                      className="text-green-600 hover:text-green-700"
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={handleCancelEdit}
+                                      className="text-gray-600 hover:text-gray-700"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleStartEdit(customer)}
+                                    className="text-blue-600 hover:text-blue-700"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDeleteDialog(customer)}
+                                  className="text-destructive hover:text-destructive"
+                                  disabled={isEditing}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </>
+                          )}
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
 
-              {/* Pagination */}
-              {pagination.totalPages > 1 && (
+              {/* Pagination - hide when searching */}
+              {!searchQuery && pagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-muted-foreground">
                     Trang {pagination.page} / {pagination.totalPages}

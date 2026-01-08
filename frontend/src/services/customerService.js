@@ -41,11 +41,19 @@ export const deleteCustomer = async (id) => {
   return response.data;
 };
 
+// Update customer debt
+export const updateCustomerDebt = async (id, debtData) => {
+  const response = await api.patch(`${CUSTOMER_API_URL}/${id}/debt`, debtData);
+
+  return response.data;
+};
+
 const customerService = {
   uploadCustomers,
   searchCustomers,
   getAllCustomers,
   deleteCustomer,
+  updateCustomerDebt,
 };
 
 export default customerService;

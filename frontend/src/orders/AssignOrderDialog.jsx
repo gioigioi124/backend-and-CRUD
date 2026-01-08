@@ -197,8 +197,15 @@ const AssignOrderDialog = ({
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">
-                          {order.customer?.name || "Không có tên"}
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-medium text-gray-900">
+                            {order.customer?.name || "Không có tên"}
+                          </div>
+                          {order.isOverDebtLimit && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700">
+                              Quá hạn nợ
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
                           {totalItems}{" "}

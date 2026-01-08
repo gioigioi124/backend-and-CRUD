@@ -88,6 +88,8 @@ const CustomerAutocomplete = ({
       customerCode: customer.customerCode,
       address: customer.address || "",
       phone: customer.phone || "",
+      debtLimit: customer.debtLimit || 0,
+      currentDebt: customer.currentDebt || 0,
     });
     setSearchQuery("");
     setSuggestions([]);
@@ -96,7 +98,14 @@ const CustomerAutocomplete = ({
 
   // Handle clear selection
   const handleClear = () => {
-    onChange({ name: "", customerCode: "", address: "", phone: "" });
+    onChange({
+      name: "",
+      customerCode: "",
+      address: "",
+      phone: "",
+      debtLimit: 0,
+      currentDebt: 0,
+    });
     setSearchQuery("");
     setSuggestions([]);
     setIsOpen(false);
@@ -221,19 +230,34 @@ const CustomerAutocomplete = ({
                           : "hover:bg-accent/50"
                       )}
                     >
-                      <div className="font-medium">
-                        {highlightMatch(customer.name, searchQuery)}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        <span className="mr-3">
-                          Mã:{" "}
-                          {highlightMatch(customer.customerCode, searchQuery)}
-                        </span>
-                        {customer.address && (
-                          <span>
-                            {highlightMatch(customer.address, searchQuery)}
-                          </span>
-                        )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className="font-medium">
+                              {highlightMatch(customer.name, searchQuery)}
+                            </div>
+                            {customer.currentDebt > customer.debtLimit &&
+                              customer.debtLimit > 0 && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700">
+                                  Quá hạn nợ
+                                </span>
+                              )}
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            <span className="mr-3">
+                              Mã:{" "}
+                              {highlightMatch(
+                                customer.customerCode,
+                                searchQuery
+                              )}
+                            </span>
+                            {customer.address && (
+                              <span>
+                                {highlightMatch(customer.address, searchQuery)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </li>
                   ))}

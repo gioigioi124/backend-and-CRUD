@@ -1,4 +1,5 @@
 import Customer from "../models/Customer.js";
+import Order from "../models/Order.js";
 import xlsx from "xlsx";
 
 // Upload Excel file and bulk insert customers
@@ -56,6 +57,8 @@ export const uploadCustomers = async (req, res) => {
         name: String(row["Tên KH"]).trim(),
         address: row["Địa chỉ"] ? String(row["Địa chỉ"]).trim() : "",
         phone: row["Số điện thoại"] ? String(row["Số điện thoại"]).trim() : "",
+        debtLimit: row["Giới hạn nợ"] ? Number(row["Giới hạn nợ"]) : 0,
+        currentDebt: row["Công nợ"] ? Number(row["Công nợ"]) : 0,
         createdBy: req.user.id,
       };
 
@@ -133,7 +136,7 @@ export const searchCustomers = async (req, res) => {
     const customers = await Customer.find({
       $and: searchConditions,
     })
-      .select("customerCode name address phone")
+      .select("customerCode name address phone debtLimit currentDebt")
       .limit(20)
       .sort({ name: 1 });
 
@@ -156,7 +159,9 @@ export const getAllCustomers = async (req, res) => {
 
     const [customers, total] = await Promise.all([
       Customer.find()
-        .select("customerCode name address phone createdAt")
+        .select(
+          "customerCode name address phone debtLimit currentDebt createdAt"
+        )
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -197,6 +202,49 @@ export const deleteCustomer = async (req, res) => {
     console.error("Delete customer error:", error);
     res.status(500).json({
       message: "Lỗi khi xóa khách hàng",
+      error: error.message,
+    });
+  }
+};
+
+// Update customer debt
+export const updateCustomerDebt = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { debtLimit, currentDebt } = req.body;
+
+    // Validate input
+    if (debtLimit < 0 || currentDebt < 0) {
+      return res.status(400).json({
+        message: "Giới hạn nợ và công nợ không thể âm",
+      });
+    }
+
+    const customer = await Customer.findByIdAndUpdate(
+      id,
+      { debtLimit, currentDebt },
+      { new: true, runValidators: true }
+    );
+
+    if (!customer) {
+      return res.status(404).json({ message: "Không tìm thấy khách hàng" });
+    }
+
+    // Sync isOverDebtLimit to all orders of this customer
+    // This ensures that when debt issues are resolved, the warnings disappear from orders
+    const isOverLimit = customer.currentDebt > customer.debtLimit;
+    if (customer.customerCode) {
+      await Order.updateMany(
+        { "customer.customerCode": customer.customerCode },
+        { isOverDebtLimit: isOverLimit }
+      );
+    }
+
+    res.status(200).json({ message: "Cập nhật công nợ thành công", customer });
+  } catch (error) {
+    console.error("Update customer debt error:", error);
+    res.status(500).json({
+      message: "Lỗi khi cập nhật công nợ",
       error: error.message,
     });
   }

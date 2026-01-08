@@ -124,6 +124,12 @@ const AssignVehicleToOrderDialog = ({
   const handleAssign = async () => {
     if (!order || !selectedVehicle) return;
 
+    // Block assignment for over-limit orders
+    if (order.isOverDebtLimit) {
+      toast.error("Không thể gán xe cho đơn hàng vượt hạn mức công nợ");
+      return;
+    }
+
     try {
       setAssigning(true);
       await orderService.assignOrder(order._id, selectedVehicle._id);

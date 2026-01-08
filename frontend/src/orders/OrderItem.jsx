@@ -41,18 +41,25 @@ const OrderItem = ({
             <div className="text-sm font-medium text-gray-900">
               {order.customer?.name || "Không có tên"}
             </div>
-            {isAssigned && (
-              <div className="flex items-center gap-1 text-xs text-green-600">
-                <Truck className="w-3 h-3" />
-                <span>Đã gán</span>
-              </div>
-            )}
-            {!isAssigned && (
-              <div className="flex items-center gap-1 text-xs text-orange-600">
-                <Package className="w-3 h-3" />
-                <span>Chưa gán</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {order.isOverDebtLimit && (
+                <div className="flex items-center gap-1 text-xs px-2 py-1 bg-red-100 text-red-700 rounded-md font-semibold">
+                  Quá hạn nợ
+                </div>
+              )}
+              {isAssigned && (
+                <div className="flex items-center gap-1 text-xs text-green-600">
+                  <Truck className="w-3 h-3" />
+                  <span>Đã gán</span>
+                </div>
+              )}
+              {!isAssigned && (
+                <div className="flex items-center gap-1 text-xs text-orange-600">
+                  <Package className="w-3 h-3" />
+                  <span>Chưa gán</span>
+                </div>
+              )}
+            </div>
           </div>
           {/* số lượng mặt hàng */}
           <div className="text-xs text-gray-500 mb-1">

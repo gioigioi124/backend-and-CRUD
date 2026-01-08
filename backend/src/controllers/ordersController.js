@@ -61,6 +61,26 @@ export const createOrder = async (req, res) => {
       await sourceOrder.save({ session });
     }
 
+    // Kiểm tra giới hạn công nợ của khách hàng
+    let isOverDebtLimit = false;
+    let debtWarning = null;
+
+    if (orderData.customer?.customerCode) {
+      const Customer = mongoose.model("Customer");
+      const customer = await Customer.findOne({
+        customerCode: orderData.customer.customerCode,
+      }).session(session);
+
+      if (customer && customer.currentDebt > customer.debtLimit) {
+        isOverDebtLimit = true;
+        debtWarning = {
+          message: "Khách hàng vượt hạn mức công nợ",
+          debtLimit: customer.debtLimit,
+          currentDebt: customer.currentDebt,
+        };
+      }
+    }
+
     // Tạo đơn hàng (hỗn hợp hoặc thường)
     const order = await Order.create(
       [
@@ -68,6 +88,7 @@ export const createOrder = async (req, res) => {
           ...orderData,
           items,
           createdBy: req.user._id,
+          isOverDebtLimit,
           // Không set isCompensationOrder = true
           // Vì đây là đơn hỗn hợp, không phải đơn bù thuần túy
         },
@@ -77,7 +98,10 @@ export const createOrder = async (req, res) => {
 
     await session.commitTransaction();
 
-    res.status(201).json(order[0]);
+    res.status(201).json({
+      ...order[0].toObject(),
+      debtWarning,
+    });
   } catch (error) {
     await session.abortTransaction();
     res.status(400).json({
@@ -245,7 +269,23 @@ export const updateOrder = async (req, res) => {
     }
 
     // Cập nhật từng field để validator có context this đúng
-    if (req.body.customer) existingOrder.customer = req.body.customer;
+    if (req.body.customer) {
+      existingOrder.customer = req.body.customer;
+
+      // Kiểm tra lại giới hạn công nợ nếu thay đổi khách hàng
+      if (req.body.customer.customerCode) {
+        const Customer = mongoose.model("Customer");
+        const customer = await Customer.findOne({
+          customerCode: req.body.customer.customerCode,
+        });
+
+        if (customer && customer.currentDebt > customer.debtLimit) {
+          existingOrder.isOverDebtLimit = true;
+        } else {
+          existingOrder.isOverDebtLimit = false;
+        }
+      }
+    }
     if (req.body.items) existingOrder.items = req.body.items;
     if (req.body.orderDate) existingOrder.orderDate = req.body.orderDate;
     if (req.body.vehicle !== undefined)
@@ -304,6 +344,22 @@ export const assignToVehicle = async (req, res) => {
   try {
     const { id } = req.params;
     const { vehicleId } = req.body;
+
+    // Nếu đang gán xe (không phải bỏ gán), kiểm tra giới hạn công nợ
+    if (vehicleId !== null && vehicleId !== undefined) {
+      const order = await Order.findById(id);
+
+      if (!order) {
+        return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+      }
+
+      if (order.isOverDebtLimit) {
+        return res.status(400).json({
+          message: "Không thể gán xe cho đơn hàng vượt hạn mức công nợ",
+          error: "Khách hàng đã vượt quá giới hạn nợ cho phép",
+        });
+      }
+    }
 
     // Cho phép vehicleId = null để bỏ gán
     const updateData =

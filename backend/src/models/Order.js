@@ -140,6 +140,12 @@ const orderSchema = new mongoose.Schema(
       default: false,
     },
 
+    // Đánh dấu đơn vượt hạn mức công nợ
+    isOverDebtLimit: {
+      type: Boolean,
+      default: false,
+    },
+
     // Ngày đơn hàng (cho phép hôm nay hoặc tương lai khi tạo mới, cho phép giữ nguyên ngày cũ khi update)
     orderDate: {
       type: Date,
