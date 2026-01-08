@@ -302,47 +302,41 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
     try {
       setLoading(true);
 
-      // Kiểm tra xem có phải đơn bù không
-      const hasCompensationItems = items.some(
-        (item) => item.sourceOrderId && item.sourceItemId
-      );
+      // Tạo/cập nhật đơn hàng
+      // Backend tự động xử lý items bù (nếu có sourceOrderId)
+      const orderData = {
+        customer,
+        items,
+        orderDate,
+        vehicle: order?.vehicle || null,
+      };
 
-      if (isCreateMode && hasCompensationItems) {
-        // Tạo đơn bù
-        const compensationData = {
-          customer,
-          orderDate,
-          items: items.map((item) => ({
-            sourceOrderId: item.sourceOrderId,
-            sourceItemId: item.sourceItemId,
-            productName: item.productName,
-            size: item.size,
-            unit: item.unit,
-            quantity: item.quantity, // Số lượng thực tế (có thể đã sửa)
-            warehouse: item.warehouse,
-            cmQty: item.cmQty || 0,
-            note: item.note || "",
-          })),
-        };
+      if (isCreateMode) {
+        await orderService.createOrder(orderData);
 
-        await shortageService.createCompensationOrder(compensationData);
-        toast.success("Tạo đơn bù thành công!");
-      } else {
-        // Tạo/cập nhật đơn thường
-        const orderData = {
-          customer,
-          items,
-          orderDate,
-          vehicle: order?.vehicle || null,
-        };
+        // Check xem có items bù không để hiển thị message phù hợp
+        const hasCompensationItems = items.some(
+          (item) => item.sourceOrderId && item.sourceItemId
+        );
 
-        if (isCreateMode) {
-          await orderService.createOrder(orderData);
-          toast.success("Tạo đơn hàng thành công!");
+        if (hasCompensationItems) {
+          const normalItems = items.filter(
+            (item) => !item.sourceOrderId || !item.sourceItemId
+          );
+
+          if (normalItems.length > 0) {
+            toast.success(
+              "Tạo đơn hỗn hợp thành công (có cả hàng bù và hàng mới)!"
+            );
+          } else {
+            toast.success("Tạo đơn bù thành công!");
+          }
         } else {
-          await orderService.updateOrder(order._id, orderData);
-          toast.success("Cập nhật đơn hàng thành công!");
+          toast.success("Tạo đơn hàng thành công!");
         }
+      } else {
+        await orderService.updateOrder(order._id, orderData);
+        toast.success("Cập nhật đơn hàng thành công!");
       }
 
       // Đóng dialog và refresh
@@ -553,11 +547,27 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                   </CollapsibleContent>
                 </Collapsible>
               )}
+
+            {/* Loading state */}
             {loadingShortages && (
-              <div className="text-sm text-gray-500 text-center py-2">
-                Đang tải dữ liệu hàng thiếu...
+              <div className="border rounded-lg p-4 bg-blue-50 text-center">
+                <div className="text-sm text-blue-600">
+                  Đang tải dữ liệu hàng thiếu...
+                </div>
               </div>
             )}
+
+            {/* Empty state - đã load xong nhưng không có shortage */}
+            {!loadingShortages &&
+              customer.name &&
+              customer.name.trim() &&
+              shortageItems.length === 0 && (
+                <div className="border rounded-lg p-4 bg-gray-50 text-center">
+                  <div className="text-sm text-gray-600">
+                    ✓ Không có hàng thiếu cho khách hàng này
+                  </div>
+                </div>
+              )}
 
             {/* Danh sách hàng hóa */}
             <div className="min-h-[250px]">

@@ -1,18 +1,91 @@
 import Order from "../models/Order.js";
+import mongoose from "mongoose";
 
-// CREATE - Tạo đơn hàng mới
+// CREATE - Tạo đơn hàng mới (hỗ trợ đơn hỗn hợp)
 export const createOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const order = await Order.create({
-      ...req.body,
-      createdBy: req.user._id, // Gán người tạo từ token
-    });
-    res.status(201).json(order);
+    const { items, ...orderData } = req.body;
+
+    // Phân loại items: bù và thường
+    const compensationItems = items.filter(
+      (item) => item.sourceOrderId && item.sourceItemId
+    );
+    const normalItems = items.filter(
+      (item) => !item.sourceOrderId || !item.sourceItemId
+    );
+
+    // Validate và xử lý items bù
+    for (const item of compensationItems) {
+      const { sourceOrderId, sourceItemId, quantity } = item;
+
+      // Tìm order gốc
+      const sourceOrder = await Order.findById(sourceOrderId).session(session);
+      if (!sourceOrder) {
+        await session.abortTransaction();
+        return res.status(404).json({
+          message: `Không tìm thấy đơn gốc ${sourceOrderId}`,
+        });
+      }
+
+      // Tìm item gốc
+      const sourceItem = sourceOrder.items.id(sourceItemId);
+      if (!sourceItem) {
+        await session.abortTransaction();
+        return res.status(404).json({
+          message: `Không tìm thấy item gốc ${sourceItemId}`,
+        });
+      }
+
+      // Validate số lượng bù
+      const remainingShortage =
+        sourceItem.shortageQty - sourceItem.compensatedQty;
+
+      if (quantity > remainingShortage) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          message: `Item "${sourceItem.productName}": Số lượng bù (${quantity}) vượt quá số thiếu còn lại (${remainingShortage})`,
+        });
+      }
+
+      // Cập nhật compensatedQty
+      sourceItem.compensatedQty += quantity;
+
+      // Cập nhật status
+      if (sourceItem.compensatedQty >= sourceItem.shortageQty) {
+        sourceItem.shortageStatus = "CLOSED";
+      }
+
+      await sourceOrder.save({ session });
+    }
+
+    // Tạo đơn hàng (hỗn hợp hoặc thường)
+    const order = await Order.create(
+      [
+        {
+          ...orderData,
+          items,
+          createdBy: req.user._id,
+          // Không set isCompensationOrder = true
+          // Vì đây là đơn hỗn hợp, không phải đơn bù thuần túy
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+
+    res.status(201).json(order[0]);
   } catch (error) {
+    await session.abortTransaction();
     res.status(400).json({
       message: "Tạo đơn hàng thất bại",
       error: error.message,
     });
+  } finally {
+    session.endSession();
   }
 };
 

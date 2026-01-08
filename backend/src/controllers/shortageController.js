@@ -258,7 +258,11 @@ export const getRemainingShortages = async (req, res) => {
     }
 
     if (customerName) {
-      query["customer.name"] = { $regex: customerName.trim(), $options: "i" };
+      // Escape special regex characters
+      const escapedName = customerName
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      query["customer.name"] = { $regex: escapedName, $options: "i" };
     }
 
     if (fromDate || toDate) {
@@ -267,11 +271,16 @@ export const getRemainingShortages = async (req, res) => {
       if (toDate) query.orderDate.$lte = new Date(toDate);
     }
 
+    // Log query để debug
+    console.log("Shortage query:", JSON.stringify(query, null, 2));
+
     // Tìm orders
     const orders = await Order.find(query)
       .populate("vehicle", "licensePlate driver")
       .populate("createdBy", "name email")
       .sort({ orderDate: -1 });
+
+    console.log(`Found ${orders.length} orders with shortages`);
 
     // Filter và format kết quả
     const result = [];
