@@ -6,6 +6,7 @@ import vehiclesRouter from "./src/routers/vehiclesRouter.js";
 import authRouter from "./src/routers/authRouter.js";
 import userRouter from "./src/routers/userRouter.js";
 import customerRouter from "./src/routers/customerRouter.js";
+import shortageRouter from "./src/routers/shortageRouter.js";
 import cors from "cors";
 
 //gọi dotenv
@@ -32,6 +33,7 @@ app.use("/vehicles", vehiclesRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/customers", customerRouter);
+app.use("/api/shortages", shortageRouter);
 
 // connect DB
 connectDB().then(() => {

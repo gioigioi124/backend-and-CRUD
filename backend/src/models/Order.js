@@ -85,7 +85,7 @@ const orderSchema = new mongoose.Schema(
             type: Date,
           },
         },
-        // Xác nhận của tổ trưởng
+        // Xác nhận của tổ trưởng (số giao thực tế)
         leaderConfirm: {
           value: {
             type: Number, // Số lượng thực tế lên xe (chỉ chấp nhận số)
@@ -95,8 +95,50 @@ const orderSchema = new mongoose.Schema(
             type: Date,
           },
         },
+
+        // === QUẢN LÝ THIẾU HÀNG ===
+        // Số lượng thiếu = max(quantity - leaderConfirm.value, 0)
+        shortageQty: {
+          type: Number,
+          min: [0, "Số lượng thiếu không thể âm"],
+          default: 0,
+        },
+        // Số lượng đã bù
+        compensatedQty: {
+          type: Number,
+          min: [0, "Số lượng đã bù không thể âm"],
+          default: 0,
+        },
+        // Trạng thái thiếu hàng
+        shortageStatus: {
+          type: String,
+          enum: {
+            values: ["OPEN", "CLOSED", "IGNORED"],
+            message: "Trạng thái thiếu phải là: OPEN, CLOSED, hoặc IGNORED",
+          },
+          default: "OPEN",
+        },
+
+        // === CHO ĐỚN BÙ ===
+        // Trỏ về item gốc bị thiếu (chỉ dùng cho đơn bù)
+        sourceItemId: {
+          type: mongoose.Schema.Types.ObjectId,
+          default: null,
+        },
+        // Trỏ về order gốc bị thiếu (chỉ dùng cho đơn bù)
+        sourceOrderId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Order",
+          default: null,
+        },
       },
     ],
+
+    // Đánh dấu đơn bù
+    isCompensationOrder: {
+      type: Boolean,
+      default: false,
+    },
 
     // Ngày đơn hàng (cho phép hôm nay hoặc tương lai khi tạo mới, cho phép giữ nguyên ngày cũ khi update)
     orderDate: {

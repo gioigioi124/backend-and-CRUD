@@ -13,10 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { orderService } from "@/services/orderService";
+import { shortageService } from "@/services/shortageService";
 import ItemsTable from "@/orders/ItemsTable";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete";
 import ShortcutManagerDialog from "@/components/config/ShortcutManagerDialog";
-import { Keyboard, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { Keyboard, ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -36,10 +37,11 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   const [items, setItems] = useState([]);
   const [orderDate, setOrderDate] = useState("");
 
-  // Surplus/Deficit auto-fill state
-  const [surplusDeficitItems, setSurplusDeficitItems] = useState([]);
-  const [loadingSurplusDeficit, setLoadingSurplusDeficit] = useState(false);
-  const [showSurplusDeficit, setShowSurplusDeficit] = useState(true);
+  // Shortage auto-fill state
+  const [shortageItems, setShortageItems] = useState([]);
+  const [loadingShortages, setLoadingShortages] = useState(false);
+  const [showShortages, setShowShortages] = useState(true);
+  const [addedShortageIds, setAddedShortageIds] = useState(new Set());
 
   // Kiểm tra chế độ: tạo mới hay sửa
   const isCreateMode = !order;
@@ -138,53 +140,76 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
     }
   }, [open, order]);
 
-  // Fetch surplus/deficit data when customer changes
+  // Fetch shortage data when customer changes
   useEffect(() => {
-    const fetchSurplusDeficit = async () => {
+    const fetchShortages = async () => {
       if (!open || !customer.name || !customer.name.trim()) {
-        setSurplusDeficitItems([]);
+        setShortageItems([]);
+        setAddedShortageIds(new Set());
         return;
       }
 
       try {
-        setLoadingSurplusDeficit(true);
-        const response = await orderService.getSurplusDeficitByCustomer(
-          customer.name
-        );
-        // Filter only items with deficit (thiếu - negative values)
-        let deficitItems = (response.data || []).filter(
-          (item) => item.deficit < 0
-        );
+        setLoadingShortages(true);
+        console.log("Fetching shortages for customer:", customer.name);
+
+        const response = await shortageService.getRemainingShortages({
+          customerName: customer.name.trim(),
+        });
+
+        console.log("Shortage API response:", response);
+
+        // Flatten shortage items from all orders
+        const allShortages = [];
+        (response.data || []).forEach((order) => {
+          order.shortageItems.forEach((item) => {
+            allShortages.push({
+              ...item,
+              orderId: order.orderId,
+              orderDate: order.orderDate,
+              isCompensationOrder: order.isCompensationOrder || false,
+            });
+          });
+        });
+
+        console.log("All shortages:", allShortages);
 
         // Sort by order date (most recent first) and limit to 20 items
-        deficitItems = deficitItems
+        const sortedShortages = allShortages
           .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
           .slice(0, 20);
 
-        setSurplusDeficitItems(deficitItems);
+        setShortageItems(sortedShortages);
+        console.log("Set shortage items:", sortedShortages);
       } catch (error) {
-        console.error("Error fetching surplus/deficit:", error);
-        setSurplusDeficitItems([]);
+        console.error("Error fetching shortages:", error);
+        console.error("Error details:", error.response?.data);
+        setShortageItems([]);
       } finally {
-        setLoadingSurplusDeficit(false);
+        setLoadingShortages(false);
       }
     };
 
-    fetchSurplusDeficit();
+    fetchShortages();
   }, [open, customer.name]);
 
-  // Handler to auto-fill item from surplus/deficit
-  const handleFillDeficit = (deficitItem) => {
-    // Create new item with deficit quantity (absolute value)
+  // Handler to auto-fill item from shortage
+  const handleFillShortage = (shortageItem, quantityToFill) => {
+    // Create new item with shortage quantity
     const newItem = {
       stt: items.length + 1,
-      productName: deficitItem.productName,
-      size: deficitItem.size || "",
-      unit: deficitItem.unit,
-      quantity: Math.abs(deficitItem.deficit), // Use absolute value of deficit
-      warehouse: deficitItem.warehouse,
+      productName: shortageItem.productName,
+      size: shortageItem.size || "",
+      unit: shortageItem.unit,
+      quantity: quantityToFill,
+      warehouse: shortageItem.warehouse,
       cmQty: 0,
-      note: deficitItem.note || "",
+      note: shortageItem.note || "",
+      // Store source info for compensation order
+      sourceOrderId: shortageItem.orderId,
+      sourceItemId: shortageItem.itemId,
+      // Store max quantity that can be compensated (for validation)
+      maxCompensateQty: quantityToFill,
     };
 
     // Add to items and sort
@@ -198,7 +223,33 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
     }));
 
     setItems(itemsWithNewStt);
-    toast.success(`Đã thêm "${deficitItem.productName}" vào đơn hàng`);
+
+    // Mark this shortage as added
+    setAddedShortageIds((prev) => new Set(prev).add(shortageItem.itemId));
+
+    toast.success(`Đã thêm "${shortageItem.productName}" vào đơn hàng`);
+  };
+
+  // Handler to ignore shortage
+  const handleIgnoreShortage = async (shortageItem) => {
+    try {
+      await shortageService.ignoreShortage(
+        shortageItem.orderId,
+        shortageItem.itemId
+      );
+
+      // Remove from list
+      setShortageItems((prev) =>
+        prev.filter((item) => item.itemId !== shortageItem.itemId)
+      );
+
+      toast.success(`Đã bỏ qua thiếu hàng "${shortageItem.productName}"`);
+    } catch (error) {
+      toast.error(
+        "Lỗi khi bỏ qua thiếu hàng: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -234,26 +285,64 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
         toast.error(`Dòng ${i + 1}: Số lượng phải lớn hơn 0`);
         return;
       }
+
+      // Validate item bù
+      if (item.sourceOrderId && item.maxCompensateQty) {
+        if (item.quantity > item.maxCompensateQty) {
+          toast.error(
+            `Dòng ${i + 1} ("${item.productName}"): Số lượng bù (${
+              item.quantity
+            }) vượt quá số thiếu còn lại (${item.maxCompensateQty})`
+          );
+          return;
+        }
+      }
     }
 
     try {
       setLoading(true);
 
-      const orderData = {
-        customer,
-        items,
-        orderDate,
-        vehicle: order?.vehicle || null,
-      };
+      // Kiểm tra xem có phải đơn bù không
+      const hasCompensationItems = items.some(
+        (item) => item.sourceOrderId && item.sourceItemId
+      );
 
-      if (isCreateMode) {
-        // Tạo mới đơn hàng
-        await orderService.createOrder(orderData);
-        toast.success("Tạo đơn hàng thành công!");
+      if (isCreateMode && hasCompensationItems) {
+        // Tạo đơn bù
+        const compensationData = {
+          customer,
+          orderDate,
+          items: items.map((item) => ({
+            sourceOrderId: item.sourceOrderId,
+            sourceItemId: item.sourceItemId,
+            productName: item.productName,
+            size: item.size,
+            unit: item.unit,
+            quantity: item.quantity, // Số lượng thực tế (có thể đã sửa)
+            warehouse: item.warehouse,
+            cmQty: item.cmQty || 0,
+            note: item.note || "",
+          })),
+        };
+
+        await shortageService.createCompensationOrder(compensationData);
+        toast.success("Tạo đơn bù thành công!");
       } else {
-        // Cập nhật đơn hàng
-        await orderService.updateOrder(order._id, orderData);
-        toast.success("Cập nhật đơn hàng thành công!");
+        // Tạo/cập nhật đơn thường
+        const orderData = {
+          customer,
+          items,
+          orderDate,
+          vehicle: order?.vehicle || null,
+        };
+
+        if (isCreateMode) {
+          await orderService.createOrder(orderData);
+          toast.success("Tạo đơn hàng thành công!");
+        } else {
+          await orderService.updateOrder(order._id, orderData);
+          toast.success("Cập nhật đơn hàng thành công!");
+        }
       }
 
       // Đóng dialog và refresh
@@ -361,17 +450,19 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
               </div>
             </div>
 
-            {/* Surplus/Deficit Auto-Fill Section */}
+            {/* Shortage Auto-Fill Section */}
             {customer.name &&
               customer.name.trim() &&
-              surplusDeficitItems.length > 0 && (
+              shortageItems.filter((item) => !addedShortageIds.has(item.itemId))
+                .length > 0 && (
                 <Collapsible
-                  open={showSurplusDeficit}
-                  onOpenChange={setShowSurplusDeficit}
+                  open={showShortages}
+                  onOpenChange={setShowShortages}
                   className="border rounded-lg p-4 bg-yellow-50"
                 >
                   <CollapsibleTrigger asChild>
                     <Button
+                      type="button"
                       variant="ghost"
                       className="w-full flex items-center justify-between p-2 hover:bg-yellow-100"
                     >
@@ -380,10 +471,14 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                           Hàng còn thiếu từ đơn cũ
                         </span>
                         <span className="bg-yellow-600 text-white text-xs px-2 py-1 rounded-full">
-                          {surplusDeficitItems.length}
+                          {
+                            shortageItems.filter(
+                              (item) => !addedShortageIds.has(item.itemId)
+                            ).length
+                          }
                         </span>
                       </div>
-                      {showSurplusDeficit ? (
+                      {showShortages ? (
                         <ChevronUp className="w-4 h-4" />
                       ) : (
                         <ChevronDown className="w-4 h-4" />
@@ -392,48 +487,73 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-3">
                     <div className="text-xs text-gray-600 mb-2">
-                      Click vào nút "Thêm" để điền tự động số lượng còn thiếu
-                      vào đơn hàng
+                      Click "Thêm" để bù hàng thiếu, hoặc "Bỏ qua" nếu không cần
+                      bù
                     </div>
                     <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                      {surplusDeficitItems.map((item, index) => (
-                        <div
-                          key={`${item.orderId}-${item.itemId}-${index}`}
-                          className="flex items-center justify-between p-2 bg-white rounded border border-yellow-200 hover:border-yellow-400 transition-colors"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">
-                              {item.productName}
-                              {item.size && (
-                                <span className="text-gray-500 ml-1">
-                                  ({item.size})
-                                </span>
-                              )}
+                      {shortageItems
+                        .filter((item) => !addedShortageIds.has(item.itemId))
+                        .map((item, index) => {
+                          const remainingShortage = item.remainingShortage || 0;
+                          return (
+                            <div
+                              key={`${item.orderId}-${item.itemId}-${index}`}
+                              className="flex items-center justify-between p-2 bg-white rounded border border-yellow-200 hover:border-yellow-400 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm truncate flex items-center gap-1">
+                                  {item.productName}
+                                  {item.size && (
+                                    <span className="text-gray-500 ml-1">
+                                      ({item.size})
+                                    </span>
+                                  )}
+                                  {item.isCompensationOrder && (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                      Đơn bù
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Kho: {item.warehouse} • Đã bù:{" "}
+                                  {item.compensatedQty}/{item.shortageQty} •
+                                  <span className="font-bold text-red-600">
+                                    Còn thiếu: {remainingShortage} {item.unit}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex gap-1 ml-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1 bg-green-50 border-green-300 hover:bg-green-100 text-green-700"
+                                  onClick={() =>
+                                    handleFillShortage(item, remainingShortage)
+                                  }
+                                >
+                                  <Plus className="w-3 h-3" />
+                                  Thêm
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1 bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-700"
+                                  onClick={() => handleIgnoreShortage(item)}
+                                >
+                                  <X className="w-3 h-3" />
+                                  Bỏ qua
+                                </Button>
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-500">
-                              Kho: {item.warehouse} • Thiếu:{" "}
-                              <span className="font-bold text-red-600">
-                                {Math.abs(item.deficit)} {item.unit}
-                              </span>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            className="ml-2 gap-1 bg-green-50 border-green-300 hover:bg-green-100 text-green-700"
-                            onClick={() => handleFillDeficit(item)}
-                          >
-                            <Plus className="w-3 h-3" />
-                            Thêm
-                          </Button>
-                        </div>
-                      ))}
+                          );
+                        })}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
               )}
-            {loadingSurplusDeficit && (
+            {loadingShortages && (
               <div className="text-sm text-gray-500 text-center py-2">
                 Đang tải dữ liệu hàng thiếu...
               </div>

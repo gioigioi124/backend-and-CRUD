@@ -318,11 +318,30 @@ export const confirmLeader = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy item" });
     }
 
+    const item = order.items[itemIndex];
+
     // Cập nhật xác nhận của tổ trưởng
-    order.items[itemIndex].leaderConfirm = {
+    item.leaderConfirm = {
       value: value,
       confirmedAt: new Date(),
     };
+
+    // Tự động tính shortageQty = max(quantity - leaderConfirm, 0)
+    const shortage = Math.max(item.quantity - value, 0);
+    item.shortageQty = shortage;
+
+    // Nếu không có thiếu → CLOSED
+    if (shortage === 0) {
+      item.shortageStatus = "CLOSED";
+    }
+    // Nếu có thiếu nhưng đã bù đủ → CLOSED
+    else if (item.compensatedQty >= shortage) {
+      item.shortageStatus = "CLOSED";
+    }
+    // Nếu có thiếu và chưa bù đủ → OPEN (trừ khi đã IGNORED)
+    else if (item.shortageStatus !== "IGNORED") {
+      item.shortageStatus = "OPEN";
+    }
 
     await order.save();
 
@@ -353,19 +372,38 @@ export const confirmOrderDetails = async (req, res) => {
         (it) => it._id.toString() === updatedItem._id.toString()
       );
       if (itemIndex !== -1) {
+        const item = order.items[itemIndex];
+
         // Cập nhật warehouseConfirm nếu có thay đổi
         if (updatedItem.warehouseConfirm !== undefined) {
-          order.items[itemIndex].warehouseConfirm = {
+          item.warehouseConfirm = {
             value: updatedItem.warehouseConfirm.value,
             confirmedAt: new Date(),
           };
         }
+
         // Cập nhật leaderConfirm nếu có thay đổi
         if (updatedItem.leaderConfirm !== undefined) {
-          order.items[itemIndex].leaderConfirm = {
+          item.leaderConfirm = {
             value: updatedItem.leaderConfirm.value,
             confirmedAt: new Date(),
           };
+
+          // Tự động tính shortageQty = max(quantity - leaderConfirm, 0)
+          const shortage = Math.max(
+            item.quantity - updatedItem.leaderConfirm.value,
+            0
+          );
+          item.shortageQty = shortage;
+
+          // Cập nhật shortageStatus
+          if (shortage === 0) {
+            item.shortageStatus = "CLOSED";
+          } else if (item.compensatedQty >= shortage) {
+            item.shortageStatus = "CLOSED";
+          } else if (item.shortageStatus !== "IGNORED") {
+            item.shortageStatus = "OPEN";
+          }
         }
       }
     });

@@ -121,6 +121,19 @@ export const confirmDispatcherBatch = async (req, res) => {
                 value: update.leaderValue,
                 confirmedAt: new Date(),
               };
+
+              // Tự động tính shortageQty = max(quantity - leaderConfirm, 0)
+              const shortage = Math.max(item.quantity - update.leaderValue, 0);
+              item.shortageQty = shortage;
+
+              // Cập nhật shortageStatus
+              if (shortage === 0) {
+                item.shortageStatus = "CLOSED";
+              } else if (item.compensatedQty >= shortage) {
+                item.shortageStatus = "CLOSED";
+              } else if (item.shortageStatus !== "IGNORED") {
+                item.shortageStatus = "OPEN";
+              }
             }
             // Optional: update warehouse confirm if leader wants to override
             if (update.warehouseValue !== undefined) {
