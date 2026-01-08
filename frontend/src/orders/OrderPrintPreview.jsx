@@ -50,8 +50,9 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           }
           
           .order-page {
-            break-inside: avoid;
-            page-break-inside: avoid;
+            /* Cho phép đơn hàng dài được chia nhỏ qua nhiều trang */
+            break-inside: auto;
+            page-break-inside: auto;
 
             margin-bottom: 6mm;
             padding-bottom: 6mm;
@@ -73,6 +74,15 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           table {
             width: 100%;
             border-collapse: collapse;
+          }
+
+          /* Lặp lại header của bảng ở mỗi trang mới */
+          thead {
+            display: table-header-group;
+          }
+
+          tbody {
+            display: table-row-group;
           }
 
           tr {
@@ -239,7 +249,9 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                   margin: 0;
                 }
                 .order-page {
-                  page-break-inside: avoid;
+                  /* Cho phép đơn hàng dài được chia nhỏ qua nhiều trang */
+                  page-break-inside: auto;
+                  break-inside: auto;
                   border-bottom: 2px dashed #ccc;
                   padding-bottom: 10px;
                   margin-bottom: 10px;
@@ -247,6 +259,21 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                 }
                 .order-page:last-child {
                   border-bottom: none;
+                }
+                
+                /* Lặp lại header bảng ở mỗi trang mới */
+                thead {
+                  display: table-header-group;
+                }
+                
+                tbody {
+                  display: table-row-group;
+                }
+                
+                /* Giữ các dòng không bị cắt */
+                tr {
+                  page-break-inside: avoid;
+                  break-inside: avoid;
                 }
               }
               .order-page {
@@ -325,7 +352,7 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
               );
             })()}
 
-          {selectedOrders.map((order, index) => {
+          {selectedOrders.map((order) => {
             const totalQuantity =
               order.items?.reduce(
                 (sum, item) => sum + (item.quantity || 0),
