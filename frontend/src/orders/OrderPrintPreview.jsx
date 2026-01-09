@@ -222,10 +222,17 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
   };
 
   // Filter out orders with debt limit exceeded
+  // BUT allow printing if order is already assigned to a vehicle
   const printableOrders = selectedOrders.filter(
-    (order) => !order.isOverDebtLimit
+    (order) =>
+      !order.isOverDebtLimit ||
+      (order.vehicle !== null && order.vehicle !== undefined)
   );
-  const blockedOrders = selectedOrders.filter((order) => order.isOverDebtLimit);
+  const blockedOrders = selectedOrders.filter(
+    (order) =>
+      order.isOverDebtLimit &&
+      (order.vehicle === null || order.vehicle === undefined)
+  );
 
   // If all orders are blocked, show error
   if (blockedOrders.length > 0 && printableOrders.length === 0) {
