@@ -52,13 +52,24 @@ export const uploadCustomers = async (req, res) => {
       }
 
       // Prepare customer data
+      // Helper to find value by fuzzy key matching (case-insensitive, trims spaces)
+      const getValue = (row, keyName) => {
+        const key = Object.keys(row).find(
+          (k) => k.trim().toLowerCase() === keyName.toLowerCase()
+        );
+        return key ? row[key] : undefined;
+      };
+
+      const debtLimitVal = getValue(row, "Giới hạn nợ");
+      const currentDebtVal = getValue(row, "Công nợ");
+
       const customerData = {
         customerCode: String(row["Mã KH"]).trim(),
         name: String(row["Tên KH"]).trim(),
         address: row["Địa chỉ"] ? String(row["Địa chỉ"]).trim() : "",
         phone: row["Số điện thoại"] ? String(row["Số điện thoại"]).trim() : "",
-        debtLimit: row["Giới hạn nợ"] ? Number(row["Giới hạn nợ"]) : 0,
-        currentDebt: row["Công nợ"] ? Number(row["Công nợ"]) : 0,
+        debtLimit: debtLimitVal ? Number(debtLimitVal) : 0,
+        currentDebt: currentDebtVal ? Number(currentDebtVal) : 0,
         createdBy: req.user.id,
       };
 

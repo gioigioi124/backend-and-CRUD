@@ -63,41 +63,6 @@ const CustomerUpload = ({ onUploadSuccess }) => {
     }
   };
 
-  const downloadTemplate = () => {
-    // Create sample data
-    const templateData = [
-      {
-        "Mã KH": "KH001",
-        "Tên KH": "Công ty ABC",
-        "Địa chỉ": "123 Đường XYZ, Q1, HCM",
-        "Số điện thoại": "0901234567",
-      },
-      {
-        "Mã KH": "KH002",
-        "Tên KH": "Cửa hàng DEF",
-        "Địa chỉ": "456 Đường ABC, Q2, HCM",
-        "Số điện thoại": "0912345678",
-      },
-    ];
-
-    // Create workbook and worksheet
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Khách hàng");
-
-    // Set column widths
-    ws["!cols"] = [
-      { wch: 15 }, // Mã KH
-      { wch: 30 }, // Tên KH
-      { wch: 40 }, // Địa chỉ
-      { wch: 15 }, // Số điện thoại
-    ];
-
-    // Download file
-    XLSX.writeFile(wb, "Mau_Khach_Hang.xlsx");
-    toast.success("Đã tải xuống file mẫu");
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -111,19 +76,6 @@ const CustomerUpload = ({ onUploadSuccess }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Download Template Button */}
-        <div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={downloadTemplate}
-            className="w-full sm:w-auto"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Tải File Mẫu
-          </Button>
-        </div>
-
         {/* File Input */}
         <div className="space-y-2">
           <label
