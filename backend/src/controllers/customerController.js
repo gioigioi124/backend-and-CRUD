@@ -39,6 +39,24 @@ export const uploadCustomers = async (req, res) => {
     const errors = [];
     let duplicateCount = 0;
 
+    // Helper to find value by fuzzy key matching (case-insensitive, trims spaces)
+    const getValue = (row, keyName) => {
+      const key = Object.keys(row).find(
+        (k) => k.trim().toLowerCase() === keyName.toLowerCase()
+      );
+      return key ? row[key] : undefined;
+    };
+
+    // Helper to parse currency (VND usually integer)
+    // Removes dots, commas, spaces to handle "10.000.000" or "10,000,000"
+    const parseCurrency = (val) => {
+      if (typeof val === "number") return val;
+      if (!val) return 0;
+      // Convert to string and remove all non-numeric characters
+      const cleanStr = String(val).replace(/[^0-9]/g, "");
+      return Number(cleanStr) || 0;
+    };
+
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
 
@@ -52,14 +70,6 @@ export const uploadCustomers = async (req, res) => {
       }
 
       // Prepare customer data
-      // Helper to find value by fuzzy key matching (case-insensitive, trims spaces)
-      const getValue = (row, keyName) => {
-        const key = Object.keys(row).find(
-          (k) => k.trim().toLowerCase() === keyName.toLowerCase()
-        );
-        return key ? row[key] : undefined;
-      };
-
       const debtLimitVal = getValue(row, "Giới hạn nợ");
       const currentDebtVal = getValue(row, "Công nợ");
 
@@ -68,8 +78,8 @@ export const uploadCustomers = async (req, res) => {
         name: String(row["Tên KH"]).trim(),
         address: row["Địa chỉ"] ? String(row["Địa chỉ"]).trim() : "",
         phone: row["Số điện thoại"] ? String(row["Số điện thoại"]).trim() : "",
-        debtLimit: debtLimitVal ? Number(debtLimitVal) : 0,
-        currentDebt: currentDebtVal ? Number(currentDebtVal) : 0,
+        debtLimit: parseCurrency(debtLimitVal),
+        currentDebt: parseCurrency(currentDebtVal),
         createdBy: req.user.id,
       };
 
