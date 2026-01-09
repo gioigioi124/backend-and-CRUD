@@ -22,6 +22,7 @@ import { userService } from "@/services/userService";
 import { orderService } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
 import AssignOrdersToVehicleDialog from "@/vehicles/AssignOrdersToVehicleDialog";
+import AssignVehicleToOrderDialog from "@/orders/AssignVehicleToOrderDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import {
@@ -44,6 +45,8 @@ const DispatcherDashboard = () => {
   const [vehicleOrders, setVehicleOrders] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [vehicleAssignDialogOpen, setVehicleAssignDialogOpen] = useState(false);
+  const [orderToAssignVehicle, setOrderToAssignVehicle] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
   const [orderToEdit, setOrderToEdit] = useState(null);
@@ -184,6 +187,27 @@ const DispatcherDashboard = () => {
     }
   };
 
+  const handleAssignVehicle = (order) => {
+    setOrderToAssignVehicle(order);
+    setVehicleAssignDialogOpen(true);
+  };
+
+  const handleAssignVehicleSuccess = () => {
+    setRefreshTrigger((prev) => prev + 1);
+    if (selectedVehicle?._id && updateOrderCountRef.current) {
+      updateOrderCountRef.current(selectedVehicle._id);
+    }
+    if (
+      selectedOrder &&
+      orderToAssignVehicle &&
+      selectedOrder._id === orderToAssignVehicle._id
+    ) {
+      orderService.getOrder(selectedOrder._id).then((updatedOrder) => {
+        setSelectedOrder(updatedOrder);
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-none">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -313,6 +337,7 @@ const DispatcherDashboard = () => {
             selectedOrder={selectedOrder}
             onSelectOrder={setSelectedOrder}
             onUnassign={handleUnassign}
+            onAssign={handleAssignVehicle}
             onAssignClick={() => setAssignDialogOpen(true)}
             refreshTrigger={refreshTrigger}
             onOrdersLoaded={handleOrdersLoaded}
@@ -373,6 +398,13 @@ const DispatcherDashboard = () => {
         onOpenChange={setManifestPreviewOpen}
         vehicle={selectedVehicle}
         items={manifestItems}
+      />
+
+      <AssignVehicleToOrderDialog
+        open={vehicleAssignDialogOpen}
+        onOpenChange={setVehicleAssignDialogOpen}
+        order={orderToAssignVehicle}
+        onSuccess={handleAssignVehicleSuccess}
       />
     </div>
   );
