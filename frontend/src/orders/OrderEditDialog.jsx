@@ -506,13 +506,13 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                 <Collapsible
                   open={showShortages}
                   onOpenChange={setShowShortages}
-                  className="border rounded-lg p-4 bg-yellow-50"
+                  className="border rounded-lg p-2 bg-yellow-50"
                 >
                   <CollapsibleTrigger asChild>
                     <Button
                       type="button"
                       variant="ghost"
-                      className="w-full flex items-center justify-between p-2 hover:bg-yellow-100"
+                      className="w-full flex items-center justify-between p-1 hover:bg-yellow-100"
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-yellow-800">
@@ -533,7 +533,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                       )}
                     </Button>
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-3">
+                  <CollapsibleContent>
                     <div className="text-xs text-gray-600 mb-2">
                       Click "Thêm" để bù hàng thiếu, hoặc "Bỏ qua" nếu không cần
                       bù
