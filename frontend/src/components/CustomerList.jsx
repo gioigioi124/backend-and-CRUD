@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Trash2,
   ChevronLeft,
@@ -64,6 +64,8 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const PAGE_LIMIT = 50; // Fixed page limit
+
   const fetchCustomers = async () => {
     setLoading(true);
     try {
@@ -73,17 +75,18 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
           debouncedSearchQuery.trim()
         );
         setCustomers(data);
-        setPagination({
+        // Don't overwrite limit - use temp pagination for search display
+        setPagination((prev) => ({
+          ...prev,
           page: 1,
-          limit: data.length,
           total: data.length,
           totalPages: 1,
-        });
+        }));
       } else {
-        // Otherwise use paginated getAllCustomers
+        // Otherwise use paginated getAllCustomers with fixed limit
         const data = await customerService.getAllCustomers(
           pagination.page,
-          pagination.limit
+          PAGE_LIMIT
         );
         setCustomers(data.customers);
         setPagination(data.pagination);
@@ -96,16 +99,26 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
     }
   };
 
+  // Fetch customers when dependencies change
+  const prevSearchQuery = useRef(debouncedSearchQuery);
+
   useEffect(() => {
+    // Check if search query has changed
+    const searchQueryChanged = prevSearchQuery.current !== debouncedSearchQuery;
+
+    // If search query changed and we're not on page 1, reset to page 1 first
+    if (searchQueryChanged && pagination.page !== 1) {
+      prevSearchQuery.current = debouncedSearchQuery;
+      setPagination((prev) => ({ ...prev, page: 1 }));
+      return; // Don't fetch yet, wait for page to update
+    }
+
+    // Update the ref
+    prevSearchQuery.current = debouncedSearchQuery;
+
+    // Fetch data
     fetchCustomers();
   }, [pagination.page, refreshTrigger, debouncedSearchQuery]);
-
-  // Reset to page 1 when search query changes
-  useEffect(() => {
-    if (debouncedSearchQuery !== undefined) {
-      setPagination((prev) => ({ ...prev, page: 1 }));
-    }
-  }, [debouncedSearchQuery]);
 
   const handleDelete = async () => {
     if (!customerToDelete) return;

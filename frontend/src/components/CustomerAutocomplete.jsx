@@ -236,12 +236,11 @@ const CustomerAutocomplete = ({
                             <div className="font-medium">
                               {highlightMatch(customer.name, searchQuery)}
                             </div>
-                            {customer.currentDebt > customer.debtLimit &&
-                              customer.debtLimit > 0 && (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700">
-                                  Quá hạn nợ
-                                </span>
-                              )}
+                            {customer.currentDebt > customer.debtLimit && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700">
+                                Quá hạn nợ
+                              </span>
+                            )}
                           </div>
                           <div className="text-sm text-muted-foreground mt-1">
                             <span className="mr-3">
