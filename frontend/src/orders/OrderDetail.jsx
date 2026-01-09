@@ -359,7 +359,8 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
                     </span>
                     {order.vehicle && (
                       <span className="text-sm text-gray-600">
-                        - {order.vehicle.weight} - {order.vehicle.destination}
+                        - {order.vehicle.weight} - {order.vehicle.time} -{" "}
+                        {order.vehicle.destination}
                       </span>
                     )}
                   </>

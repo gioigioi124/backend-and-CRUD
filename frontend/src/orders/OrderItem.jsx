@@ -50,7 +50,9 @@ const OrderItem = ({
               {isAssigned && (
                 <div className="flex items-center gap-1 text-xs text-green-600">
                   <Truck className="w-3 h-3" />
-                  <span>Đã gán</span>
+                  <span>
+                    {order.vehicle?.weight} - {order.vehicle?.destination}
+                  </span>
                 </div>
               )}
               {!isAssigned && (
