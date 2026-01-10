@@ -305,21 +305,27 @@ const WarehouseDashboard = () => {
               </Select>
             </div>
 
-            <Button onClick={handleSearch} disabled={loading} className="gap-2">
+            <Button
+              onClick={handleSearch}
+              disabled={loading}
+              variant="gradient"
+              className="gap-2"
+            >
               <Search className="w-4 h-4" />
               Tìm kiếm
             </Button>
             <Button
               onClick={handleBatchConfirm}
               disabled={loading || !items.some((it) => it.isDirty)}
-              className="bg-green-600 hover:bg-green-700"
+              variant="gradient"
             >
               Xác nhận
             </Button>
             <Button
               onClick={handleExportExcel}
               disabled={loading || items.length === 0}
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
+              variant="gradient"
+              className="gap-2"
             >
               <Download className="w-4 h-4" />
               Xuất Excel

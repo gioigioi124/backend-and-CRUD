@@ -221,7 +221,8 @@ const VehicleReportPage = () => {
           {user?.role !== "warehouse" && (
             <Button
               onClick={handleCreateOrder}
-              className="gap-2 shadow-sm font-medium"
+              variant="gradient"
+              className="gap-2"
             >
               <PlusCircle className="w-4 h-4" />
               Tạo đơn hàng mới
@@ -244,7 +245,11 @@ const VehicleReportPage = () => {
             />
           </div>
           <div className="mt-6">
-            <Button onClick={fetchVehicles} disabled={loading}>
+            <Button
+              onClick={fetchVehicles}
+              disabled={loading}
+              variant="gradient"
+            >
               {loading ? "Đang tải..." : "Xem báo cáo"}
             </Button>
           </div>

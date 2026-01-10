@@ -69,12 +69,7 @@ const DateRangeSearch = ({ onSearch, defaultToToday = false }) => {
           className="w-36 bg-gray-50"
         />
       </div>
-      <Button
-        onClick={handleSearch}
-        size="sm"
-        className="bg-primary text-white"
-        variant="outline"
-      >
+      <Button onClick={handleSearch} size="sm" variant="gradient">
         <Search className="w-4 h-4 mr-1" />
         Tìm kiếm
       </Button>

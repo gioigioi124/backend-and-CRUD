@@ -346,7 +346,6 @@ const HomePage = () => {
           {user?.role !== "warehouse" && (
             <Button
               variant="outline"
-              className="gap-2 shadow-sm font-medium"
               onClick={() => setOpenVehicleDialog(true)}
             >
               <Truck className="w-4 h-4" />
@@ -356,12 +355,9 @@ const HomePage = () => {
 
           {/* Nút Tạo đơn hàng */}
           {user?.role !== "warehouse" && (
-            <Button
-              onClick={handleCreateOrder}
-              className="gap-2 shadow-sm font-medium"
-            >
+            <Button onClick={handleCreateOrder} variant="gradient">
               <PlusCircle className="w-4 h-4" />
-              Tạo đơn hàng mới
+              Tạo đơn hàng
             </Button>
           )}
         </div>

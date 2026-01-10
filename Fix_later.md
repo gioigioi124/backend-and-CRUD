@@ -31,7 +31,7 @@
 - validation khách hàng (ép chọn) ✅
 - chọn nhiều đơn để gán xe một lúc ✅
 
-- thêm nút in đơn ✅, export file cạnh sửa xóa
+- thêm nút in đơn ✅, export file cạnh sửa xóa ✅
 - phân trang✅
 - dialog in đơn, hoàn thành đơn ✅
 - thêm dòng mặc định số lượng là 1 ✅

@@ -210,7 +210,8 @@ const OrderListPage = () => {
           {user?.role !== "warehouse" && (
             <Button
               onClick={handleCreateOrder}
-              className="gap-2 shadow-sm font-medium"
+              variant="gradient"
+              className="gap-2"
             >
               <PlusCircle className="w-4 h-4" />
               Tạo đơn hàng mới
