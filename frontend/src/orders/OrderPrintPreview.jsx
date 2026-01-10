@@ -50,9 +50,9 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           }
           
           .order-page {
-            /* Cho phép đơn hàng dài được chia nhỏ qua nhiều trang */
-            break-inside: auto;
-            page-break-inside: auto;
+            /* Mặc định: KHÔNG cho phép chia trang (giữ đơn ngắn trên 1 trang) */
+            break-inside: avoid;
+            page-break-inside: avoid;
 
             margin-bottom: 6mm;
             padding-bottom: 6mm;
@@ -64,10 +64,10 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
             border-bottom: none;
           }
 
-          /* Nếu đơn quá dài → cho nó sang trang mới */
-          .order-page.force-new-page {
-            page-break-before: always;
-            break-before: page;
+          /* Chỉ đơn hàng DÀI MỚI cho phép chia trang */
+          .order-page.allow-page-break {
+            break-inside: auto;
+            page-break-inside: auto;
           }
           
 
@@ -316,14 +316,21 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                   margin: 0;
                 }
                 .order-page {
-                  /* Cho phép đơn hàng dài được chia nhỏ qua nhiều trang */
-                  page-break-inside: auto;
-                  break-inside: auto;
+                  /* Mặc định: KHÔNG cho phép chia trang */
+                  page-break-inside: avoid;
+                  break-inside: avoid;
                   border-bottom: 2px dashed #ccc;
                   padding-bottom: 10px;
                   margin-bottom: 10px;
                   width: 100%;
                 }
+                
+                /* Chỉ đơn hàng DÀI MỚI cho phép chia trang */
+                .order-page.allow-page-break {
+                  page-break-inside: auto;
+                  break-inside: auto;
+                }
+                
                 .order-page:last-child {
                   border-bottom: none;
                 }
@@ -429,8 +436,17 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
               order.items?.reduce((sum, item) => sum + (item.cmQty || 0), 0) ||
               0;
 
+            // Chỉ cho phép chia trang nếu đơn hàng có nhiều hơn 20 items
+            const itemCount = order.items?.length || 0;
+            const allowPageBreak = itemCount > 20;
+
             return (
-              <div key={order._id} className="order-page">
+              <div
+                key={order._id}
+                className={`order-page ${
+                  allowPageBreak ? "allow-page-break" : ""
+                }`}
+              >
                 {/* Thông tin khách hàng */}
                 <div className="grid grid-cols-12 gap-8 mb-2">
                   <div className="col-span-10">
