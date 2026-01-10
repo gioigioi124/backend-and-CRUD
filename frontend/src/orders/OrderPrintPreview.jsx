@@ -436,9 +436,9 @@ const OrderPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
               order.items?.reduce((sum, item) => sum + (item.cmQty || 0), 0) ||
               0;
 
-            // Chỉ cho phép chia trang nếu đơn hàng có nhiều hơn 20 items
+            // Chỉ cho phép chia trang nếu đơn hàng có nhiều hơn 15 items
             const itemCount = order.items?.length || 0;
-            const allowPageBreak = itemCount > 20;
+            const allowPageBreak = itemCount > 15;
 
             return (
               <div

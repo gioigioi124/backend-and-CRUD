@@ -50,6 +50,7 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           }
           
           .order-page {
+            /* Mặc định: KHÔNG cho phép chia trang (giữ đơn ngắn trên 1 trang) */
             break-inside: avoid;
             page-break-inside: avoid;
 
@@ -63,10 +64,19 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
             border-bottom: none;
           }
 
-          /* Nếu đơn quá dài → cho nó sang trang mới */
-          .order-page.force-new-page {
-            page-break-before: always;
-            break-before: page;
+          /* Chỉ đơn hàng DÀI MỚI cho phép chia trang */
+          .order-page.allow-page-break {
+            break-inside: auto;
+            page-break-inside: auto;
+          }
+          
+          /* Lặp lại header của bảng ở mỗi trang mới */
+          thead {
+            display: table-header-group;
+          }
+
+          tbody {
+            display: table-row-group;
           }
           
 
@@ -166,6 +176,9 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
           .space-x-4 > * + * {
             margin-left: 1rem;
           }
+          .italic {
+            font-style: italic;
+          }
           
           @media print {
             body {
@@ -200,6 +213,15 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
     });
   };
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto p-0 gap-0">
@@ -231,14 +253,38 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
                   margin: 0;
                 }
                 .order-page {
-                page-break-inside: avoid;
+                  /* Mặc định: KHÔNG cho phép chia trang */
+                  page-break-inside: avoid;
+                  break-inside: avoid;
                   border-bottom: 2px dashed #ccc;
                   padding-bottom: 10px;
                   margin-bottom: 10px;
                   width: 100%;
                 }
+                
+                /* Chỉ đơn hàng DÀI MỚI cho phép chia trang */
+                .order-page.allow-page-break {
+                  page-break-inside: auto;
+                  break-inside: auto;
+                }
+                
                 .order-page:last-child {
                   border-bottom: none;
+                }
+                
+                /* Lặp lại header bảng ở mỗi trang mới */
+                thead {
+                  display: table-header-group;
+                }
+                
+                tbody {
+                  display: table-row-group;
+                }
+                
+                /* Giữ các dòng không bị cắt */
+                tr {
+                  page-break-inside: avoid;
+                  break-inside: avoid;
                 }
               }
               .order-page {
@@ -346,18 +392,36 @@ const OrderConfirmedPrintPreview = ({ open, onOpenChange, selectedOrders }) => {
               0
             );
 
+            // Chỉ cho phép chia trang nếu đơn hàng có nhiều hơn 15 items
+            const itemCount = confirmedItems.length;
+            const allowPageBreak = itemCount > 15;
+
             return (
-              <div key={order._id} className="order-page">
+              <div
+                key={order._id}
+                className={`order-page ${
+                  allowPageBreak ? "allow-page-break" : ""
+                }`}
+              >
                 {/* Thông tin khách hàng */}
                 <div className="grid grid-cols-12 gap-8 mb-2">
                   <div className="col-span-10">
                     <p className="text-2xl font-bold uppercase text-primary">
                       {order.customer?.name || "N/A"}
                     </p>
+                    <p className="text-sm italic">
+                      {order.customer?.customerCode} - {order.customer?.address}
+                      {order.customer?.phone
+                        ? ` (${order.customer.phone})`
+                        : ""}
+                    </p>
                   </div>
                   <div className="col-span-2 text-right">
                     <p className="font-medium">
                       {order.createdBy?.name || "Hệ thống"}
+                    </p>
+                    <p className="font-medium">
+                      {formatDateTime(new Date().toISOString())}
                     </p>
                   </div>
                 </div>
