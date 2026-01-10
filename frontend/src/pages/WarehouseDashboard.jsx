@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Link } from "react-router";
+import PageHeader from "@/components/PageHeader";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,9 +22,6 @@ import {
 import {
   Calendar,
   Search,
-  List,
-  Warehouse,
-  Home,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -225,43 +222,12 @@ const WarehouseDashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">
-            Dashboard Kho {user?.warehouseCode}
-          </h1>
-          <p className="text-gray-500">Xác nhận hàng hóa ra/vào kho</p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {/* Nút Trang chủ */}
-          <Link to="/">
-            <Button variant="outline" className="gap-2 shadow-sm font-medium">
-              <Home className="w-4 h-4" />
-              Trang chủ
-            </Button>
-          </Link>
-
-          {/* Nút Danh sách đơn hàng */}
-          <Link to="/orders">
-            <Button variant="outline" className="gap-2 shadow-sm font-medium">
-              <List className="w-4 h-4" />
-              Đơn hàng
-            </Button>
-          </Link>
-
-          <div className="h-9 w-px bg-primary" />
-
-          {/* Nút Dashboard Kho (Đang ở trang này) */}
-          <Button
-            variant="outline"
-            className="gap-2 shadow-sm font-medium text-purple-600 border-purple-200 bg-purple-50 cursor-default"
-          >
-            <Warehouse className="w-4 h-4" />
-            Dashboard Kho
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title={`Dashboard Kho ${user?.warehouseCode || ""}`}
+        subtitle="Xác nhận hàng hóa ra/vào kho"
+        currentPage="warehouse"
+        user={user}
+      />
 
       <Card className="gap-0  max-w-7xl mx-auto">
         <CardHeader>

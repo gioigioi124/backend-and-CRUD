@@ -1,21 +1,10 @@
 import VehicleList from "@/vehicles/VehicleList";
 import VehicleOrderList from "@/orders/VehicleOrderList";
 import DispatcherOrderDetail from "@/orders/DispatcherOrderDetail";
-import DateRangeSearch from "@/components/DateRangeSearch";
 import OrderPrintPreview from "@/orders/OrderPrintPreview";
 import OrderConfirmedPrintPreview from "@/orders/OrderConfirmedPrintPreview";
 import DispatchManifestPreview from "@/orders/DispatchManifestPreview";
-import {
-  List,
-  PlusCircle,
-  Truck,
-  Printer,
-  Warehouse,
-  FileText,
-  Home,
-} from "lucide-react";
-import { Link } from "react-router";
-import { Button } from "@/components/ui/button";
+import PageHeader from "@/components/PageHeader";
 import { useState, useEffect, useRef } from "react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { userService } from "@/services/userService";
@@ -25,13 +14,6 @@ import AssignOrdersToVehicleDialog from "@/vehicles/AssignOrdersToVehicleDialog"
 import AssignVehicleToOrderDialog from "@/orders/AssignVehicleToOrderDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const getTodayDate = () => {
   const today = new Date();
@@ -210,113 +192,20 @@ const DispatcherDashboard = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-none">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div className="flex flex-wrap items-end gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">Bảng Điều Vận</h1>
-          <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
-
-          {/* Dropdown người tạo */}
-          <div className="flex items-center gap-2 rounded-md w-fit">
-            <span className="text-sm font-medium whitespace-nowrap">
-              Người tạo:
-            </span>
-            <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-              <SelectTrigger className="w-[180px] bg-white h-9">
-                <SelectValue placeholder="Chọn nhân viên" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả nhân viên</SelectItem>
-                {staffList.map((staff) => (
-                  <SelectItem key={staff._id} value={staff._id}>
-                    {staff.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {/* Nút Trang chủ */}
-          <Link to="/">
-            <Button variant="outline" className="gap-2 shadow-sm font-medium">
-              <Home className="w-4 h-4" />
-              Trang chủ
-            </Button>
-          </Link>
-
-          {/* Nút Danh sách đơn hàng (OrderList) */}
-          <Link to="/orders">
-            <Button variant="outline" className="gap-2 shadow-sm font-medium">
-              <List className="w-4 h-4" />
-              Đơn hàng
-            </Button>
-          </Link>
-
-          <div className="h-9 w-px bg-primary" />
-
-          {/* Nút Dashboard Kho */}
-          {user?.role === "warehouse" && (
-            <Link to="/warehouse">
-              <Button
-                variant="outline"
-                className="gap-2 shadow-sm font-medium text-purple-600 border-purple-200 hover:bg-purple-50"
-              >
-                <Warehouse className="w-4 h-4" />
-                Dashboard Kho
-              </Button>
-            </Link>
-          )}
-
-          {/* Nút Điều vận (Đang ở trang này) */}
-          <Button
-            variant="outline"
-            className="gap-2 shadow-sm font-medium text-orange-600 border-orange-200 bg-orange-50 cursor-default"
-          >
-            <Truck className="w-4 h-4" />
-            Điều vận
-          </Button>
-
-          {/* Nút Báo cáo xe */}
-          {user?.role !== "warehouse" && (
-            <Link to="/vehicle-report">
-              <Button
-                variant="outline"
-                className="gap-2 shadow-sm font-medium text-blue-600 border-blue-200 hover:bg-blue-50"
-              >
-                <FileText className="w-4 h-4" />
-                Báo cáo xe
-              </Button>
-            </Link>
-          )}
-
-          <div className="h-9 w-px bg-primary" />
-
-          {/* Nút Tạo xe */}
-          {user?.role !== "warehouse" && (
-            <Button
-              variant="outline"
-              className="gap-2 shadow-sm font-medium"
-              onClick={() => setOpenVehicleDialog(true)}
-            >
-              <Truck className="w-4 h-4" />
-              Tạo xe
-            </Button>
-          )}
-
-          {/* Nút Tạo đơn hàng */}
-          {user?.role !== "warehouse" && (
-            <Button
-              onClick={handleCreateOrder}
-              variant="gradient"
-              className="gap-2"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Tạo đơn hàng mới
-            </Button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Bảng Điều Vận"
+        showDateRangeSearch={true}
+        onDateSearch={handleDateSearch}
+        defaultToToday={true}
+        showStaffFilter={true}
+        selectedStaff={selectedStaff}
+        onStaffChange={setSelectedStaff}
+        staffList={staffList}
+        currentPage="dispatcher"
+        onCreateOrder={handleCreateOrder}
+        onCreateVehicle={() => setOpenVehicleDialog(true)}
+        user={user}
+      />
 
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
         {/* Cột 1: Xe */}

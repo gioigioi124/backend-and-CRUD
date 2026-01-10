@@ -1,27 +1,17 @@
 import { useState } from "react";
-import { Link } from "react-router";
 import OrderList from "@/orders/OrderList";
 import OrderDetail from "@/orders/OrderDetail";
 import OrderEditDialog from "@/orders/OrderEditDialog";
 import DeleteOrderDialog from "@/components/confirmations/DeleteOrderDialog";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import OrderPrintPreview from "@/orders/OrderPrintPreview";
+import AssignVehicleToOrderDialog from "@/orders/AssignVehicleToOrderDialog";
+import PageHeader from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import {
-  PlusCircle,
-  Truck,
-  List,
-  Warehouse,
-  FileText,
-  Home,
-} from "lucide-react";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
-
-import AssignVehicleToOrderDialog from "@/orders/AssignVehicleToOrderDialog"; // Import Dialog
 
 const OrderListPage = () => {
   const { user } = useAuth();
@@ -122,103 +112,14 @@ const OrderListPage = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-none">
-      {/* Action Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Quản lý Đơn hàng & Xe
-          </h1>
-          <p className="text-sm text-gray-500">
-            Quản lý quy trình gán đơn và vận chuyển
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {/* Nút Trang chủ */}
-          <Link to="/">
-            <Button variant="outline" className="gap-2 shadow-sm font-medium">
-              <Home className="w-4 h-4" />
-              Trang chủ
-            </Button>
-          </Link>
-
-          {/* Nút Danh sách đơn hàng (OrderList) - Đang ở trang này */}
-          <Button
-            variant="outline"
-            className="gap-2 shadow-sm font-medium border-gray-300 bg-gray-50 cursor-default"
-          >
-            <List className="w-4 h-4" />
-            Đơn hàng
-          </Button>
-
-          <div className="h-9 w-px bg-primary" />
-
-          {/* Nút Dashboard Kho */}
-          {user?.role === "warehouse" && (
-            <Link to="/warehouse">
-              <Button
-                variant="outline"
-                className="gap-2 shadow-sm font-medium text-purple-600 border-purple-200 hover:bg-purple-50"
-              >
-                <Warehouse className="w-4 h-4" />
-                Dashboard Kho
-              </Button>
-            </Link>
-          )}
-
-          {/* Nút Điều vận */}
-          {user?.role === "leader" && (
-            <Link to="/dispatcher">
-              <Button
-                variant="outline"
-                className="gap-2 shadow-sm font-medium text-orange-600 border-orange-200 hover:bg-orange-50"
-              >
-                <Truck className="w-4 h-4" />
-                Điều vận
-              </Button>
-            </Link>
-          )}
-
-          {/* Nút Báo cáo xe */}
-          {user?.role !== "warehouse" && (
-            <Link to="/vehicle-report">
-              <Button
-                variant="outline"
-                className="gap-2 shadow-sm font-medium text-blue-600 border-blue-200 hover:bg-blue-50"
-              >
-                <FileText className="w-4 h-4" />
-                Báo cáo xe
-              </Button>
-            </Link>
-          )}
-
-          <div className="h-9 w-px bg-primary" />
-
-          {/* Nút Tạo xe */}
-          {user?.role !== "warehouse" && (
-            <Button
-              variant="outline"
-              className="gap-2 shadow-sm font-medium"
-              onClick={() => setOpenVehicleDialog(true)}
-            >
-              <Truck className="w-4 h-4" />
-              Tạo xe
-            </Button>
-          )}
-
-          {/* Nút Tạo đơn hàng */}
-          {user?.role !== "warehouse" && (
-            <Button
-              onClick={handleCreateOrder}
-              variant="gradient"
-              className="gap-2"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Tạo đơn hàng mới
-            </Button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Quản lý Đơn hàng & Xe"
+        subtitle="Quản lý quy trình gán đơn và vận chuyển"
+        currentPage="orders"
+        onCreateOrder={handleCreateOrder}
+        onCreateVehicle={() => setOpenVehicleDialog(true)}
+        user={user}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Cột trái: Danh sách đơn hàng */}
