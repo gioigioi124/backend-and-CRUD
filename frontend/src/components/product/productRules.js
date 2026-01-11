@@ -14,7 +14,7 @@ export const PRODUCT_RULES = [
     materialMap: {
       a: "Alias",
       b: "Vimatt",
-      c: "See",
+      s: "See",
       f: "Fly",
       r: "Rex",
     },
@@ -56,7 +56,7 @@ export const PRODUCT_RULES = [
     materialMap: {
       a: "Alias",
       b: "Vimatt",
-      c: "See",
+      s: "See",
     },
 
     thicknessMap: {

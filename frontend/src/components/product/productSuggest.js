@@ -23,11 +23,11 @@ export const PRODUCT_SUGGESTIONS = [
   { key: "g3b18", label: "gấp 3 Vimatt 18F" },
 
   // See
-  { key: "g3c05", label: "gấp 3 See 5F" },
-  { key: "g3c07", label: "gấp 3 See 7F" },
-  { key: "g3c09", label: "gấp 3 See 9F" },
-  { key: "g3c14", label: "gấp 3 See 14F" },
-  { key: "g3c18", label: "gấp 3 See 18F" },
+  { key: "g3s05", label: "gấp 3 See 5F" },
+  { key: "g3s07", label: "gấp 3 See 7F" },
+  { key: "g3s09", label: "gấp 3 See 9F" },
+  { key: "g3s14", label: "gấp 3 See 14F" },
+  { key: "g3s18", label: "gấp 3 See 18F" },
 
   // Fly
   { key: "g3f05", label: "gấp 3 Fly 5F" },
@@ -46,6 +46,14 @@ export const PRODUCT_SUGGESTIONS = [
   { key: "g2a09", label: "gấp 2 Alias 9F" },
   { key: "g2a14", label: "gấp 2 Alias 14F" },
   { key: "g2a18", label: "gấp 2 Alias 18F" },
+  // Vimatt chần
+  { key: "g2b09", label: "gấp 2 Vimatt 9F" },
+  { key: "g2b14", label: "gấp 2 Vimatt 14F" },
+  { key: "g2b18", label: "gấp 2 Vimatt 18F" },
+  // See chần
+  { key: "g2s09", label: "gấp 2 See 9F" },
+  { key: "g2s14", label: "gấp 2 See 14F" },
+  { key: "g2s18", label: "gấp 2 See 18F" },
   // Rex chần
   { key: "g2r07", label: "gấp 2 Rex 7F" },
   { key: "g2r09", label: "gấp 2 Rex 9F" },
