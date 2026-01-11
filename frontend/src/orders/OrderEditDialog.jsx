@@ -17,6 +17,7 @@ import { shortageService } from "@/services/shortageService";
 import ItemsTable from "@/orders/ItemsTable";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete";
 import ShortcutManagerDialog from "@/components/config/ShortcutManagerDialog";
+import OrderItemsDialog from "@/orders/OrderItemsDialog";
 import { Keyboard, ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 import {
   Collapsible,
@@ -45,6 +46,10 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   const [loadingShortages, setLoadingShortages] = useState(false);
   const [showShortages, setShowShortages] = useState(true);
   const [addedShortageIds, setAddedShortageIds] = useState(new Set());
+
+  // Order items dialog state (for viewing old orders)
+  const [viewOrderId, setViewOrderId] = useState(null);
+  const [highlightItemId, setHighlightItemId] = useState(null);
 
   // Kiểm tra chế độ: tạo mới hay sửa
   const isCreateMode = !order;
@@ -380,6 +385,17 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
         open={showShortcutDialog}
         onOpenChange={setShowShortcutDialog}
       />
+      <OrderItemsDialog
+        open={!!viewOrderId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewOrderId(null);
+            setHighlightItemId(null);
+          }
+        }}
+        orderId={viewOrderId}
+        highlightItemId={highlightItemId}
+      />
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           className="sm:max-w-6xl max-h-[90vh] overflow-y-auto"
@@ -577,10 +593,18 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                                 </div>
                               </div>
 
-                              {/* Cột 2 (4/12): Thông tin đơn hàng */}
-                              <div className="col-span-4 min-w-0">
+                              {/* Cột 2 (4/12): Thông tin đơn hàng - CLICKABLE */}
+                              <div
+                                className="col-span-4 min-w-0 cursor-pointer hover:bg-blue-50 p-2 rounded transition-colors"
+                                onClick={() => {
+                                  setViewOrderId(item.orderId);
+                                  setHighlightItemId(item.itemId);
+                                }}
+                                title="Click để xem chi tiết đơn hàng"
+                              >
                                 <div className="text-xs">
-                                  <div className="font-medium text-gray-700">
+                                  <div className="font-medium text-gray-700 flex items-center gap-1">
+                                    <span>📋</span>
                                     Ngày đơn:{" "}
                                     {new Date(
                                       item.orderDate
@@ -591,6 +615,9 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                                       Ghi chú KH: {item.customerNote}
                                     </div>
                                   )}
+                                  <div className="mt-1 text-blue-600 text-xs font-medium">
+                                    → Click để xem đơn hàng
+                                  </div>
                                 </div>
                               </div>
 
