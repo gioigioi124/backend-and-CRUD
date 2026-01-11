@@ -57,6 +57,14 @@ export const uploadCustomers = async (req, res) => {
       return Number(cleanStr) || 0;
     };
 
+    // Helper to parse boolean from Excel
+    const parseBoolean = (val) => {
+      if (typeof val === "boolean") return val;
+      if (!val) return false;
+      const str = String(val).trim().toLowerCase();
+      return str === "true" || str === "1" || str === "yes";
+    };
+
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
 
@@ -72,6 +80,7 @@ export const uploadCustomers = async (req, res) => {
       // Prepare customer data
       const debtLimitVal = getValue(row, "Giới hạn nợ");
       const currentDebtVal = getValue(row, "Công nợ");
+      const bypassDebtCheckVal = getValue(row, "Bỏ qua công nợ");
 
       const customerData = {
         customerCode: String(row["Mã KH"]).trim(),
@@ -80,6 +89,7 @@ export const uploadCustomers = async (req, res) => {
         phone: row["Số điện thoại"] ? String(row["Số điện thoại"]).trim() : "",
         debtLimit: parseCurrency(debtLimitVal),
         currentDebt: parseCurrency(currentDebtVal),
+        bypassDebtCheck: parseBoolean(bypassDebtCheckVal),
         createdBy: req.user.id,
       };
 
@@ -157,7 +167,9 @@ export const searchCustomers = async (req, res) => {
     const customers = await Customer.find({
       $and: searchConditions,
     })
-      .select("customerCode name address phone debtLimit currentDebt")
+      .select(
+        "customerCode name address phone debtLimit currentDebt bypassDebtCheck"
+      )
       .limit(20)
       .sort({ name: 1 });
 
@@ -181,7 +193,7 @@ export const getAllCustomers = async (req, res) => {
     const [customers, total] = await Promise.all([
       Customer.find()
         .select(
-          "customerCode name address phone debtLimit currentDebt createdAt"
+          "customerCode name address phone debtLimit currentDebt bypassDebtCheck createdAt"
         )
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -232,7 +244,7 @@ export const deleteCustomer = async (req, res) => {
 export const updateCustomerDebt = async (req, res) => {
   try {
     const { id } = req.params;
-    const { debtLimit, currentDebt } = req.body;
+    const { debtLimit, currentDebt, bypassDebtCheck } = req.body;
 
     // Validate input
     if (debtLimit < 0 || currentDebt < 0) {
@@ -241,11 +253,16 @@ export const updateCustomerDebt = async (req, res) => {
       });
     }
 
-    const customer = await Customer.findByIdAndUpdate(
-      id,
-      { debtLimit, currentDebt },
-      { new: true, runValidators: true }
-    );
+    // Prepare update data
+    const updateData = { debtLimit, currentDebt };
+    if (bypassDebtCheck !== undefined) {
+      updateData.bypassDebtCheck = bypassDebtCheck;
+    }
+
+    const customer = await Customer.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!customer) {
       return res.status(404).json({ message: "Không tìm thấy khách hàng" });

@@ -37,6 +37,11 @@ const customerSchema = new mongoose.Schema(
       default: 0,
       min: [0, "Công nợ không thể âm"],
     },
+    // Bỏ qua kiểm tra công nợ khi tạo đơn/gán xe
+    bypassDebtCheck: {
+      type: Boolean,
+      default: false,
+    },
     // Người upload dữ liệu khách hàng
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

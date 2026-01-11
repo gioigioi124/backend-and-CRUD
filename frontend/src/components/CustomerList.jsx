@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import customerService from "../services/customerService";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Checkbox } from "./ui/checkbox";
 import {
   Card,
   CardContent,
@@ -170,6 +171,23 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
     }
   };
 
+  const handleToggleBypass = async (customerId, currentValue) => {
+    try {
+      await customerService.updateCustomerDebt(customerId, {
+        bypassDebtCheck: !currentValue,
+      });
+      toast.success(
+        !currentValue ? "Đã bật bỏ qua công nợ" : "Đã tắt bỏ qua công nợ"
+      );
+      fetchCustomers();
+    } catch (error) {
+      console.error("Toggle bypass error:", error);
+      toast.error(
+        error.response?.data?.message || "Lỗi khi cập nhật bỏ qua công nợ"
+      );
+    }
+  };
+
   const isAdmin = user?.role === "admin";
 
   return (
@@ -245,6 +263,9 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
                       <TableHead className="w-[120px] text-right">
                         Công nợ
                       </TableHead>
+                      <TableHead className="w-[100px] text-center">
+                        Bỏ qua CN
+                      </TableHead>
                       {isAdmin && (
                         <>
                           <TableHead className="w-[80px]">Sửa</TableHead>
@@ -311,6 +332,28 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
                               <span>
                                 {customer.currentDebt?.toLocaleString("vi-VN")}{" "}
                                 đ
+                              </span>
+                            )}
+                          </TableCell>
+
+                          {/* Bỏ qua công nợ - checkbox */}
+                          <TableCell className="text-center">
+                            {isAdmin ? (
+                              <div className="flex justify-center">
+                                <Checkbox
+                                  checked={customer.bypassDebtCheck || false}
+                                  onCheckedChange={() =>
+                                    handleToggleBypass(
+                                      customer._id,
+                                      customer.bypassDebtCheck
+                                    )
+                                  }
+                                  disabled={isEditing}
+                                />
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                {customer.bypassDebtCheck ? "✓" : "-"}
                               </span>
                             )}
                           </TableCell>

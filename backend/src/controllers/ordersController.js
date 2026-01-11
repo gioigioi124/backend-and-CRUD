@@ -71,7 +71,11 @@ export const createOrder = async (req, res) => {
         customerCode: orderData.customer.customerCode,
       }).session(session);
 
-      if (customer && customer.currentDebt > customer.debtLimit) {
+      if (
+        customer &&
+        customer.currentDebt > customer.debtLimit &&
+        !customer.bypassDebtCheck
+      ) {
         isOverDebtLimit = true;
         debtWarning = {
           message: "Khách hàng vượt hạn mức công nợ",
@@ -279,7 +283,11 @@ export const updateOrder = async (req, res) => {
           customerCode: req.body.customer.customerCode,
         });
 
-        if (customer && customer.currentDebt > customer.debtLimit) {
+        if (
+          customer &&
+          customer.currentDebt > customer.debtLimit &&
+          !customer.bypassDebtCheck
+        ) {
           existingOrder.isOverDebtLimit = true;
         } else {
           existingOrder.isOverDebtLimit = false;
@@ -354,10 +362,18 @@ export const assignToVehicle = async (req, res) => {
       }
 
       if (order.isOverDebtLimit) {
-        return res.status(400).json({
-          message: "Không thể gán xe cho đơn hàng vượt hạn mức công nợ",
-          error: "Khách hàng đã vượt quá giới hạn nợ cho phép",
+        // Check if customer has bypass enabled
+        const Customer = mongoose.model("Customer");
+        const customer = await Customer.findOne({
+          customerCode: order.customer.customerCode,
         });
+
+        if (!customer?.bypassDebtCheck) {
+          return res.status(400).json({
+            message: "Không thể gán xe cho đơn hàng vượt hạn mức công nợ",
+            error: "Khách hàng đã vượt quá giới hạn nợ cho phép",
+          });
+        }
       }
     }
 

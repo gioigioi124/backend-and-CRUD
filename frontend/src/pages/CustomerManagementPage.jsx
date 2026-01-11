@@ -24,6 +24,7 @@ const CustomerManagementPage = () => {
         "Số điện thoại": "0123456789",
         "Giới hạn nợ": 10000000,
         "Công nợ": 0,
+        "Bỏ qua công nợ": false,
       },
       {
         "Mã KH": "KH002",
@@ -32,6 +33,7 @@ const CustomerManagementPage = () => {
         "Số điện thoại": "0987654321",
         "Giới hạn nợ": 20000000,
         "Công nợ": 5000000,
+        "Bỏ qua công nợ": true,
       },
     ];
 
