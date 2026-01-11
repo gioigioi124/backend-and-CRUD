@@ -3,9 +3,12 @@ import { Users, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CustomerUpload from "../components/CustomerUpload";
 import CustomerList from "../components/CustomerList";
+import PageHeader from "@/components/PageHeader";
+import { useAuth } from "@/context/AuthContext";
 import * as XLSX from "xlsx";
 
 const CustomerManagementPage = () => {
+  const { user } = useAuth();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -48,17 +51,14 @@ const CustomerManagementPage = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Users className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold">Quản Lý Khách Hàng</h1>
-            <p className="text-muted-foreground">
-              Upload và quản lý thông tin khách hàng
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        title="Quản Lý Khách Hàng"
+        subtitle="Upload và quản lý thông tin khách hàng"
+        currentPage="home"
+        user={user}
+      />
+
+      <div className="flex justify-end">
         <Button
           onClick={handleDownloadTemplate}
           variant="outline"

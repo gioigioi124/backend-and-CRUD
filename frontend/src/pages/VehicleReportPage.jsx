@@ -1,21 +1,13 @@
 import { useState, useEffect } from "react";
 import { vehicleService } from "@/services/vehicleService";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router";
-import {
-  FileText,
-  List,
-  Truck,
-  PlusCircle,
-  Warehouse,
-  Home,
-} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
 import VehicleFormDialog from "@/vehicles/VehicleFormDialog";
 import OrderEditDialog from "@/orders/OrderEditDialog";
+import PageHeader from "@/components/PageHeader";
 import {
   Table,
   TableBody,
@@ -141,95 +133,13 @@ const VehicleReportPage = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-full items-center ">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-          <FileText className="w-6 h-6" />
-          Báo Cáo Số Lượng Xe
-        </h1>
-
-        <div className="flex flex-wrap gap-2">
-          {/* Nút Trang chủ */}
-          <Link to="/">
-            <Button variant="outline" className="gap-2 shadow-sm font-medium">
-              <Home className="w-4 h-4" />
-              Trang chủ
-            </Button>
-          </Link>
-
-          {/* Nút Danh sách đơn hàng (OrderList) */}
-          <Link to="/orders">
-            <Button variant="outline" className="gap-2 shadow-sm font-medium">
-              <List className="w-4 h-4" />
-              Đơn hàng
-            </Button>
-          </Link>
-
-          <div className="h-9 w-px bg-primary" />
-
-          {/* Nút Dashboard Kho */}
-          {user?.role === "warehouse" && (
-            <Link to="/warehouse">
-              <Button
-                variant="outline"
-                className="gap-2 shadow-sm font-medium text-purple-600 border-purple-200 hover:bg-purple-50"
-              >
-                <Warehouse className="w-4 h-4" />
-                Dashboard Kho
-              </Button>
-            </Link>
-          )}
-
-          {/* Nút Điều vận */}
-          {user?.role === "leader" && (
-            <Link to="/dispatcher">
-              <Button
-                variant="outline"
-                className="gap-2 shadow-sm font-medium text-orange-600 border-orange-200 hover:bg-orange-50"
-              >
-                <Truck className="w-4 h-4" />
-                Điều vận
-              </Button>
-            </Link>
-          )}
-
-          {/* Nút Báo cáo xe (Đang ở trang này) */}
-          {user?.role !== "warehouse" && (
-            <Button
-              variant="outline"
-              className="gap-2 shadow-sm font-medium text-blue-600 border-blue-200 bg-blue-50 cursor-default"
-            >
-              <FileText className="w-4 h-4" />
-              Báo cáo xe
-            </Button>
-          )}
-
-          <div className="h-9 w-px bg-primary" />
-
-          {/* Nút Tạo xe */}
-          {user?.role !== "warehouse" && (
-            <Button
-              variant="outline"
-              className="gap-2 shadow-sm font-medium"
-              onClick={() => setOpenVehicleDialog(true)}
-            >
-              <Truck className="w-4 h-4" />
-              Tạo xe
-            </Button>
-          )}
-
-          {/* Nút Tạo đơn hàng mới */}
-          {user?.role !== "warehouse" && (
-            <Button
-              onClick={handleCreateOrder}
-              variant="gradient"
-              className="gap-2"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Tạo đơn hàng mới
-            </Button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Báo Cáo Số Lượng Xe"
+        currentPage="vehicle-report"
+        onCreateOrder={handleCreateOrder}
+        onCreateVehicle={() => setOpenVehicleDialog(true)}
+        user={user}
+      />
 
       {/* Chọn ngày */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100 max-w-7xl mx-auto">

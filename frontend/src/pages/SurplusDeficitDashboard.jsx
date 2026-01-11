@@ -21,10 +21,13 @@ import {
 import { Search, Download } from "lucide-react";
 import { orderService } from "@/services/orderService";
 import { userService } from "@/services/userService";
+import { useAuth } from "@/context/AuthContext";
 import CustomerAutocomplete from "@/components/CustomerAutocomplete";
+import PageHeader from "@/components/PageHeader";
 import * as XLSX from "xlsx";
 
 const SurplusDeficitDashboard = () => {
+  const { user } = useAuth();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [staffList, setStaffList] = useState([]);
@@ -195,10 +198,12 @@ const SurplusDeficitDashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Dashboard Hàng Thừa Thiếu</h1>
-        <p className="text-gray-500">Hàng hóa thừa thiếu so với đơn hàng</p>
-      </div>
+      <PageHeader
+        title="Dashboard Hàng Thừa Thiếu"
+        subtitle="Hàng hóa thừa thiếu so với đơn hàng"
+        currentPage="home"
+        user={user}
+      />
 
       <Card className="gap-0 max-w-7xl mx-auto">
         <CardHeader>

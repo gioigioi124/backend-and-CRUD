@@ -12,6 +12,8 @@ import {
 import { toast } from "sonner";
 import UserDialog from "@/components/users/UserDialog";
 import { Pencil, Trash2, Plus } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
+import { useAuth } from "@/context/AuthContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const UsersPage = () => {
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
@@ -79,8 +82,9 @@ const UsersPage = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-5xl">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Quản lý nhân viên</h1>
+      <PageHeader title="Quản lý nhân viên" currentPage="home" user={user} />
+
+      <div className="flex justify-end mb-4">
         <Button onClick={handleCreate}>
           <Plus className="w-4 h-4 mr-2" /> Thêm nhân viên
         </Button>
