@@ -207,6 +207,19 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
 
   // Handler to auto-fill item from shortage
   const handleFillShortage = (shortageItem, quantityToFill) => {
+    // Calculate cmQtyPerUnit from shortage item
+    // If shortageItem has cmQtyPerUnit, use it directly
+    // Otherwise, calculate it from cmQty and original quantity
+    let cmQtyPerUnit = shortageItem.cmQtyPerUnit || 0;
+
+    // If cmQtyPerUnit not available but cmQty is, try to calculate it
+    if (!cmQtyPerUnit && shortageItem.cmQty && shortageItem.quantity) {
+      cmQtyPerUnit = shortageItem.cmQty / shortageItem.quantity;
+    }
+
+    // Calculate cmQty for the new item based on quantityToFill
+    const calculatedCmQty = cmQtyPerUnit ? cmQtyPerUnit * quantityToFill : 0;
+
     // Create new item with shortage quantity
     const newItem = {
       stt: items.length + 1,
@@ -215,7 +228,8 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
       unit: shortageItem.unit,
       quantity: quantityToFill,
       warehouse: shortageItem.warehouse,
-      cmQty: 0,
+      cmQty: calculatedCmQty,
+      cmQtyPerUnit: cmQtyPerUnit, // Copy cmQtyPerUnit for automatic calculation
       note: shortageItem.note || "",
       // Store source info for compensation order
       sourceOrderId: shortageItem.orderId,

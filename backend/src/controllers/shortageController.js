@@ -317,6 +317,8 @@ export const getRemainingShortages = async (req, res) => {
             compensatedQty: item.compensatedQty,
             remainingShortage: item.shortageQty - item.compensatedQty,
             warehouse: item.warehouse,
+            cmQty: item.cmQty || 0,
+            cmQtyPerUnit: item.cmQtyPerUnit || 0,
             note: item.note,
           })),
         });

@@ -70,6 +70,11 @@ const orderSchema = new mongoose.Schema(
           min: [0, "Số cm hàng không thể âm"],
           default: 0,
         },
+        cmQtyPerUnit: {
+          type: Number,
+          min: [0, "Số cm cho 1 đơn vị không thể âm"],
+          default: 0,
+        },
         note: {
           type: String,
           trim: true,
