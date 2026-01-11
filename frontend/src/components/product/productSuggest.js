@@ -42,6 +42,19 @@ export const PRODUCT_SUGGESTIONS = [
   { key: "g3r09", label: "gấp 3 Rex 9F" },
   { key: "g3r14", label: "gấp 3 Rex 14F" },
   { key: "g3r18", label: "gấp 3 Rex 18F" },
+  // Alias chần
+  { key: "g2a09", label: "gấp 2 Alias 9F" },
+  { key: "g2a14", label: "gấp 2 Alias 14F" },
+  { key: "g2a18", label: "gấp 2 Alias 18F" },
+  // Rex chần
+  { key: "g2r07", label: "gấp 2 Rex 7F" },
+  { key: "g2r09", label: "gấp 2 Rex 9F" },
+  { key: "g2r12", label: "gấp 2 Rex 12F" },
+  // MIX chần
+  { key: "g2m07", label: "gấp 2 MIX 7F" },
+  { key: "g2m09", label: "gấp 2 MIX 9F" },
+  { key: "g2m14", label: "gấp 2 MIX 14F" },
+  { key: "g2m18", label: "gấp 2 MIX 18F" },
 ];
 
 export function filterProductSuggestions(input) {
