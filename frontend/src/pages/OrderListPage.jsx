@@ -12,6 +12,7 @@ import { orderService } from "@/services/orderService";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { useVehicleContext } from "@/vehicles/VehicleContext";
+import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
 
 const OrderListPage = () => {
   const { user } = useAuth();
@@ -34,6 +35,9 @@ const OrderListPage = () => {
     setEditingOrder(null); // null = chế độ tạo mới
     setEditDialogOpen(true);
   };
+
+  // Keyboard shortcut: Ctrl+M to create new order
+  useKeyboardShortcut("m", handleCreateOrder, { ctrl: true });
 
   // Xử lý sửa đơn hàng
   const handleEdit = (order) => {

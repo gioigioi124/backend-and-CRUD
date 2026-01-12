@@ -42,6 +42,77 @@ export const PRODUCT_SUGGESTIONS = [
   { key: "g3r09", label: "gấp 3 Rex 9F" },
   { key: "g3r14", label: "gấp 3 Rex 14F" },
   { key: "g3r18", label: "gấp 3 Rex 18F" },
+
+  // Đệm thẳng không chần - Alias
+  { key: "tkca05", label: "Đệm thẳng không chần Alias 5F" },
+  { key: "tkca07", label: "Đệm thẳng không chần Alias 7F" },
+  { key: "tkca09", label: "Đệm thẳng không chần Alias 9F" },
+  { key: "tkca14", label: "Đệm thẳng không chần Alias 14F" },
+  { key: "tkca18", label: "Đệm thẳng không chần Alias 18F" },
+
+  // Đệm thẳng không chần - Vimatt
+  { key: "tkcb05", label: "Đệm thẳng không chần Vimatt 5F" },
+  { key: "tkcb07", label: "Đệm thẳng không chần Vimatt 7F" },
+  { key: "tkcb09", label: "Đệm thẳng không chần Vimatt 9F" },
+  { key: "tkcb14", label: "Đệm thẳng không chần Vimatt 14F" },
+  { key: "tkcb18", label: "Đệm thẳng không chần Vimatt 18F" },
+
+  // Đệm thẳng không chần - See
+  { key: "tkcs05", label: "Đệm thẳng không chần See 5F" },
+  { key: "tkcs07", label: "Đệm thẳng không chần See 7F" },
+  { key: "tkcs09", label: "Đệm thẳng không chần See 9F" },
+  { key: "tkcs14", label: "Đệm thẳng không chần See 14F" },
+  { key: "tkcs18", label: "Đệm thẳng không chần See 18F" },
+
+  // Đệm thẳng không chần - Fly
+  { key: "tkcf05", label: "Đệm thẳng không chần Fly 5F" },
+  { key: "tkcf07", label: "Đệm thẳng không chần Fly 7F" },
+  { key: "tkcf09", label: "Đệm thẳng không chần Fly 9F" },
+  { key: "tkcf14", label: "Đệm thẳng không chần Fly 14F" },
+  { key: "tkcf18", label: "Đệm thẳng không chần Fly 18F" },
+
+  // Đệm thẳng không chần - Rex
+  { key: "tkcr05", label: "Đệm thẳng không chần Rex 5F" },
+  { key: "tkcr07", label: "Đệm thẳng không chần Rex 7F" },
+  { key: "tkcr09", label: "Đệm thẳng không chần Rex 9F" },
+  { key: "tkcr14", label: "Đệm thẳng không chần Rex 14F" },
+  { key: "tkcr18", label: "Đệm thẳng không chần Rex 18F" },
+
+  // Đệm gấp 2 không chần - Alias
+  { key: "g2kca05", label: "Đệm gấp 2 không chần Alias 5F" },
+  { key: "g2kca07", label: "Đệm gấp 2 không chần Alias 7F" },
+  { key: "g2kca09", label: "Đệm gấp 2 không chần Alias 9F" },
+  { key: "g2kca14", label: "Đệm gấp 2 không chần Alias 14F" },
+  { key: "g2kca18", label: "Đệm gấp 2 không chần Alias 18F" },
+
+  // Đệm gấp 2 không chần - Vimatt
+  { key: "g2kcb05", label: "Đệm gấp 2 không chần Vimatt 5F" },
+  { key: "g2kcb07", label: "Đệm gấp 2 không chần Vimatt 7F" },
+  { key: "g2kcb09", label: "Đệm gấp 2 không chần Vimatt 9F" },
+  { key: "g2kcb14", label: "Đệm gấp 2 không chần Vimatt 14F" },
+  { key: "g2kcb18", label: "Đệm gấp 2 không chần Vimatt 18F" },
+
+  // Đệm gấp 2 không chần - See
+  { key: "g2kcs05", label: "Đệm gấp 2 không chần See 5F" },
+  { key: "g2kcs07", label: "Đệm gấp 2 không chần See 7F" },
+  { key: "g2kcs09", label: "Đệm gấp 2 không chần See 9F" },
+  { key: "g2kcs14", label: "Đệm gấp 2 không chần See 14F" },
+  { key: "g2kcs18", label: "Đệm gấp 2 không chần See 18F" },
+
+  // Đệm gấp 2 không chần - Fly
+  { key: "g2kcf05", label: "Đệm gấp 2 không chần Fly 5F" },
+  { key: "g2kcf07", label: "Đệm gấp 2 không chần Fly 7F" },
+  { key: "g2kcf09", label: "Đệm gấp 2 không chần Fly 9F" },
+  { key: "g2kcf14", label: "Đệm gấp 2 không chần Fly 14F" },
+  { key: "g2kcf18", label: "Đệm gấp 2 không chần Fly 18F" },
+
+  // Đệm gấp 2 không chần - Rex
+  { key: "g2kcr05", label: "Đệm gấp 2 không chần Rex 5F" },
+  { key: "g2kcr07", label: "Đệm gấp 2 không chần Rex 7F" },
+  { key: "g2kcr09", label: "Đệm gấp 2 không chần Rex 9F" },
+  { key: "g2kcr14", label: "Đệm gấp 2 không chần Rex 14F" },
+  { key: "g2kcr18", label: "Đệm gấp 2 không chần Rex 18F" },
+
   // Alias chần
   { key: "g2a09", label: "gấp 2 Alias 9F" },
   { key: "g2a14", label: "gấp 2 Alias 14F" },

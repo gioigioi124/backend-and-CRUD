@@ -9,6 +9,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   PlusCircle,
   Truck,
   List,
@@ -221,10 +227,28 @@ const PageHeader = ({
 
         {/* Tạo đơn hàng mới - not for warehouse role */}
         {user?.role !== "warehouse" && onCreateOrder && (
-          <Button onClick={onCreateOrder} variant="gradient" className="gap-2">
-            <PlusCircle className="w-4 h-4" />
-            Tạo đơn hàng mới
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={onCreateOrder}
+                  variant="gradient"
+                  className="gap-2"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  Tạo đơn hàng mới
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-gray-900 text-white border-gray-700">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Phím tắt:</span>
+                  <kbd className="px-2 py-1 bg-gray-800 border border-gray-600 rounded text-sm font-mono font-semibold">
+                    Ctrl+M
+                  </kbd>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
     </div>

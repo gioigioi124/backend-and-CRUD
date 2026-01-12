@@ -44,6 +44,90 @@ export const PRODUCT_RULES = [
     },
   },
   {
+    id: "THANG_KO_CHAN",
+
+    // tkca05
+    pattern: /^tkc([a-z])(\d{2})$/i,
+
+    warehouse: "K04",
+    unit: "cái",
+    note: "",
+
+    materialMap: {
+      a: "Alias",
+      b: "Vimatt",
+      s: "See",
+      f: "Fly",
+      r: "Rex",
+    },
+
+    thicknessMap: {
+      "05": 5,
+      "07": 7,
+      "09": 9,
+      14: 14,
+      18: 18,
+    },
+
+    build(match) {
+      const material = this.materialMap[match[1]];
+      const thickness = this.thicknessMap[match[2]];
+      if (!material || !thickness) return null;
+
+      return {
+        productName: `Đệm thẳng không chần ${material} ${thickness}F`,
+        warehouse: this.warehouse,
+        unit: this.unit,
+        cmQty: thickness,
+        cmQtyPerUnit: thickness, // Số cm cho 1 đơn vị
+        size: "",
+        note: this.note || "",
+      };
+    },
+  },
+  {
+    id: "GAP_2_KO_CHAN",
+
+    // g2kca05
+    pattern: /^g2kc([a-z])(\d{2})$/i,
+
+    warehouse: "K02",
+    unit: "cái",
+    note: "",
+
+    materialMap: {
+      a: "Alias",
+      b: "Vimatt",
+      s: "See",
+      f: "Fly",
+      r: "Rex",
+    },
+
+    thicknessMap: {
+      "05": 5,
+      "07": 7,
+      "09": 9,
+      14: 14,
+      18: 18,
+    },
+
+    build(match) {
+      const material = this.materialMap[match[1]];
+      const thickness = this.thicknessMap[match[2]];
+      if (!material || !thickness) return null;
+
+      return {
+        productName: `Đệm gấp 2 không chần ${material} ${thickness}F`,
+        warehouse: this.warehouse,
+        unit: this.unit,
+        cmQty: thickness,
+        cmQtyPerUnit: thickness, // Số cm cho 1 đơn vị
+        size: "",
+        note: this.note || "",
+      };
+    },
+  },
+  {
     id: "GAP_2_ABC",
 
     // g2a09
@@ -72,7 +156,7 @@ export const PRODUCT_RULES = [
       if (!material || !thicknessValue) return null;
 
       return {
-        productName: `gấp 2 ${material} ${thicknessKey}F`,
+        productName: `gấp 2 ${material} ${parseInt(thicknessKey)}F`,
         warehouse: this.warehouse,
         unit: this.unit,
         cmQty: thicknessValue,
@@ -105,7 +189,7 @@ export const PRODUCT_RULES = [
       if (!thicknessValue) return null;
 
       return {
-        productName: `gấp 2 ${material} ${thicknessKey}F`,
+        productName: `gấp 2 ${material} ${parseInt(thicknessKey)}F`,
         warehouse: this.warehouse,
         unit: this.unit,
         cmQty: thicknessValue,

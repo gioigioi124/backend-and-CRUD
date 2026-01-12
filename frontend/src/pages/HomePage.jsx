@@ -16,6 +16,7 @@ import { useVehicleContext } from "@/vehicles/VehicleContext";
 import { toast } from "sonner";
 import { orderService } from "@/services/orderService";
 import { userService } from "@/services/userService";
+import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
 
 const getTodayDate = () => {
   const today = new Date();
@@ -111,6 +112,9 @@ const HomePage = () => {
     setOrderToEdit(null);
     setEditDialogOpen(true);
   };
+
+  // Keyboard shortcut: Ctrl+M to create new order
+  useKeyboardShortcut("m", handleCreateOrder, { ctrl: true });
 
   const handleEdit = (order) => {
     setOrderToEdit(order);
