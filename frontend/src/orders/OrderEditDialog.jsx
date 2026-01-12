@@ -39,7 +39,6 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
   });
   const [items, setItems] = useState([]);
   const [orderDate, setOrderDate] = useState("");
-  const [debtWarning, setDebtWarning] = useState(null);
 
   // Shortage auto-fill state
   const [shortageItems, setShortageItems] = useState([]);
@@ -132,7 +131,6 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
           debtLimit: 0,
           currentDebt: 0,
         });
-        setDebtWarning(null);
         // Mặc định có 1 dòng với số lượng = 1
         setItems([
           {
@@ -338,12 +336,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
       };
 
       if (isCreateMode) {
-        const response = await orderService.createOrder(orderData);
-
-        // Check debt warning from response
-        if (response.debtWarning) {
-          setDebtWarning(response.debtWarning);
-        }
+        await orderService.createOrder(orderData);
 
         // Check xem có items bù không để hiển thị message phù hợp
         const hasCompensationItems = items.some(
@@ -491,7 +484,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
             {customer.currentDebt > customer.debtLimit && (
               <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <svg
                       className="h-5 w-5 text-red-400"
                       viewBox="0 0 20 20"
@@ -690,7 +683,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
               )}
 
             {/* Danh sách hàng hóa */}
-            <div className="min-h-[250px]">
+            <div className="min-h-[250px] overflow-visible">
               <ItemsTable items={items} setItems={setItems} />
             </div>
 

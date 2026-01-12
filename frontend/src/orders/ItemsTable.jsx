@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import ProductAutocomplete from "@/components/product/ProductAutocomplete";
+import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 
 const WAREHOUSES = ["K01", "K02", "K03", "K04"];
 
@@ -140,7 +141,7 @@ const ItemsTable = ({ items, setItems }) => {
         </div>
       </div>
       {/* Phần Table */}
-      <div className="border rounded-lg">
+      <div className="border rounded-lg overflow-visible">
         <Table>
           {/* Table head */}
           <TableHeader>
@@ -176,7 +177,7 @@ const ItemsTable = ({ items, setItems }) => {
                   </TableCell>
 
                   {/* Tên hàng hóa */}
-                  <TableCell>
+                  <TableCell className="relative overflow-visible align-top">
                     <ProductAutocomplete
                       value={item.productName}
                       onSelect={(productData) =>
@@ -255,13 +256,15 @@ const ItemsTable = ({ items, setItems }) => {
                   </TableCell>
 
                   {/* Ghi chú */}
-                  <TableCell>
-                    <Input
+                  <TableCell className="align-top">
+                    <AutoResizeTextarea
                       value={item.note}
                       onChange={(e) =>
                         updateItem(index, "note", e.target.value)
                       }
                       placeholder="Ghi chú"
+                      minHeight={40}
+                      maxHeight={100}
                     />
                   </TableCell>
 

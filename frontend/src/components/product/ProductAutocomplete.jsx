@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { filterProductSuggestions } from "./productSuggest";
 import { parseProductKey } from "./productParser";
 
@@ -139,7 +139,7 @@ const ProductAutocomplete = ({ value, onSelect, placeholder }) => {
 
   return (
     <div className="relative w-full">
-      <Input
+      <AutoResizeTextarea
         ref={inputRef}
         value={inputValue}
         onChange={handleInputChange}
@@ -147,6 +147,9 @@ const ProductAutocomplete = ({ value, onSelect, placeholder }) => {
         onFocus={handleFocus}
         onBlur={handleBlur}
         placeholder={placeholder || "Nhập tên hàng hóa"}
+        title={inputValue}
+        minHeight={40}
+        maxHeight={120}
         className="w-full"
       />
 
@@ -155,21 +158,24 @@ const ProductAutocomplete = ({ value, onSelect, placeholder }) => {
         <div
           ref={dropdownRef}
           onMouseDown={handleDropdownMouseDown}
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
+          className="absolute z-50 w-full min-w-[400px] mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-80 overflow-auto"
         >
           {suggestions.map((suggestion, index) => (
             <div
               key={suggestion.key}
               onClick={() => handleSelect(suggestion)}
+              title={suggestion.label}
               className={`px-3 py-2 cursor-pointer transition-colors ${
                 index === highlightedIndex
                   ? "bg-blue-50 text-blue-900"
                   : "hover:bg-gray-50"
               }`}
             >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-medium text-sm">{suggestion.label}</span>
-                <span className="text-xs text-gray-500 font-mono">
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-medium text-sm break-words flex-1">
+                  {suggestion.label}
+                </span>
+                <span className="text-xs text-gray-500 font-mono whitespace-nowrap">
                   {suggestion.key}
                 </span>
               </div>

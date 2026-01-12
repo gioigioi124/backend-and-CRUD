@@ -74,11 +74,11 @@ function App() {
                         path="vehicle-report"
                         element={<VehicleReportPage />}
                       />
-                      <Route
-                        path="surplus-deficit"
-                        element={<SurplusDeficitDashboard />}
-                      />
                     </Route>
+                    <Route
+                      path="surplus-deficit"
+                      element={<SurplusDeficitDashboard />}
+                    />
                   </Route>
                 </Route>
               </Routes>
