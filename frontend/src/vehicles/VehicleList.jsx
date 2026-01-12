@@ -62,7 +62,33 @@ const VehicleList = ({
 
   useSocket("new-vehicle", handleNewVehicle);
 
-  //chạy lại data khi sửa, xóa, thêm xe hoặc khi date range thay đổi hoặc người tạo thay đổi
+  // 🗑️ Real-time: Lắng nghe xe bị xóa từ Socket.IO
+  const handleDeleteVehicle = useCallback(
+    ({ vehicleId }) => {
+      setVehicles((prev) => {
+        const filtered = prev.filter((v) => v._id !== vehicleId);
+        // Nếu có xe bị xóa (filtered khác prev)
+        if (filtered.length < prev.length) {
+          return filtered;
+        }
+        return prev;
+      });
+      setTotalVehicles((prev) => Math.max(0, prev - 1));
+      setOrderCounts((prev) => {
+        const newCounts = { ...prev };
+        delete newCounts[vehicleId];
+        return newCounts;
+      });
+      // Nếu xe đang được chọn bị xóa, bỏ chọn
+      if (selectedVehicle?._id === vehicleId) {
+        onSelectVehicle(null);
+      }
+    },
+    [selectedVehicle, onSelectVehicle]
+  );
+
+  useSocket("delete-vehicle", handleDeleteVehicle);
+
   useEffect(() => {
     fetchVehicles();
     // eslint-disable-next-line react-hooks/exhaustive-deps

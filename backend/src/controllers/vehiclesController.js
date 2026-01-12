@@ -206,6 +206,11 @@ export const deleteVehicle = async (req, res) => {
     if (!vehicle) {
       return res.status(404).json({ message: "Không có xe này" });
     }
+
+    // Emit real-time event cho tất cả clients
+    const io = req.app.get("io");
+    io.emit("delete-vehicle", { vehicleId: id });
+
     res.status(200).json({ message: "Xóa xe thành công" });
   } catch (error) {
     console.log("Lỗi khi xóa xe - ", error.message);

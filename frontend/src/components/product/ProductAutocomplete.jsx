@@ -172,7 +172,7 @@ const ProductAutocomplete = ({ value, onSelect, placeholder }) => {
               }`}
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-medium text-sm break-words flex-1">
+                <span className="font-medium text-sm wrap-break-word flex-1">
                   {suggestion.label}
                 </span>
                 <span className="text-xs text-gray-500 font-mono whitespace-nowrap">
