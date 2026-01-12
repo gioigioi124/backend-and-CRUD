@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import http from "http";
+import { Server } from "socket.io";
 import { connectDB } from "./src/config/db.js";
 import ordersRouter from "./src/routers/ordersRouter.js";
 import vehiclesRouter from "./src/routers/vehiclesRouter.js";
@@ -15,6 +17,7 @@ const PORT = process.env.PORT || 3000;
 
 //tạo app sử dụng express
 const app = express();
+const server = http.createServer(app);
 
 //middleware đọc Json từ request body
 app.use(express.json());
@@ -27,6 +30,24 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// Socket.IO setup
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "*",
+    credentials: true,
+  },
+});
+
+// Lưu io vào app để controller sử dụng
+app.set("io", io);
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
 //rút gọn URL nhờ router
 app.use("/orders", ordersRouter);
 app.use("/vehicles", vehiclesRouter);
@@ -38,7 +59,7 @@ app.use("/api/shortages", shortageRouter);
 // connect DB
 connectDB().then(() => {
   //  tạo lắng nghe trên cổng 3000
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`server bắt đầu trên cổng ${PORT}`);
   });
 });

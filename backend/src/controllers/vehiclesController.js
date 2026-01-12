@@ -13,6 +13,11 @@ export const createVehicle = async (req, res) => {
       "createdBy",
       "name username"
     );
+
+    // Emit real-time event cho tất cả clients
+    const io = req.app.get("io");
+    io.emit("new-vehicle", populatedVehicle);
+
     res.status(201).json(populatedVehicle);
   } catch (error) {
     console.log("Lỗi khi thêm xe - ", error.message);

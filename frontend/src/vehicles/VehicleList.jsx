@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import VehicleItem from "./VehicleItem";
 import VehicleFormDialog from "./VehicleFormDialog";
@@ -8,6 +8,7 @@ import { orderService } from "@/services/orderService";
 import { useVehicleContext } from "./VehicleContext";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSocket } from "@/hooks/useSocket";
 
 const VehicleList = ({
   selectedVehicle,
@@ -39,6 +40,27 @@ const VehicleList = ({
   const ITEMS_PER_PAGE = 10;
 
   const lastFetchIdRef = useRef(0);
+
+  // 🔔 Real-time: Lắng nghe xe mới từ Socket.IO
+  const handleNewVehicle = useCallback(
+    (newVehicle) => {
+      // Chỉ thêm vào nếu đang ở trang 1 (xe mới nhất hiện ở đầu)
+      if (currentPage === 1) {
+        setVehicles((prev) => {
+          // Kiểm tra nếu xe đã tồn tại (tránh duplicate)
+          if (prev.some((v) => v._id === newVehicle._id)) return prev;
+          // Thêm xe mới vào đầu, giữ tối đa ITEMS_PER_PAGE
+          return [newVehicle, ...prev.slice(0, ITEMS_PER_PAGE - 1)];
+        });
+        setTotalVehicles((prev) => prev + 1);
+        setOrderCounts((prev) => ({ ...prev, [newVehicle._id]: 0 }));
+        toast.info(`🚚 Xe mới: ${newVehicle.carName}`);
+      }
+    },
+    [currentPage]
+  );
+
+  useSocket("new-vehicle", handleNewVehicle);
 
   //chạy lại data khi sửa, xóa, thêm xe hoặc khi date range thay đổi hoặc người tạo thay đổi
   useEffect(() => {
