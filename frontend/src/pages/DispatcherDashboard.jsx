@@ -191,7 +191,7 @@ const DispatcherDashboard = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-none">
+    <div className="container mx-auto p-2 md:p-4 max-w-none">
       <PageHeader
         title="Bảng Điều Vận"
         showDateRangeSearch={true}
@@ -207,9 +207,9 @@ const DispatcherDashboard = () => {
         user={user}
       />
 
-      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-2 md:gap-4 lg:h-[calc(100vh-200px)]">
         {/* Cột 1: Xe */}
-        <div className="col-span-3 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
+        <div className="lg:col-span-3 bg-white rounded-lg shadow-md p-3 md:p-4 overflow-y-auto border border-gray-100 max-h-[50vh] lg:max-h-none">
           <VehicleList
             selectedVehicle={selectedVehicle}
             onSelectVehicle={setSelectedVehicle}
@@ -221,7 +221,7 @@ const DispatcherDashboard = () => {
         </div>
 
         {/* Cột 2: Đơn hàng trong xe */}
-        <div className="col-span-3 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
+        <div className="lg:col-span-3 bg-white rounded-lg shadow-md p-3 md:p-4 overflow-y-auto border border-gray-100 max-h-[50vh] lg:max-h-none">
           <VehicleOrderList
             vehicle={selectedVehicle}
             selectedOrder={selectedOrder}
@@ -240,7 +240,7 @@ const DispatcherDashboard = () => {
         </div>
 
         {/* Cột 3: Xác nhận hàng loạt cho Xe */}
-        <div className="col-span-6 bg-white rounded-lg shadow-md p-4 overflow-y-auto border border-gray-100">
+        <div className="md:col-span-2 lg:col-span-6 bg-white rounded-lg shadow-md p-3 md:p-4 overflow-y-auto border border-gray-100 max-h-[60vh] lg:max-h-none">
           <DispatcherOrderDetail
             orders={vehicleOrders}
             selectedOrder={selectedOrder}

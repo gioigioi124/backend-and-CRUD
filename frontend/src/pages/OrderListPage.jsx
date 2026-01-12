@@ -115,7 +115,7 @@ const OrderListPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-none">
+    <div className="container mx-auto p-2 md:p-4 max-w-none">
       <PageHeader
         title="Quản lý Đơn hàng & Xe"
         subtitle="Quản lý quy trình gán đơn và vận chuyển"
@@ -125,10 +125,10 @@ const OrderListPage = () => {
         user={user}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 md:gap-4">
         {/* Cột trái: Danh sách đơn hàng */}
-        <Card className="lg:col-span-3 border-none shadow-md overflow-hidden bg-gray-50/50">
-          <CardContent className="p-4">
+        <Card className="lg:col-span-3 border-none shadow-md overflow-hidden bg-gray-50/50 max-h-[50vh] lg:max-h-[calc(100vh-200px)]">
+          <CardContent className="p-3 md:p-4">
             <OrderList
               key={user?._id}
               selectedOrder={selectedOrder}
@@ -142,8 +142,8 @@ const OrderListPage = () => {
         </Card>
 
         {/* Cột phải: Chi tiết đơn hàng */}
-        <Card className="col-span-9 border-none shadow-md">
-          <CardContent className="p-4">
+        <Card className="lg:col-span-9 border-none shadow-md max-h-[60vh] lg:max-h-[calc(100vh-200px)] overflow-y-auto">
+          <CardContent className="p-3 md:p-4">
             <OrderDetail
               order={selectedOrder}
               onEdit={handleEdit}

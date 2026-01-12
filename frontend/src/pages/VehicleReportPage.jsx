@@ -132,7 +132,7 @@ const VehicleReportPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-full items-center ">
+    <div className="container mx-auto p-2 md:p-4 max-w-full items-center">
       <PageHeader
         title="Báo Cáo Số Lượng Xe"
         currentPage="vehicle-report"
@@ -142,57 +142,65 @@ const VehicleReportPage = () => {
       />
 
       {/* Chọn ngày */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100 max-w-7xl mx-auto">
-        <div className="flex items-center gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="selectedDate">Chọn ngày báo cáo</Label>
+      <div className="bg-white rounded-lg shadow-md p-3 md:p-6 mb-3 md:mb-6 border border-gray-100 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-4">
+          <div className="space-y-1 md:space-y-2 w-full sm:w-auto">
+            <Label htmlFor="selectedDate" className="text-xs md:text-sm">
+              Chọn ngày báo cáo
+            </Label>
             <Input
               id="selectedDate"
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-[200px]"
+              className="w-full sm:w-[200px] h-8 md:h-10 text-xs md:text-sm"
             />
           </div>
-          <div className="mt-6">
+          <div className="sm:mt-6">
             <Button
               onClick={fetchVehicles}
               disabled={loading}
               variant="gradient"
+              size="sm"
+              className="h-8 md:h-10 text-xs md:text-sm"
             >
               {loading ? "Đang tải..." : "Xem báo cáo"}
             </Button>
           </div>
         </div>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-xs md:text-sm text-gray-500 mt-2">
           Ngày đã chọn:{" "}
           <span className="font-semibold">{formatDate(selectedDate)}</span>
         </p>
       </div>
 
       {/* Tổng quan */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-100 max-w-7xl mx-auto">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Tổng Quan</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-600 font-medium mb-1">Tổng số xe</p>
-            <p className="text-3xl font-bold text-blue-700">
+      <div className="bg-white rounded-lg shadow-md p-3 md:p-6 mb-3 md:mb-6 border border-gray-100 max-w-7xl mx-auto">
+        <h2 className="text-base md:text-xl font-semibold mb-2 md:mb-4 text-gray-800">
+          Tổng Quan
+        </h2>
+        <div className="grid grid-cols-3 gap-2 md:gap-4">
+          <div className="bg-blue-50 p-2 md:p-4 rounded-lg border border-blue-200">
+            <p className="text-xs md:text-sm text-blue-600 font-medium mb-0.5 md:mb-1">
+              Tổng số xe
+            </p>
+            <p className="text-xl md:text-3xl font-bold text-blue-700">
               {getGrandTotal()}
             </p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <p className="text-sm text-green-600 font-medium mb-1">
+          <div className="bg-green-50 p-2 md:p-4 rounded-lg border border-green-200">
+            <p className="text-xs md:text-sm text-green-600 font-medium mb-0.5 md:mb-1">
               Số người tạo
             </p>
-            <p className="text-3xl font-bold text-green-700">
+            <p className="text-xl md:text-3xl font-bold text-green-700">
               {reportData.length}
             </p>
           </div>
-          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-            <p className="text-sm text-purple-600 font-medium mb-1">
+          <div className="bg-purple-50 p-2 md:p-4 rounded-lg border border-purple-200">
+            <p className="text-xs md:text-sm text-purple-600 font-medium mb-0.5 md:mb-1">
               Số loại xe
             </p>
-            <p className="text-3xl font-bold text-purple-700">
+            <p className="text-xl md:text-3xl font-bold text-purple-700">
               {vehicleTypes.length}
             </p>
           </div>
@@ -200,8 +208,8 @@ const VehicleReportPage = () => {
       </div>
 
       {/* Bảng báo cáo */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 max-w-7xl mx-auto">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+      <div className="bg-white rounded-lg shadow-md p-3 md:p-6 border border-gray-100 max-w-7xl mx-auto">
+        <h2 className="text-base md:text-xl font-semibold mb-2 md:mb-4 text-gray-800">
           Báo Cáo Chi Tiết - {formatDate(selectedDate)}
         </h2>
         {loading ? (

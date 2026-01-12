@@ -58,3 +58,10 @@ table.jsx
 Thêm min-h-[250px] cho wrapper của ItemsTable trong
 OrderEditDialog.jsx
 Giữ nguyên ProductAutocomplete với absolute positioning đơn giản
+
+Các phần NÊN có Real-time (Ưu tiên cao)
+Tính năng Lý do Mô tả
+🚚 WarehouseDashboard Nhiều nhân viên kho cùng làm việc Khi 1 người xác nhận đơn → tất cả thấy ngay
+📋 DispatcherDashboard Dispatcher cần thấy đơn mới ngay Đơn mới từ sales → hiện ngay cho dispatcher
+📦 OrderList/OrderDetail Tránh xung đột khi nhiều người sửa Đơn đang được ai đó sửa → thông báo
+🚛 VehicleOrderList Cập nhật tình trạng xe Xe được gán đơn → hiển thị realtime

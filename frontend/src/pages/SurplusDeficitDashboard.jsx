@@ -197,7 +197,7 @@ const SurplusDeficitDashboard = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       <PageHeader
         title="Dashboard Hàng Thừa Thiếu"
         subtitle="Hàng hóa thừa thiếu so với đơn hàng"
@@ -206,40 +206,42 @@ const SurplusDeficitDashboard = () => {
       />
 
       <Card className="gap-0 max-w-7xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-base font-medium flex items-center gap-2">
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="text-sm md:text-base font-medium flex items-center gap-2">
             <Search className="w-4 h-4" />
             Bộ lọc tìm kiếm
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4 items-end">
-            <div className="space-y-2">
-              <span className="text-sm font-medium">Từ ngày:</span>
+        <CardContent className="p-3 md:p-6 pt-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2 md:gap-4 items-end">
+            <div className="space-y-1 md:space-y-2">
+              <span className="text-xs md:text-sm font-medium">Từ ngày:</span>
               <Input
                 type="date"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="w-[180px]"
+                className="w-full lg:w-[180px] h-8 md:h-10 text-xs md:text-sm"
               />
             </div>
-            <div className="space-y-2">
-              <span className="text-sm font-medium">Đến ngày:</span>
+            <div className="space-y-1 md:space-y-2">
+              <span className="text-xs md:text-sm font-medium">Đến ngày:</span>
               <Input
                 type="date"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="w-[180px]"
+                className="w-full lg:w-[180px] h-8 md:h-10 text-xs md:text-sm"
               />
             </div>
 
-            <div className="space-y-2">
-              <span className="text-sm font-medium">Nhân viên bán hàng:</span>
+            <div className="space-y-1 md:space-y-2">
+              <span className="text-xs md:text-sm font-medium">
+                NV bán hàng:
+              </span>
               <Select
                 value={selectedCreator}
                 onValueChange={setSelectedCreator}
               >
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full lg:w-[200px] h-8 md:h-10 text-xs md:text-sm">
                   <SelectValue placeholder="Chọn nhân viên" />
                 </SelectTrigger>
                 <SelectContent>
@@ -253,13 +255,13 @@ const SurplusDeficitDashboard = () => {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <span className="text-sm font-medium">Kho:</span>
+            <div className="space-y-1 md:space-y-2">
+              <span className="text-xs md:text-sm font-medium">Kho:</span>
               <Select
                 value={selectedWarehouse}
                 onValueChange={setSelectedWarehouse}
               >
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-full lg:w-[150px] h-8 md:h-10 text-xs md:text-sm">
                   <SelectValue placeholder="Chọn kho" />
                 </SelectTrigger>
                 <SelectContent>
@@ -272,10 +274,12 @@ const SurplusDeficitDashboard = () => {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <span className="text-sm font-medium">Trạng thái:</span>
+            <div className="space-y-1 md:space-y-2">
+              <span className="text-xs md:text-sm font-medium">
+                Trạng thái:
+              </span>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full lg:w-[180px] h-8 md:h-10 text-xs md:text-sm">
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
@@ -284,37 +288,47 @@ const SurplusDeficitDashboard = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex gap-2 items-center">
-              {/* Customer Search */}
-              <div className="w-[300px]">
-                <CustomerAutocomplete
-                  value={selectedCustomer}
-                  onChange={(customer) => {
-                    setSelectedCustomer(customer);
-                    setCurrentPage(1); // Reset to first page when customer changes
-                  }}
-                  required={false}
-                  placeholder="Tìm kiếm theo khách hàng..."
-                />
+
+            {/* Customer Search - full width on mobile */}
+            <div className="col-span-2 sm:col-span-3 lg:col-span-1 space-y-1 md:space-y-2">
+              <span className="text-xs md:text-sm font-medium hidden lg:block">
+                &nbsp;
+              </span>
+              <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                <div className="w-full lg:w-[300px]">
+                  <CustomerAutocomplete
+                    value={selectedCustomer}
+                    onChange={(customer) => {
+                      setSelectedCustomer(customer);
+                      setCurrentPage(1);
+                    }}
+                    required={false}
+                    placeholder="Tìm theo khách hàng..."
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSearch}
+                    disabled={loading}
+                    size="sm"
+                    className="gap-1 md:gap-2 h-8 md:h-10 flex-1 sm:flex-initial text-xs md:text-sm"
+                  >
+                    <Search className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden sm:inline">Tìm kiếm</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleExportExcel}
+                    disabled={loading || data.length === 0}
+                    size="sm"
+                    className="gap-1 md:gap-2 bg-green-600 hover:bg-green-700 h-8 md:h-10 flex-1 sm:flex-initial text-xs md:text-sm"
+                  >
+                    <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden sm:inline">Xuất Excel</span>
+                  </Button>
+                </div>
               </div>
-
-              <Button
-                onClick={handleSearch}
-                disabled={loading}
-                className="gap-2"
-              >
-                <Search className="w-4 h-4" />
-                Tìm kiếm
-              </Button>
-
-              <Button
-                onClick={handleExportExcel}
-                disabled={loading || data.length === 0}
-                className="gap-2 bg-green-600 hover:bg-green-700"
-              >
-                <Download className="w-4 h-4" />
-                Xuất Excel
-              </Button>
             </div>
           </div>
         </CardContent>

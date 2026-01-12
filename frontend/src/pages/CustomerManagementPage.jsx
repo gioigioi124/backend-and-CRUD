@@ -50,7 +50,7 @@ const CustomerManagementPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-3 md:p-6 space-y-4 md:space-y-6">
       <PageHeader
         title="Quản Lý Khách Hàng"
         subtitle="Upload và quản lý thông tin khách hàng"
@@ -62,10 +62,12 @@ const CustomerManagementPage = () => {
         <Button
           onClick={handleDownloadTemplate}
           variant="outline"
-          className="gap-2"
+          size="sm"
+          className="gap-1 md:gap-2 h-8 md:h-10 text-xs md:text-sm"
         >
-          <Download className="h-4 w-4" />
-          Tải file mẫu
+          <Download className="h-3.5 w-3.5 md:h-4 md:w-4" />
+          <span className="hidden sm:inline">Tải file mẫu</span>
+          <span className="sm:hidden">Tải mẫu</span>
         </Button>
       </div>
 
