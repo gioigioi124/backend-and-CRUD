@@ -273,33 +273,40 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
   return (
     <div className="space-y-4">
       {/* Header với nút Edit, Print và Delete */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Chi tiết đơn hàng</h2>
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+        <h2 className="text-base md:text-lg font-semibold">
+          Chi tiết đơn hàng
+        </h2>
+        <div className="flex flex-wrap gap-1.5 md:gap-2">
           {/* nút in đơn hàng */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => onPrint?.(order)}
-            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-200"
+            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-200 h-7 md:h-8 px-2 md:px-3 text-xs md:text-sm"
           >
-            <Printer className="w-4 h-4 mr-1" />
-            In đơn
+            <Printer className="w-3.5 h-3.5 md:w-4 md:h-4 mr-0.5 md:mr-1" />
+            <span className="hidden xs:inline">In đơn</span>
           </Button>
           {/* nút export Excel */}
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportExcel}
-            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200"
+            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200 h-7 md:h-8 px-2 md:px-3 text-xs md:text-sm"
           >
-            <FileDown className="w-4 h-4 mr-1" />
-            Excel
+            <FileDown className="w-3.5 h-3.5 md:w-4 md:h-4 mr-0.5 md:mr-1" />
+            <span className="hidden xs:inline">Excel</span>
           </Button>
           {/* nút sửa đơn hàng */}
-          <Button variant="outline" size="sm" onClick={() => onEdit(order)}>
-            <Pencil className="w-4 h-4 mr-1" />
-            Sửa
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(order)}
+            className="h-7 md:h-8 px-2 md:px-3 text-xs md:text-sm"
+          >
+            <Pencil className="w-3.5 h-3.5 md:w-4 md:h-4 mr-0.5 md:mr-1" />
+            <span className="hidden xs:inline">Sửa</span>
           </Button>
 
           {/* nút xóa đơn hàng */}
@@ -307,18 +314,19 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
             variant="destructive"
             size="sm"
             onClick={() => onDelete(order)}
+            className="h-7 md:h-8 px-2 md:px-3 text-xs md:text-sm"
           >
-            <Trash2 className="w-4 h-4 mr-1" />
-            Xóa
+            <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-0.5 md:mr-1" />
+            <span className="hidden xs:inline">Xóa</span>
           </Button>
         </div>
       </div>
-      <div className="flex gap-2 w-full">
+      <div className="flex flex-col md:flex-row gap-2 w-full">
         {/* Thông tin khách hàng */}
         <Card className="w-full">
-          <CardContent>
+          <CardContent className="p-3 md:p-4">
             <div>
-              <span className="text-xl uppercase font-bold">
+              <span className="text-base md:text-xl uppercase font-bold">
                 {order.customer?.name || "N/A"}
               </span>
             </div>
@@ -348,7 +356,7 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
 
         {/* Trạng thái đơn hàng */}
         <Card className="w-full">
-          <CardContent className="space-y-1">
+          <CardContent className="space-y-1 p-3 md:p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {isAssigned ? (
@@ -390,30 +398,31 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
 
       {/* Danh sách hàng hóa */}
       <Card>
-        <CardHeader className="flex justify-between">
-          <CardTitle>Danh sách hàng hóa</CardTitle>
+        <CardHeader className="flex flex-col sm:flex-row justify-between gap-2 p-3 md:p-4">
+          <CardTitle className="text-sm md:text-base">
+            Danh sách hàng hóa
+          </CardTitle>
           {/* Tổng kết */}
-          <div className="flex text-sm text-gray-600 space-x-4">
+          <div className="flex flex-wrap text-xs md:text-sm text-gray-600 gap-2 md:gap-4">
             <div>
-              Tổng số mặt hàng:{" "}
+              Mặt hàng:{" "}
               <span className="font-semibold">{sortedItems.length}</span>
             </div>
             <div>
-              Tổng số lượng:{" "}
-              <span className="font-semibold">{totalQuantity}</span>
+              Số lượng: <span className="font-semibold">{totalQuantity}</span>
             </div>
             <div>
-              Tổng số cm:{" "}
+              Số cm:{" "}
               <span className="font-semibold text-red-600">{totalCmQty}</span>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-4 pt-0">
           {!order.items || order.items.length === 0 ? (
             <p className="text-gray-500 text-center py-4">Chưa có hàng hóa</p>
           ) : (
             <div className="space-y-4">
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
