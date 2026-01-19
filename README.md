@@ -58,3 +58,7 @@
 ## 23/12/2025 [UPDATE DELETE] Sửa xóa xe thành công qua dialog
 
 ## 25/12/2025 Tạo phần backend và API cho Order, test thành công qua Thunder
+
+Tối ưu phản hồi (Optimistic UI & Skeletons): Dùng hiệu ứng Loading "xương" (Skeleton) thay vì chữ "Đang tải...", và cập nhật giao diện tức thì.
+Tương tác nâng cao: Phím tắt (Ctrl+K, Ctrl+N) và Kéo thả đơn hàng.
+Hiệu năng: Dùng React Query để cache dữ liệu, giảm tải server và giúp app mượt hơn.

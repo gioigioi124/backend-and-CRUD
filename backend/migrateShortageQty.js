@@ -11,7 +11,7 @@ dotenv.config();
 async function migrateShortageQty() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ Connected to MongoDB");
 
     // Tìm tất cả orders không phải đơn bù
@@ -37,7 +37,7 @@ async function migrateShortageQty() {
           if (item.shortageQty !== correctShortageQty) {
             console.log(
               `  📝 Order ${order._id}, Item "${item.productName}": ` +
-                `shortageQty ${item.shortageQty} → ${correctShortageQty}`
+                `shortageQty ${item.shortageQty} → ${correctShortageQty}`,
             );
 
             item.shortageQty = correctShortageQty;
