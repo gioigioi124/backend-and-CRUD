@@ -22,7 +22,7 @@ Trong Railway dashboard, vào tab **Variables** và thêm các biến sau:
 
 ```
 PORT=3000
-MONGODB_URI=mongodb+srv://your-username:your-password@cluster.mongodb.net/your-database
+MONGO_URI=mongodb+srv://your-username:your-password@cluster.mongodb.net/your-database
 JWT_SECRET=your-super-secret-jwt-key-here-make-it-long-and-random
 NODE_ENV=production
 FRONTEND_URL=https://your-vercel-app.vercel.app
@@ -30,7 +30,7 @@ FRONTEND_URL=https://your-vercel-app.vercel.app
 
 **Lưu ý quan trọng:**
 
-- `MONGODB_URI`: Thay bằng connection string thực tế từ MongoDB Atlas
+- `MONGO_URI`: Thay bằng connection string thực tế từ MongoDB Atlas
 - `JWT_SECRET`: Tạo một chuỗi ngẫu nhiên dài và phức tạp (khác với development)
 - `FRONTEND_URL`: Sẽ cập nhật sau khi deploy frontend lên Vercel
 
