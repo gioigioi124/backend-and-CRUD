@@ -22,21 +22,16 @@ const server = http.createServer(app);
 //middleware đọc Json từ request body
 app.use(express.json());
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
-
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: true,
     credentials: true,
   }),
 );
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: true,
     credentials: true,
   },
 });
