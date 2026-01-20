@@ -22,19 +22,21 @@ const server = http.createServer(app);
 //middleware đọc Json từ request body
 app.use(express.json());
 
-// CORS configuration for production
-// const corsOptions = {
-//   origin: process.env.FRONTEND_URL || "*",
-//   credentials: true,
-//   optionsSuccessStatus: 200,
-// };
-// app.use(cors(corsOptions));
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
-// Socket.IO setup
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "*",
+    origin: allowedOrigins,
     credentials: true,
   },
 });
