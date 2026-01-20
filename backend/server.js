@@ -23,12 +23,13 @@ const server = http.createServer(app);
 app.use(express.json());
 
 // CORS configuration for production
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || "*",
-  credentials: true,
-  optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
+// const corsOptions = {
+//   origin: process.env.FRONTEND_URL || "*",
+//   credentials: true,
+//   optionsSuccessStatus: 200,
+// };
+// app.use(cors(corsOptions));
+app.use(cors());
 
 // Socket.IO setup
 const io = new Server(server, {
