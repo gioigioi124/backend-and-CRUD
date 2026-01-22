@@ -32,6 +32,8 @@ const CustomerSearchDialog = ({ open, onOpenChange }) => {
   const [editValues, setEditValues] = useState({});
 
   const isAdminOrLeader = user?.role === "admin" || user?.role === "leader";
+  const isStaffOrWarehouse =
+    user?.role === "staff" || user?.role === "warehouse";
 
   // Debounce search query
   useEffect(() => {
@@ -319,10 +321,20 @@ const CustomerSearchDialog = ({ open, onOpenChange }) => {
                                   <span
                                     className={`font-bold whitespace-nowrap ${isOverLimit ? "text-red-600 bg-red-50 px-2 py-1 rounded" : "text-green-600 bg-green-50 px-2 py-1 rounded"}`}
                                   >
-                                    {customer.currentDebt?.toLocaleString(
-                                      "vi-VN",
-                                    )}{" "}
-                                    đ
+                                    {isStaffOrWarehouse ? (
+                                      isOverLimit ? (
+                                        "Quá hạn nợ"
+                                      ) : (
+                                        "Trong hạn"
+                                      )
+                                    ) : (
+                                      <>
+                                        {customer.currentDebt?.toLocaleString(
+                                          "vi-VN",
+                                        )}{" "}
+                                        đ
+                                      </>
+                                    )}
                                   </span>
                                 )}
                               </TableCell>
@@ -381,9 +393,11 @@ const CustomerSearchDialog = ({ open, onOpenChange }) => {
                                         Sửa
                                       </Button>
                                     ) : (
-                                      <span className="text-xs text-muted-foreground italic">
-                                        Chỉ xem
-                                      </span>
+                                      !isStaffOrWarehouse && (
+                                        <span className="text-xs text-muted-foreground italic">
+                                          Chỉ xem
+                                        </span>
+                                      )
                                     )}
                                   </div>
                                 )}
