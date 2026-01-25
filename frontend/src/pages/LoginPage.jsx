@@ -31,9 +31,9 @@ const LoginPage = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md gap-4">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Đăng nhập</CardTitle>
+          <CardTitle className="text-2xl font-bold mt-8">Đăng nhập</CardTitle>
           <CardDescription>
             Nhập thông tin tài khoản để truy cập hệ thống
           </CardDescription>
@@ -62,7 +62,7 @@ const LoginPage = () => {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full mb-8" disabled={loading}>
               {loading ? "Đang xử lý..." : "Đăng nhập"}
             </Button>
           </form>

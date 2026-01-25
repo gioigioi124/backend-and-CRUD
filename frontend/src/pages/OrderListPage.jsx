@@ -127,7 +127,7 @@ const OrderListPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 md:gap-4">
         {/* Cột trái: Danh sách đơn hàng */}
-        <Card className="lg:col-span-3 border-none shadow-md overflow-hidden bg-gray-50/50 h-[50vh] lg:h-[calc(100vh-200px)] flex flex-col">
+        <Card className="lg:col-span-3 border-none shadow-md overflow-hidden h-[50vh] lg:h-[calc(100vh-200px)] flex flex-col">
           <CardContent className="p-3 md:p-4 flex-1 flex flex-col min-h-0">
             <OrderList
               key={user?._id}

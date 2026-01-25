@@ -381,6 +381,7 @@ const OrderList = ({
               placeholder="Tìm kiếm tên KH..."
               value={searchQuery}
               onChange={handleSearchChange}
+              className="bg-gray-50"
             />
             <Button onClick={handleSearchClick} variant="gradient" size="sm">
               <Search className="w-4 h-4" />

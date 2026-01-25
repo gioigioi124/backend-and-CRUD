@@ -258,8 +258,7 @@ const PageHeader = ({
                   className="gap-1 md:gap-2 h-8 md:h-9 px-2 md:px-3"
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span className="hidden xs:inline">Tạo đơn</span>
-                  <span className="hidden sm:inline"> hàng mới</span>
+                  <span className="hidden sm:inline">Tạo đơn</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="bg-gray-900 text-white border-gray-700">
