@@ -42,7 +42,7 @@ const DateRangeSearch = ({ onSearch, defaultToToday = false }) => {
   };
 
   return (
-    <div className="flex flex-wrap items-end gap-1.5 md:gap-2 w-full sm:w-auto">
+    <div className="flex items-end gap-1.5 md:gap-2 w-full sm:w-auto">
       <div className="space-y-1 flex-1 sm:flex-initial">
         <Label htmlFor="fromDate" className="text-[10px] md:text-xs">
           Từ ngày
@@ -69,12 +69,7 @@ const DateRangeSearch = ({ onSearch, defaultToToday = false }) => {
           className="w-full sm:w-32 md:w-36 bg-gray-50 h-8 md:h-9 text-xs md:text-sm"
         />
       </div>
-      <Button
-        onClick={handleSearch}
-        size="sm"
-        variant="gradient"
-        className="h-8 md:h-9 px-2 md:px-3"
-      >
+      <Button onClick={handleSearch} size="sm" variant="gradient">
         <Search className="w-3.5 h-3.5 md:w-4 md:h-4" />
         <span className="hidden sm:inline ml-1 text-xs md:text-sm">Tìm</span>
       </Button>

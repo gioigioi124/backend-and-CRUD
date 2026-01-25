@@ -42,7 +42,7 @@ const OrderList = ({
   const [activeSearchQuery, setActiveSearchQuery] = useState(""); // Giá trị đang được search
   const [staffList, setStaffList] = useState([]);
   const [creatorFilter, setCreatorFilter] = useState(
-    user && user.role === "staff" ? user._id : "all"
+    user && user.role === "staff" ? user._id : "all",
   );
 
   // Pagination states
@@ -282,10 +282,10 @@ const OrderList = ({
 
       const totalItems = orders.reduce(
         (sum, order) => sum + (order.items?.length || 0),
-        0
+        0,
       );
       toast.success(
-        `Đã xuất ${orders.length} đơn hàng với ${totalItems} mặt hàng`
+        `Đã xuất ${orders.length} đơn hàng với ${totalItems} mặt hàng`,
       );
     } catch (error) {
       console.error("Lỗi khi xuất đơn hàng:", error);
@@ -336,105 +336,107 @@ const OrderList = ({
   };
 
   return (
-    <div>
-      {/* Pagination Controls - moved to top */}
-      <div className="mb-4 flex items-center justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setCurrentPage((prev) => prev - 1)}
-          disabled={!hasPrevPage}
-          className="gap-1"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Trước
-        </Button>
-
-        <div className="text-sm text-gray-600">
-          <span className="font-semibold text-base">
-            Trang {currentPage} / {totalPages}
-          </span>
-          <span className="text-gray-400 ml-2">({totalOrders} đơn)</span>
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setCurrentPage((prev) => prev + 1)}
-          disabled={!hasNextPage}
-          className="gap-1"
-        >
-          Sau
-          <ChevronRight className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {/* Filter và Search */}
-      <div className="mb-4 space-y-2 max-w-75">
-        {/* Search input với nút tìm kiếm */}
-        <div className="flex gap-2 items-center justify-between">
-          <Input
-            type="text"
-            placeholder="Tìm kiếm theo tên KH..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="bg-gray-50 w-full"
-          />
-          <Button onClick={handleSearchClick} variant="gradient" size="sm">
-            <Search className="w-4 h-4" />
-            Tìm kiếm
-          </Button>
-        </div>
-
-        {/* Date range search */}
-        <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
-
-        {/* Filter người tạo */}
-        <div className="w-full flex items-center justify-between pt-2 border-t border-gray-100 space-x-2">
-          <div className="w-full">
-            <Select value={creatorFilter} onValueChange={setCreatorFilter}>
-              <SelectTrigger className="w-full bg-gray-50">
-                <SelectValue placeholder="Lọc theo người tạo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Người tạo đơn</SelectItem>
-                {staffList.map((staff) => (
-                  <SelectItem key={staff._id} value={staff._id}>
-                    {staff.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {/* Filter dropdown */}
-          <div className="w-full">
-            <Select value={statusFilter} onValueChange={handleFilterChange}>
-              <SelectTrigger className="w-full bg-gray-50 ">
-                <SelectValue placeholder="Lọc theo trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Gán xe</SelectItem>
-                <SelectItem value="unassigned">Chưa gán xe</SelectItem>
-                <SelectItem value="assigned">Đã gán xe</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {/* Export button */}
+    <div className="flex flex-col h-full">
+      <div className="flex-none">
+        {/* Pagination Controls - moved to top */}
+        <div className="mb-4 flex items-center justify-between">
           <Button
-            onClick={handleExportOrders}
-            variant="gradient"
+            variant="outline"
             size="sm"
-            className="whitespace-nowrap gap-1"
-            disabled={loading || orders.length === 0}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            disabled={!hasPrevPage}
+            className="gap-1"
           >
-            <Download className="w-4 h-4" />
-            Xuất
+            <ChevronLeft className="w-4 h-4" />
+            Trước
           </Button>
+
+          <div className="text-sm text-gray-600">
+            <span className="font-semibold text-base">
+              Trang {currentPage} / {totalPages}
+            </span>
+            <span className="text-gray-400 ml-2">({totalOrders} đơn)</span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={!hasNextPage}
+            className="gap-1"
+          >
+            Sau
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Filter và Search */}
+        <div className="mb-4 space-y-2 max-w-75">
+          {/* Date range search */}
+          <DateRangeSearch onSearch={handleDateSearch} defaultToToday={true} />
+          {/* Search input với nút tìm kiếm */}
+          <div className="flex gap-2 items-center justify-between">
+            <Input
+              type="text"
+              placeholder="Tìm kiếm tên KH..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            <Button onClick={handleSearchClick} variant="gradient" size="sm">
+              <Search className="w-4 h-4" />
+              Tìm
+            </Button>
+          </div>
+
+          {/* Filter người tạo */}
+          <div className="w-full flex items-center justify-between space-x-2">
+            <div className="w-full">
+              <Select value={creatorFilter} onValueChange={setCreatorFilter}>
+                <SelectTrigger className="w-full bg-gray-50">
+                  <SelectValue placeholder="Lọc theo người tạo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Người tạo</SelectItem>
+                  {staffList.map((staff) => (
+                    <SelectItem key={staff._id} value={staff._id}>
+                      {staff.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Filter dropdown */}
+            <div className="w-full">
+              <Select value={statusFilter} onValueChange={handleFilterChange}>
+                <SelectTrigger className="w-full bg-gray-50 ">
+                  <SelectValue placeholder="Lọc theo trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Gán xe</SelectItem>
+                  <SelectItem value="unassigned">Chưa gán xe</SelectItem>
+                  <SelectItem value="assigned">Đã gán xe</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Export button */}
+            <Button
+              onClick={handleExportOrders}
+              variant="gradient"
+              size="sm"
+              className="whitespace-nowrap gap-1"
+              disabled={loading || orders.length === 0}
+            >
+              <Download className="w-4 h-4" />
+              Xuất
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Danh sách đơn hàng */}
-      {renderContent()}
+      <div className="flex-1 overflow-y-auto min-h-0 pr-2 scrollbar-thin pb-2">
+        {renderContent()}
+      </div>
     </div>
   );
 };
