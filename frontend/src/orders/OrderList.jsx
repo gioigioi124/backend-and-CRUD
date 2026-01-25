@@ -434,7 +434,7 @@ const OrderList = ({
       </div>
 
       {/* Danh sách đơn hàng */}
-      <div className="flex-1 overflow-y-auto min-h-0 pr-2 scrollbar-thin pb-2">
+      <div className="flex-1 overflow-y-auto min-h-0 px-1 pt-1 scrollbar-thin pb-2">
         {renderContent()}
       </div>
     </div>
