@@ -12,6 +12,7 @@ import {
   Settings,
   TrendingDown,
   Keyboard,
+  Sparkles,
 } from "lucide-react";
 import {
   Sidebar,
@@ -83,11 +84,17 @@ const AppSidebar = () => {
       path: "/customers",
       roles: ["admin"],
     },
+    {
+      title: "Cấu hình AI",
+      icon: Sparkles,
+      path: "/ai-settings",
+      roles: ["admin"],
+    },
   ];
 
   // Filter navigation items based on user role
   const visibleItems = navigationItems.filter((item) =>
-    item.roles.includes(user?.role)
+    item.roles.includes(user?.role),
   );
 
   const isActive = (path) => {

@@ -10,9 +10,11 @@ import WarehouseDashboard from "./pages/WarehouseDashboard";
 import DispatcherDashboard from "./pages/DispatcherDashboard";
 import VehicleReportPage from "./pages/VehicleReportPage";
 import SurplusDeficitDashboard from "./pages/SurplusDeficitDashboard";
+import AiSettingsPage from "./pages/AiSettingsPage";
 import PrivateRoute from "./components/PrivateRoute";
 import { VehicleProvider } from "./vehicles/VehicleContext";
 import { AuthProvider } from "./context/AuthContext";
+import ChatWidget from "./components/chat/ChatWidget";
 
 function App() {
   return (
@@ -44,6 +46,7 @@ function App() {
                         path="customers"
                         element={<CustomerManagementPage />}
                       />
+                      <Route path="ai-settings" element={<AiSettingsPage />} />
                     </Route>
                     <Route
                       element={<PrivateRoute allowedRoles={["warehouse"]} />}
@@ -83,6 +86,7 @@ function App() {
                 </Route>
               </Routes>
             </VehicleProvider>
+            <ChatWidget />
           </AuthProvider>
         </BrowserRouter>
       </div>
