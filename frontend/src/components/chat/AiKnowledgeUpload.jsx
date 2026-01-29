@@ -7,7 +7,7 @@ import {
   Loader2,
   Brain,
 } from "lucide-react";
-import axios from "axios";
+import api from "../../services/api";
 import { toast } from "sonner";
 
 const AiKnowledgeUpload = () => {
@@ -36,17 +36,11 @@ const AiKnowledgeUpload = () => {
     formData.append("file", file);
 
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${import.meta.env.VITE_API_URL || ""}/api/chatbot/upload`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
+      await api.post("/api/chatbot/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
+      });
       toast.success("Đã cập nhật dữ liệu kiến thức AI thành công!");
       setFile(null);
     } catch (error) {
