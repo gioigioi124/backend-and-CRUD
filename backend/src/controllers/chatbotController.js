@@ -1,4 +1,4 @@
-import { openai, pc, indexName } from "../config/ai.js";
+import { genAI, pc, indexName } from "../config/ai.js";
 import xlsx from "xlsx";
 
 export const uploadKnowledgeBase = async (req, res) => {
@@ -31,20 +31,26 @@ export const uploadKnowledgeBase = async (req, res) => {
 
     console.log(`Processing ${documents.length} rows...`);
 
+    // Get embedding model
+    const embeddingModel = genAI.getGenerativeModel({
+      model: "models/gemini-embedding-001",
+    });
+
     // Create embeddings and upsert
-    // Note: Breaking into chunks to avoid potential limits
+    // Note: Gemini embedding-001 supports batching
     const chunkSize = 20;
     for (let i = 0; i < documents.length; i += chunkSize) {
       const chunk = documents.slice(i, i + chunkSize);
 
-      const embeddings = await openai.embeddings.create({
-        model: "text-embedding-ada-002",
-        input: chunk.map((doc) => doc.content),
+      const batchEmbeddings = await embeddingModel.batchEmbedContents({
+        requests: chunk.map((doc) => ({
+          content: { role: "user", parts: [{ text: doc.content }] },
+        })),
       });
 
       const upsertData = chunk.map((doc, index) => ({
         id: doc.id,
-        values: embeddings.data[index].embedding,
+        values: batchEmbeddings.embeddings[index].values,
         metadata: {
           text: doc.content,
           ...doc.metadata,
@@ -54,19 +60,15 @@ export const uploadKnowledgeBase = async (req, res) => {
       await index.upsert(upsertData);
     }
 
-    res
-      .status(200)
-      .json({
-        message: `Successfully updated knowledge base with ${documents.length} items.`,
-      });
+    res.status(200).json({
+      message: `Successfully updated knowledge base with ${documents.length} items.`,
+    });
   } catch (error) {
     console.error("Upload error:", error);
-    res
-      .status(500)
-      .json({
-        message: "Error uploading knowledge base",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error uploading knowledge base",
+      error: error.message,
+    });
   }
 };
 
@@ -81,11 +83,12 @@ export const chat = async (req, res) => {
     const index = pc.index(indexName);
 
     // 1. Create embedding for user query
-    const embeddingResponse = await openai.embeddings.create({
-      model: "text-embedding-ada-002",
-      input: message,
+    const embeddingModel = genAI.getGenerativeModel({
+      model: "models/gemini-embedding-001",
     });
-    const queryEmbedding = embeddingResponse.data[0].embedding;
+
+    const embeddingResult = await embeddingModel.embedContent(message);
+    const queryEmbedding = embeddingResult.embedding.values;
 
     // 2. Query Pinecone
     const queryResponse = await index.query({
@@ -98,26 +101,45 @@ export const chat = async (req, res) => {
       .map((match) => match.metadata.text)
       .join("\n---\n");
 
-    // 3. Generate response with OpenAI
     const systemPrompt = `Bạn là một trợ lý AI hữu ích. Sử dụng thông tin ngữ cảnh dưới đây để trả lời câu hỏi của người dùng. Nếu thông tin dưới đây không có câu trả lời, hãy trả lời dựa trên kiến thức của bạn nhưng ưu tiên ngữ cảnh được cung cấp.
     
 Ngữ cảnh:
 ${context}`;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Use gpt-4o-mini for better speed/cost
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...history.slice(-5), // last 5 messages for context
-        { role: "user", content: message },
-      ],
+    // 3. Generate response with Gemini
+    console.log("--- Generating response with Gemini-flash-latest ---");
+    const model = genAI.getGenerativeModel({
+      model: "gemini-flash-latest",
+      systemInstruction: {
+        parts: [{ text: systemPrompt }],
+      },
     });
 
-    const reply = completion.choices[0].message.content;
+    // Convert history to Gemini format
+    // OpenAI: { role: 'user', content: '...' }
+    // Gemini: { role: 'user', parts: [{ text: '...' }] }
+    let geminiHistory = history.slice(-5).map((msg) => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    }));
+
+    // CRITICAL: Gemini requires the first message in history to be from 'user'
+    while (geminiHistory.length > 0 && geminiHistory[0].role === "model") {
+      geminiHistory.shift();
+    }
+
+    const chatInstance = model.startChat({
+      history: geminiHistory,
+    });
+
+    console.log("Sending message to Gemini...");
+    const result = await chatInstance.sendMessage(message);
+    const reply = result.response.text();
+    console.log("Gemini reply received.");
 
     res.status(200).json({ reply });
   } catch (error) {
-    console.error("Chat error:", error);
+    console.error("Chat error details:", error);
     res
       .status(500)
       .json({ message: "Error during chat", error: error.message });
