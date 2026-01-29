@@ -22,7 +22,6 @@ export const AuthProvider = ({ children }) => {
         username,
         password,
       });
-      console.log("Login response:", response.data);
       if (response.data) {
         localStorage.setItem("user", JSON.stringify(response.data));
         setUser(response.data);

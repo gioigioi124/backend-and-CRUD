@@ -43,9 +43,8 @@ const io = new Server(server, {
 app.set("io", io);
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    // disconnected handle
   });
 });
 

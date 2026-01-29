@@ -21,7 +21,6 @@ export const uploadKnowledgeBase = async (req, res) => {
     const filename = req.file.originalname;
 
     // 1. Clear old data from Pinecone
-    console.log(`Clearing old data for file: ${filename}...`);
     await index.deleteMany({ source: { $eq: filename } });
 
     // 2. Clear meta info from MongoDB if exists
@@ -43,8 +42,6 @@ export const uploadKnowledgeBase = async (req, res) => {
         metadata: { ...row, text: content, source: filename },
       };
     });
-
-    console.log(`Processing ${documents.length} rows...`);
 
     // Get embedding model
     const embeddingModel = genAI.getGenerativeModel({
@@ -127,17 +124,6 @@ export const chat = async (req, res) => {
       (match) => match.score >= threshold,
     );
 
-    console.log(
-      `Pinecone tìm thấy ${queryResponse.matches.length} kết quả, giữ lại ${filteredMatches.length} kết quả chất lượng (score > ${threshold})`,
-    );
-
-    filteredMatches.forEach((match, idx) => {
-      console.log(
-        `Match ${idx + 1} (Score: ${match.score}):`,
-        match.metadata.text?.substring(0, 100),
-      );
-    });
-
     const context = filteredMatches
       .map(
         (match) =>
@@ -160,7 +146,6 @@ HƯỚNG DẪN TRẢ LỜI:
 6. Luôn ưu tiên độ chính xác tuyệt đối từ dữ liệu nguồn.`;
 
     // 3. Generate response with Gemini
-    console.log("--- Generating response with Gemini-flash-latest ---");
     const model = genAI.getGenerativeModel({
       model: "gemini-flash-latest",
       systemInstruction: {
@@ -185,10 +170,8 @@ HƯỚNG DẪN TRẢ LỜI:
       history: geminiHistory,
     });
 
-    console.log("Sending message to Gemini...");
     const result = await chatInstance.sendMessage(message);
     const reply = result.response.text();
-    console.log("Gemini reply received.");
 
     res.status(200).json({ reply });
   } catch (error) {
@@ -207,7 +190,6 @@ export const deleteKnowledgeBase = async (req, res) => {
     }
 
     const index = pc.index(indexName);
-    console.log(`Deleting all data for file: ${filename}...`);
 
     // 1. Delete from Pinecone
     await index.deleteMany({ source: { $eq: filename } });

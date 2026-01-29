@@ -11,7 +11,7 @@ export const createVehicle = async (req, res) => {
     });
     const populatedVehicle = await Vehicle.findById(vehicle._id).populate(
       "createdBy",
-      "name username"
+      "name username",
     );
 
     // Emit real-time event cho tất cả clients
@@ -20,7 +20,6 @@ export const createVehicle = async (req, res) => {
 
     res.status(201).json(populatedVehicle);
   } catch (error) {
-    console.log("Lỗi khi thêm xe - ", error.message);
     res.status(500).json({ message: "Lỗi khi thêm xe" });
   }
 };
@@ -121,7 +120,6 @@ export const getAllVehicles = async (req, res) => {
       hasPrevPage: pageNum > 1,
     });
   } catch (error) {
-    console.log("Lỗi khi lấy thông tin xe - ", error.message);
     res.status(500).json({ message: "Lỗi khi lấy thông tin toàn bộ xe" });
   }
 };
@@ -132,7 +130,6 @@ export const getVehicle = async (req, res) => {
     const vehicle = await Vehicle.findById(req.params.id);
     res.status(200).json(vehicle);
   } catch (error) {
-    console.log("Lỗi khi lấy thông tin xe - ", error.message);
     res.status(500).json({ message: "Lỗi khi lấy thông tin  xe" });
   }
 };
@@ -183,7 +180,6 @@ export const updateVehicle = async (req, res) => {
     await vehicle.populate("createdBy", "name username");
     res.status(200).json(vehicle);
   } catch (error) {
-    console.log("Lỗi khi cập nhật thông tin xe - ", error.message);
     res.status(500).json({ message: "Lỗi khi cập nhật thông tin xe" });
   }
 };
@@ -213,7 +209,6 @@ export const deleteVehicle = async (req, res) => {
 
     res.status(200).json({ message: "Xóa xe thành công" });
   } catch (error) {
-    console.log("Lỗi khi xóa xe - ", error.message);
     res.status(500).json({ message: "Lỗi khi xóa xe" });
   }
 };

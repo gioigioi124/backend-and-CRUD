@@ -11,10 +11,10 @@ export const createOrder = async (req, res) => {
 
     // Phân loại items: bù và thường
     const compensationItems = items.filter(
-      (item) => item.sourceOrderId && item.sourceItemId
+      (item) => item.sourceOrderId && item.sourceItemId,
     );
     const normalItems = items.filter(
-      (item) => !item.sourceOrderId || !item.sourceItemId
+      (item) => !item.sourceOrderId || !item.sourceItemId,
     );
 
     // Validate và xử lý items bù
@@ -97,7 +97,7 @@ export const createOrder = async (req, res) => {
           // Vì đây là đơn hỗn hợp, không phải đơn bù thuần túy
         },
       ],
-      { session }
+      { session },
     );
 
     await session.commitTransaction();
@@ -245,7 +245,7 @@ export const updateOrder = async (req, res) => {
       for (const oldItem of existingOrder.items) {
         if (oldItem.warehouseConfirm?.value) {
           const stillExists = newItems.find(
-            (it) => it._id && it._id.toString() === oldItem._id.toString()
+            (it) => it._id && it._id.toString() === oldItem._id.toString(),
           );
           if (!stillExists) {
             return res.status(400).json({
@@ -259,7 +259,7 @@ export const updateOrder = async (req, res) => {
       for (const newItem of newItems) {
         if (newItem._id) {
           const oldItem = existingOrder.items.find(
-            (it) => it._id.toString() === newItem._id.toString()
+            (it) => it._id.toString() === newItem._id.toString(),
           );
           if (oldItem && oldItem.warehouseConfirm?.value) {
             if (newItem.warehouse !== oldItem.warehouse) {
@@ -305,7 +305,6 @@ export const updateOrder = async (req, res) => {
 
     res.status(200).json(existingOrder);
   } catch (error) {
-    console.log("Lỗi khi cập nhật đơn hàng - ", error.message);
     res.status(400).json({
       message: "Cập nhật đơn hàng thất bại",
       error: error.message,
@@ -325,7 +324,7 @@ export const deleteOrder = async (req, res) => {
 
     // Kiểm tra xem có item nào đã xác nhận chưa
     const hasConfirmedItem = order.items.some(
-      (item) => item.warehouseConfirm?.value
+      (item) => item.warehouseConfirm?.value,
     );
     if (hasConfirmedItem) {
       return res.status(400).json({
@@ -514,7 +513,7 @@ export const confirmOrderDetails = async (req, res) => {
     // Cập nhật từng item
     items.forEach((updatedItem) => {
       const itemIndex = order.items.findIndex(
-        (it) => it._id.toString() === updatedItem._id.toString()
+        (it) => it._id.toString() === updatedItem._id.toString(),
       );
       if (itemIndex !== -1) {
         const item = order.items[itemIndex];
@@ -537,7 +536,7 @@ export const confirmOrderDetails = async (req, res) => {
           // Tự động tính shortageQty = max(quantity - leaderConfirm, 0)
           const shortage = Math.max(
             item.quantity - updatedItem.leaderConfirm.value,
-            0
+            0,
           );
           item.shortageQty = shortage;
 

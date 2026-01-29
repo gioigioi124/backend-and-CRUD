@@ -160,13 +160,10 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
 
       try {
         setLoadingShortages(true);
-        console.log("Fetching shortages for customer:", customer.name);
 
         const response = await shortageService.getRemainingShortages({
           customerName: customer.name.trim(),
         });
-
-        console.log("Shortage API response:", response);
 
         // Flatten shortage items from all orders
         const allShortages = [];
@@ -182,15 +179,12 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
           });
         });
 
-        console.log("All shortages:", allShortages);
-
         // Sort by order date (most recent first) and limit to 20 items
         const sortedShortages = allShortages
           .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
           .slice(0, 20);
 
         setShortageItems(sortedShortages);
-        console.log("Set shortage items:", sortedShortages);
       } catch (error) {
         console.error("Error fetching shortages:", error);
         console.error("Error details:", error.response?.data);
@@ -259,19 +253,19 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
     try {
       await shortageService.ignoreShortage(
         shortageItem.orderId,
-        shortageItem.itemId
+        shortageItem.itemId,
       );
 
       // Remove from list
       setShortageItems((prev) =>
-        prev.filter((item) => item.itemId !== shortageItem.itemId)
+        prev.filter((item) => item.itemId !== shortageItem.itemId),
       );
 
       toast.success(`Đã bỏ qua thiếu hàng "${shortageItem.productName}"`);
     } catch (error) {
       toast.error(
         "Lỗi khi bỏ qua thiếu hàng: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
     }
   };
@@ -316,7 +310,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
           toast.error(
             `Dòng ${i + 1} ("${item.productName}"): Số lượng bù (${
               item.quantity
-            }) vượt quá số thiếu còn lại (${item.maxCompensateQty})`
+            }) vượt quá số thiếu còn lại (${item.maxCompensateQty})`,
           );
           return;
         }
@@ -340,17 +334,17 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
 
         // Check xem có items bù không để hiển thị message phù hợp
         const hasCompensationItems = items.some(
-          (item) => item.sourceOrderId && item.sourceItemId
+          (item) => item.sourceOrderId && item.sourceItemId,
         );
 
         if (hasCompensationItems) {
           const normalItems = items.filter(
-            (item) => !item.sourceOrderId || !item.sourceItemId
+            (item) => !item.sourceOrderId || !item.sourceItemId,
           );
 
           if (normalItems.length > 0) {
             toast.success(
-              "Tạo đơn hỗn hợp thành công (có cả hàng bù và hàng mới)!"
+              "Tạo đơn hỗn hợp thành công (có cả hàng bù và hàng mới)!",
             );
           } else {
             toast.success("Tạo đơn bù thành công!");
@@ -370,7 +364,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
       const action = isCreateMode ? "Tạo" : "Cập nhật";
       toast.error(
         `${action} đơn hàng thất bại: ` +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
       console.error(error);
     } finally {
@@ -474,8 +468,8 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                   {!isCreateMode && order?.vehicle
                     ? "Không thể sửa ngày đơn hàng đã gán xe"
                     : isCreateMode
-                    ? "Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai"
-                    : "Có thể giữ nguyên ngày cũ hoặc chọn ngày mới"}
+                      ? "Chỉ được chọn ngày hôm nay hoặc ngày trong tương lai"
+                      : "Có thể giữ nguyên ngày cũ hoặc chọn ngày mới"}
                 </p>
               </div>
             </div>
@@ -544,7 +538,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                         <span className="bg-yellow-600 text-white text-xs px-2 py-1 rounded-full">
                           {
                             shortageItems.filter(
-                              (item) => !addedShortageIds.has(item.itemId)
+                              (item) => !addedShortageIds.has(item.itemId),
                             ).length
                           }
                         </span>
@@ -614,7 +608,7 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                                     <span>📋</span>
                                     Ngày đơn:{" "}
                                     {new Date(
-                                      item.orderDate
+                                      item.orderDate,
                                     ).toLocaleDateString("vi-VN")}
                                   </div>
                                   {item.customerNote && (
@@ -703,8 +697,8 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
                     ? "Đang tạo..."
                     : "Đang cập nhật..."
                   : isCreateMode
-                  ? "Tạo đơn hàng (Ctrl+Enter)"
-                  : "Cập nhật (Ctrl+Enter)"}
+                    ? "Tạo đơn hàng (Ctrl+Enter)"
+                    : "Cập nhật (Ctrl+Enter)"}
               </Button>
             </DialogFooter>
           </form>

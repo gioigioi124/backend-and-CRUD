@@ -57,7 +57,7 @@ const VehicleList = ({
         toast.info(`🚚 Xe mới: ${newVehicle.carName}`);
       }
     },
-    [currentPage]
+    [currentPage],
   );
 
   useSocket("new-vehicle", handleNewVehicle);
@@ -84,7 +84,7 @@ const VehicleList = ({
         onSelectVehicle(null);
       }
     },
-    [selectedVehicle, onSelectVehicle]
+    [selectedVehicle, onSelectVehicle],
   );
 
   useSocket("delete-vehicle", handleDeleteVehicle);
@@ -149,7 +149,6 @@ const VehicleList = ({
     } catch (err) {
       if (fetchId !== lastFetchIdRef.current) return;
       setError("Không thể tải danh sách xe");
-      console.log("Không thể tải xe", err.message);
     } finally {
       if (fetchId === lastFetchIdRef.current) {
         setLoading(false);
@@ -232,8 +231,8 @@ const VehicleList = ({
     // Cập nhật UI ngay lập tức (optimistic update)
     setVehicles((prevVehicles) =>
       prevVehicles.map((v) =>
-        v._id === vehicle._id ? { ...v, isPrinted: newPrintedStatus } : v
-      )
+        v._id === vehicle._id ? { ...v, isPrinted: newPrintedStatus } : v,
+      ),
     );
 
     try {
@@ -242,18 +241,18 @@ const VehicleList = ({
         isPrinted: newPrintedStatus,
       });
       toast.info(
-        newPrintedStatus ? "Đã đánh dấu đã in" : "Đã bỏ đánh dấu đã in"
+        newPrintedStatus ? "Đã đánh dấu đã in" : "Đã bỏ đánh dấu đã in",
       );
     } catch (error) {
       // Nếu lỗi, rollback lại state cũ
       setVehicles((prevVehicles) =>
         prevVehicles.map((v) =>
-          v._id === vehicle._id ? { ...v, isPrinted: !newPrintedStatus } : v
-        )
+          v._id === vehicle._id ? { ...v, isPrinted: !newPrintedStatus } : v,
+        ),
       );
       toast.error(
         "Cập nhật trạng thái thất bại: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
       console.error(error);
     }
@@ -266,8 +265,8 @@ const VehicleList = ({
     // Cập nhật UI ngay lập tức (optimistic update)
     setVehicles((prevVehicles) =>
       prevVehicles.map((v) =>
-        v._id === vehicle._id ? { ...v, isCompleted: newCompletedStatus } : v
-      )
+        v._id === vehicle._id ? { ...v, isCompleted: newCompletedStatus } : v,
+      ),
     );
 
     try {
@@ -278,18 +277,20 @@ const VehicleList = ({
       toast.success(
         newCompletedStatus
           ? "Đã đánh dấu hoàn thành"
-          : "Đã bỏ đánh dấu hoàn thành"
+          : "Đã bỏ đánh dấu hoàn thành",
       );
     } catch (error) {
       // Nếu lỗi, rollback lại state cũ
       setVehicles((prevVehicles) =>
         prevVehicles.map((v) =>
-          v._id === vehicle._id ? { ...v, isCompleted: !newCompletedStatus } : v
-        )
+          v._id === vehicle._id
+            ? { ...v, isCompleted: !newCompletedStatus }
+            : v,
+        ),
       );
       toast.error(
         "Cập nhật trạng thái thất bại: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
       console.error(error);
     }
