@@ -1,5 +1,6 @@
 import { genAI, pc, indexName } from "../config/ai.js";
 import xlsx from "xlsx";
+import KnowledgeBaseFile from "../models/KnowledgeBaseFile.js";
 
 export const uploadKnowledgeBase = async (req, res) => {
   try {
@@ -17,15 +18,26 @@ export const uploadKnowledgeBase = async (req, res) => {
     }
 
     const index = pc.index(indexName);
+    const filename = req.file.originalname;
+
+    // 1. Clear old data from Pinecone
+    console.log(`Clearing old data for file: ${filename}...`);
+    await index.deleteMany({ source: { $eq: filename } });
+
+    // 2. Clear meta info from MongoDB if exists
+    await KnowledgeBaseFile.findOneAndDelete({ filename: filename });
 
     // Prepare documents
     const documents = data.map((row, i) => {
-      // Concatenate all cell values into one string for embedding
-      const content = Object.values(row).join(" ");
+      // Create a structured string: "Column1: Value1, Column2: Value2..."
+      const content = Object.entries(row)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(", ");
+
       return {
         id: `row-${Date.now()}-${i}`,
         content,
-        metadata: { ...row, source: req.file.originalname },
+        metadata: { ...row, text: content, source: req.file.originalname },
       };
     });
 
@@ -45,20 +57,26 @@ export const uploadKnowledgeBase = async (req, res) => {
       const batchEmbeddings = await embeddingModel.batchEmbedContents({
         requests: chunk.map((doc) => ({
           content: { role: "user", parts: [{ text: doc.content }] },
+          taskType: "RETRIEVAL_DOCUMENT",
         })),
       });
 
       const upsertData = chunk.map((doc, index) => ({
         id: doc.id,
         values: batchEmbeddings.embeddings[index].values,
-        metadata: {
-          text: doc.content,
-          ...doc.metadata,
-        },
+        metadata: doc.metadata,
       }));
 
       await index.upsert(upsertData);
     }
+
+    // 3. Save file info to MongoDB
+    await KnowledgeBaseFile.create({
+      filename: filename,
+      originalName: filename,
+      rowCount: documents.length,
+      uploadedBy: req.user?._id,
+    });
 
     res.status(200).json({
       message: `Successfully updated knowledge base with ${documents.length} items.`,
@@ -87,24 +105,53 @@ export const chat = async (req, res) => {
       model: "models/text-embedding-004",
     });
 
-    const embeddingResult = await embeddingModel.embedContent(message);
+    const embeddingResult = await embeddingModel.embedContent({
+      content: { parts: [{ text: message }] },
+      taskType: "RETRIEVAL_QUERY",
+    });
     const queryEmbedding = embeddingResult.embedding.values;
 
     // 2. Query Pinecone
     const queryResponse = await index.query({
       vector: queryEmbedding,
-      topK: 5,
+      topK: 25,
       includeMetadata: true,
     });
 
-    const context = queryResponse.matches
-      .map((match) => match.metadata.text)
+    // Lọc những kết quả có score quá thấp (giảm nhiễu khi dữ liệu lớn)
+    const threshold = 0.4;
+    const filteredMatches = queryResponse.matches.filter(
+      (match) => match.score >= threshold,
+    );
+
+    console.log(
+      `Pinecone tìm thấy ${queryResponse.matches.length} kết quả, giữ lại ${filteredMatches.length} kết quả chất lượng (score > ${threshold})`,
+    );
+
+    filteredMatches.forEach((match, idx) => {
+      console.log(
+        `Match ${idx + 1} (Score: ${match.score}):`,
+        match.metadata.text?.substring(0, 100),
+      );
+    });
+
+    const context = filteredMatches
+      .map(
+        (match) =>
+          `[Độ liên quan: ${Math.round(match.score * 100)}%]: ${match.metadata.text}`,
+      )
       .join("\n---\n");
 
-    const systemPrompt = `Bạn là một trợ lý AI hữu ích. Sử dụng thông tin ngữ cảnh dưới đây để trả lời câu hỏi của người dùng. Nếu thông tin dưới đây không có câu trả lời, hãy trả lời dựa trên kiến thức của bạn nhưng ưu tiên ngữ cảnh được cung cấp.
-    
+    const systemPrompt = `Bạn là một trợ lý AI chuyên nghiệp.
+Sử dụng thông tin ngữ cảnh dưới đây (được sắp xếp theo độ liên quan từ cao đến thấp) để trả lời người dùng.
+
+LƯU Ý QUAN TRỌNG:
+1. Nếu trong ngữ cảnh có nhiều mục cùng tên (ví dụ cùng là "Mai Hương"), hãy liệt kê rõ các lựa chọn dựa trên địa chỉ hoặc thông tin đi kèm.
+2. Nếu người dùng hỏi đích danh một địa điểm (ví dụ "Mai Hương ở Bắc Giang"), hãy ưu tiên tìm mục có chứa từ "Bắc Giang" trong ngữ cảnh.
+3. Chatbot không được bịa đặt thông tin. Nếu trong ngữ cảnh không thấy "Mai Hương" ở "Bắc Giang", hãy nói rõ: "Trong dữ liệu của tôi chỉ thấy nhà Mai Hương ở Nam Định (và các nơi khác nếu có), không thấy ở Bắc Giang".
+
 Ngữ cảnh:
-${context}`;
+${context || "Không tìm thấy dữ liệu liên quan trong bộ nhớ kiến thức."}`;
 
     // 3. Generate response with Gemini
     console.log("--- Generating response with Gemini-flash-latest ---");
@@ -143,5 +190,44 @@ ${context}`;
     res
       .status(500)
       .json({ message: "Error during chat", error: error.message });
+  }
+};
+
+export const deleteKnowledgeBase = async (req, res) => {
+  try {
+    const { filename } = req.body;
+    if (!filename) {
+      return res.status(400).json({ message: "Filename is required" });
+    }
+
+    const index = pc.index(indexName);
+    console.log(`Deleting all data for file: ${filename}...`);
+
+    // 1. Delete from Pinecone
+    await index.deleteMany({ source: { $eq: filename } });
+
+    // 2. Delete from MongoDB
+    await KnowledgeBaseFile.findOneAndDelete({ filename: filename });
+
+    res
+      .status(200)
+      .json({ message: `Successfully deleted knowledge base for ${filename}` });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res
+      .status(500)
+      .json({ message: "Error deleting knowledge base", error: error.message });
+  }
+};
+
+export const getKnowledgeSources = async (req, res) => {
+  try {
+    const files = await KnowledgeBaseFile.find().sort({ createdAt: -1 });
+    res.status(200).json(files);
+  } catch (error) {
+    console.error("List sources error:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching sources", error: error.message });
   }
 };

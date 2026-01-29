@@ -6,13 +6,38 @@ import {
   AlertCircle,
   Loader2,
   Brain,
+  Trash2,
+  Calendar,
+  Database,
 } from "lucide-react";
 import api from "../../services/api";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 const AiKnowledgeUpload = () => {
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [sources, setSources] = useState([]);
+  const [isLoadingSources, setIsLoadingSources] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fetch source list
+  const fetchSources = async () => {
+    setIsLoadingSources(true);
+    try {
+      const response = await api.get("/api/chatbot/files");
+      setSources(response.data);
+    } catch (error) {
+      console.error("Error fetching sources:", error);
+    } finally {
+      setIsLoadingSources(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchSources();
+  }, []);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -43,11 +68,31 @@ const AiKnowledgeUpload = () => {
       });
       toast.success("Đã cập nhật dữ liệu kiến thức AI thành công!");
       setFile(null);
+      fetchSources(); // Refresh list
     } catch (error) {
       console.error("Upload error:", error);
       toast.error(error.response?.data?.message || "Lỗi khi upload dữ liệu");
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleDeleteSource = async (filename) => {
+    if (
+      !window.confirm(`Bạn có chắc muốn xóa kiến thức từ file "${filename}"?`)
+    )
+      return;
+
+    setIsDeleting(true);
+    try {
+      await api.post("/api/chatbot/delete-file", { filename });
+      toast.success(`Đã xóa sạch kiến thức từ file ${filename}`);
+      fetchSources(); // Refresh list
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Lỗi khi xóa dữ liệu");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -134,17 +179,78 @@ const AiKnowledgeUpload = () => {
           <div className="flex gap-2 text-amber-800">
             <AlertCircle size={18} className="shrink-0" />
             <div className="text-xs space-y-1">
-              <p className="font-bold uppercase tracking-wider">Lưu ý:</p>
-              <p>
-                Hệ thống sẽ tự động đọc tất cả các ô trong file Excel của bạn.
+              <p className="font-bold uppercase tracking-wider text-amber-900">
+                Mẹo:
               </p>
-              <p>Môi hàng sẽ được coi là một mẩu thông tin kiến thức.</p>
               <p>
-                Dữ liệu cũ trên Pinecone sẽ không bị xóa, kiến thức mới sẽ được
-                bổ sung vào.
+                • Hệ thống sẽ tự động cấu trúc dữ liệu theo tên cột để AI dễ
+                hiểu hơn.
               </p>
+              <p>
+                • Để cập nhật một file đã có, chỉ cần upload lại file cùng tên.
+              </p>
+              <p>• Bạn có thể upload nhiều file để AI có kiến thức tổng hợp.</p>
             </div>
           </div>
+        </div>
+
+        {/* Source List Section */}
+        <div className="mt-4 pt-6 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+              <Database size={16} />
+              Các file đã nạp ({sources.length})
+            </h3>
+          </div>
+
+          {isLoadingSources ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="animate-spin text-indigo-500" />
+            </div>
+          ) : sources.length > 0 ? (
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {sources.map((src) => (
+                <div
+                  key={src._id}
+                  className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100 hover:border-indigo-200 transition-all group"
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="p-2 bg-white rounded-lg shadow-sm text-indigo-500">
+                      <FileText size={18} />
+                    </div>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-semibold text-gray-700 truncate">
+                        {src.originalName}
+                      </span>
+                      <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={10} />
+                          {format(new Date(src.createdAt), "HH:mm dd/MM/yyyy", {
+                            locale: vi,
+                          })}
+                        </span>
+                        <span>•</span>
+                        <span>{src.rowCount} dòng</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteSource(src.filename)}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    title="Xóa kiến thức từ file này"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 bg-gray-50/30 rounded-2xl border border-dashed border-gray-200">
+              <p className="text-xs text-gray-400">
+                Chưa có dữ liệu nào được nạp
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

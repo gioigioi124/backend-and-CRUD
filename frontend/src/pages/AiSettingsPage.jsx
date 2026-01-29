@@ -32,7 +32,7 @@ const AiSettingsPage = () => {
           </p>
           <div className="pt-4 flex gap-4">
             <div className="px-4 py-2 bg-indigo-50 rounded-lg text-indigo-700 text-sm font-medium">
-              OpenAI GPT-4o
+              Gemini Flash-Latest
             </div>
             <div className="px-4 py-2 bg-purple-50 rounded-lg text-purple-700 text-sm font-medium">
               Pinecone DB
