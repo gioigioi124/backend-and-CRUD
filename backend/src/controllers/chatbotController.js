@@ -29,15 +29,18 @@ export const uploadKnowledgeBase = async (req, res) => {
 
     // Prepare documents
     const documents = data.map((row, i) => {
-      // Create a structured string: "Column1: Value1, Column2: Value2..."
-      const content = Object.entries(row)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(", ");
+      // Create a structured string: "Source: filename, Column1: Value1, Column2: Value2..."
+      // Adding filename to content helps for queries like "giá bông" when "bông" is in the filename
+      const content =
+        `Nguồn dữ liệu: ${filename}, ` +
+        Object.entries(row)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(", ");
 
       return {
         id: `row-${Date.now()}-${i}`,
         content,
-        metadata: { ...row, text: content, source: req.file.originalname },
+        metadata: { ...row, text: content, source: filename },
       };
     });
 
@@ -114,12 +117,12 @@ export const chat = async (req, res) => {
     // 2. Query Pinecone
     const queryResponse = await index.query({
       vector: queryEmbedding,
-      topK: 25,
+      topK: 50, // Tăng lên 50 để lấy được nhiều dữ liệu so sánh hơn
       includeMetadata: true,
     });
 
     // Lọc những kết quả có score quá thấp (giảm nhiễu khi dữ liệu lớn)
-    const threshold = 0.4;
+    const threshold = 0.25; // Hạ thêm một chút để lấy được các dòng giá trị khác nhau
     const filteredMatches = queryResponse.matches.filter(
       (match) => match.score >= threshold,
     );
@@ -138,20 +141,23 @@ export const chat = async (req, res) => {
     const context = filteredMatches
       .map(
         (match) =>
-          `[Độ liên quan: ${Math.round(match.score * 100)}%]: ${match.metadata.text}`,
+          `[Nguồn: ${match.metadata.source || "Unknown"}, Độ liên quan: ${Math.round(match.score * 100)}%]: ${match.metadata.text}`,
       )
       .join("\n---\n");
 
-    const systemPrompt = `Bạn là một trợ lý AI chuyên nghiệp.
-Sử dụng thông tin ngữ cảnh dưới đây (được sắp xếp theo độ liên quan từ cao đến thấp) để trả lời người dùng.
+    const systemPrompt = `Bạn là một trợ lý AI hỗ trợ quản lý thông tin của doanh nghiệp. 
+Kiến thức của bạn được lấy từ các tệp dữ liệu đã tải lên, bao gồm thông tin khách hàng, công nợ, bảng giá vận chuyển (ví dụ: giá bông), và các tài liệu khác.
 
-LƯU Ý QUAN TRỌNG:
-1. Nếu trong ngữ cảnh có nhiều mục cùng tên (ví dụ cùng là "Mai Hương"), hãy liệt kê rõ các lựa chọn dựa trên địa chỉ hoặc thông tin đi kèm.
-2. Nếu người dùng hỏi đích danh một địa điểm (ví dụ "Mai Hương ở Bắc Giang"), hãy ưu tiên tìm mục có chứa từ "Bắc Giang" trong ngữ cảnh.
-3. Chatbot không được bịa đặt thông tin. Nếu trong ngữ cảnh không thấy "Mai Hương" ở "Bắc Giang", hãy nói rõ: "Trong dữ liệu của tôi chỉ thấy nhà Mai Hương ở Nam Định (và các nơi khác nếu có), không thấy ở Bắc Giang".
+Dưới đây là dữ liệu liên quan tìm được từ bộ nhớ kiến thức (context):
+${context || "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG NGỮ CẢNH."}
 
-Ngữ cảnh:
-${context || "Không tìm thấy dữ liệu liên quan trong bộ nhớ kiến thức."}`;
+HƯỚNG DẪN TRẢ LỜI:
+1. Trả lời dựa TRỰC TIẾP và CHỈ DỰA VÀO ngữ cảnh được cung cấp ở trên.
+2. Nếu người dùng hỏi về "cao nhất", "thấp nhất" hoặc yêu cầu so sánh, hãy quét qua tất cả các dòng trong ngữ cảnh và tìm giá trị tương ứng để trả lời.
+3. Nếu ngữ cảnh chứa thông tin về giá vận chuyển, hãy cung cấp chính xác con số và địa điểm.
+4. Nếu người dùng hỏi về thông tin không có trong ngữ cảnh, hãy thông báo rõ là không tìm thấy.
+5. Khi có nhiều thông tin tương tự (ví dụ: cước đi nhiều nơi ở tỉnh đó), hãy liệt kê đầy đủ.
+6. Luôn ưu tiên độ chính xác tuyệt đối từ dữ liệu nguồn.`;
 
     // 3. Generate response with Gemini
     console.log("--- Generating response with Gemini-flash-latest ---");

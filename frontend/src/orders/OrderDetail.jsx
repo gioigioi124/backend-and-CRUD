@@ -36,10 +36,12 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
 
   useEffect(() => {
     const fetchVehicleOrders = async () => {
+      if (!order) return;
+
       // Xác định vehicleId từ object hoặc string
       const vehicleId =
         order?.vehicle?._id ||
-        (typeof order.vehicle === "string" ? order.vehicle : null);
+        (typeof order?.vehicle === "string" ? order?.vehicle : null);
 
       if (viewMode === 2 && vehicleId) {
         try {
