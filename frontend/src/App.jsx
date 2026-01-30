@@ -14,7 +14,6 @@ import AiSettingsPage from "./pages/AiSettingsPage";
 import PrivateRoute from "./components/PrivateRoute";
 import { VehicleProvider } from "./vehicles/VehicleContext";
 import { AuthProvider } from "./context/AuthContext";
-import ChatWidget from "./components/chat/ChatWidget";
 
 function App() {
   return (
@@ -86,7 +85,6 @@ function App() {
                 </Route>
               </Routes>
             </VehicleProvider>
-            <ChatWidget />
           </AuthProvider>
         </BrowserRouter>
       </div>

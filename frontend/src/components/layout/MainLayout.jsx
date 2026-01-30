@@ -2,6 +2,7 @@ import { Outlet } from "react-router";
 import Header from "./Header";
 import AppSidebar from "./AppSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import ChatWidget from "../chat/ChatWidget";
 
 const MainLayout = () => {
   return (
@@ -13,6 +14,7 @@ const MainLayout = () => {
           <Outlet />
         </main>
       </SidebarInset>
+      <ChatWidget />
     </SidebarProvider>
   );
 };
