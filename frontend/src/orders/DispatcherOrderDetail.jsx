@@ -174,7 +174,8 @@ const DispatcherOrderDetail = ({
     } catch (error) {
       console.error(error);
       toast.error(
-        "Xác nhận thất bại: " + (error.response?.data?.message || error.message)
+        "Xác nhận thất bại: " +
+          (error.response?.data?.message || error.message),
       );
     } finally {
       setLoading(false);
@@ -223,14 +224,18 @@ const DispatcherOrderDetail = ({
 
       {/* Basic Info: Show Vehicle instead of single Order */}
       <Card>
-        <CardContent className="pt-6 space-y-2">
+        <CardContent className="pt-6 space-y-2 mb-4">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-gray-500">
                 Đang điều phối xe
               </p>
               <p className="text-xl font-bold text-primary">
-                {vehicle?.licensePlate || "N/A"}
+                {vehicle?.weight +
+                  " - " +
+                  vehicle?.time +
+                  " - " +
+                  vehicle?.destination || "N/A"}
               </p>
               <p className="text-xs text-gray-500">
                 {orders.length} đơn hàng - {localItems.length} mặt hàng
@@ -249,7 +254,7 @@ const DispatcherOrderDetail = ({
 
       {/* Items Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardHeader className="flex flex-row items-center justify-between py-2">
           <CardTitle className="text-md">
             {viewMode === 1 && "Chi tiết hàng hóa toàn xe"}
             {viewMode === 2 && "Xác nhận hàng hóa thực tế (Cả xe)"}
@@ -286,7 +291,7 @@ const DispatcherOrderDetail = ({
             </Button>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="py-2">
           <div className="border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
@@ -401,7 +406,7 @@ const DispatcherOrderDetail = ({
                                 handleInputChange(
                                   index,
                                   "warehouseConfirmValue",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="h-7 text-xs"
@@ -415,7 +420,7 @@ const DispatcherOrderDetail = ({
                                 handleInputChange(
                                   index,
                                   "leaderConfirmValue",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="h-7 text-xs font-bold text-blue-600"
