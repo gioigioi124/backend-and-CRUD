@@ -8,7 +8,7 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
+      content: "Xin chào! Giá bông, công nợ, khách hàng... tôi sẽ giúp bạn?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -75,7 +75,7 @@ const ChatWidget = () => {
               <div className="flex items-center gap-2">
                 <Bot size={24} className="text-blue-100" />
                 <div>
-                  <h3 className="font-semibold text-sm">Hỗ trợ AI</h3>
+                  <h3 className="font-semibold text-sm">Lê Văn Giới</h3>
                   <p className="text-[10px] text-blue-100 opacity-80">
                     Trực tuyến
                   </p>
