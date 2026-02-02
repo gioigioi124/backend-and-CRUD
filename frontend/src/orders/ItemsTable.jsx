@@ -75,14 +75,27 @@ const ItemsTable = ({ items, setItems }) => {
   // Cập nhật 1 field của 1 item
   const updateItem = (index, field, value) => {
     const newItems = [...items];
+    const currentItem = newItems[index];
+
     newItems[index] = {
-      ...newItems[index],
+      ...currentItem,
       [field]: value,
     };
 
-    // Nếu đang cập nhật quantity và item có cmQtyPerUnit, tự động tính lại cmQty
-    if (field === "quantity" && newItems[index].cmQtyPerUnit) {
-      newItems[index].cmQty = value * newItems[index].cmQtyPerUnit;
+    // Nếu đang cập nhật quantity, tự động tính lại cmQty
+    if (field === "quantity") {
+      let cmQtyPerUnit = currentItem.cmQtyPerUnit;
+
+      // Nếu không có cmQtyPerUnit, tính từ cmQty / quantity hiện tại
+      if (!cmQtyPerUnit && currentItem.cmQty && currentItem.quantity > 0) {
+        cmQtyPerUnit = currentItem.cmQty / currentItem.quantity;
+        newItems[index].cmQtyPerUnit = cmQtyPerUnit; // Lưu lại để dùng lần sau
+      }
+
+      // Nếu có cmQtyPerUnit (hoặc vừa tính được), tính lại cmQty
+      if (cmQtyPerUnit) {
+        newItems[index].cmQty = value * cmQtyPerUnit;
+      }
     }
 
     setItems(newItems);

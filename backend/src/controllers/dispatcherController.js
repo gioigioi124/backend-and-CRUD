@@ -123,8 +123,18 @@ export const confirmDispatcherBatch = async (req, res) => {
               };
 
               // Tự động tính shortageQty = max(quantity - leaderConfirm, 0)
-              const shortage = Math.max(item.quantity - update.leaderValue, 0);
+              const leaderValueNum = parseFloat(update.leaderValue) || 0;
+              const shortage = Math.max(item.quantity - leaderValueNum, 0);
               item.shortageQty = shortage;
+
+              // Cập nhật cmQty dựa trên số lượng được xác nhận
+              // Ưu tiên sử dụng cmQtyPerUnit nếu có, nếu không thì tính từ cmQty/quantity ban đầu
+              if (item.cmQtyPerUnit && item.cmQtyPerUnit > 0) {
+                item.cmQty = leaderValueNum * item.cmQtyPerUnit;
+              } else if (item.cmQty && item.quantity && item.quantity > 0) {
+                const cmPerUnit = item.cmQty / item.quantity;
+                item.cmQty = leaderValueNum * cmPerUnit;
+              }
 
               // Cập nhật shortageStatus
               if (shortage === 0) {

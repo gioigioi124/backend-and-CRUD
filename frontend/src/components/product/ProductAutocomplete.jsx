@@ -78,14 +78,14 @@ const ProductAutocomplete = ({ value, onSelect, placeholder }) => {
         case "ArrowDown":
           e.preventDefault();
           setHighlightedIndex((prev) =>
-            prev < suggestions.length - 1 ? prev + 1 : 0
+            prev < suggestions.length - 1 ? prev + 1 : 0,
           );
           break;
 
         case "ArrowUp":
           e.preventDefault();
           setHighlightedIndex((prev) =>
-            prev > 0 ? prev - 1 : suggestions.length - 1
+            prev > 0 ? prev - 1 : suggestions.length - 1,
           );
           break;
 
@@ -123,6 +123,22 @@ const ProductAutocomplete = ({ value, onSelect, placeholder }) => {
     // Check if the click is inside the dropdown
     if (dropdownRef.current && dropdownRef.current.contains(e.relatedTarget)) {
       return; // Don't close dropdown
+    }
+
+    // If user typed something but didn't select from dropdown, save it as free-form input
+    if (inputValue.trim() && inputValue !== value) {
+      // User entered text manually, save it
+      if (onSelect) {
+        onSelect({
+          productName: inputValue.trim(),
+          size: "",
+          unit: "Cái",
+          warehouse: "",
+          cmQty: 0,
+          cmQtyPerUnit: 0,
+          note: "",
+        });
+      }
     }
 
     // Close dropdown after a small delay to allow click events to fire
