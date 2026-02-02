@@ -13,7 +13,6 @@ const ChatWidget = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState("100%");
   const [isMobile, setIsMobile] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -34,9 +33,14 @@ const ChatWidget = () => {
     if (!isOpen || !isMobile) return;
 
     const handleViewportResize = () => {
-      if (window.visualViewport) {
-        const newHeight = window.visualViewport.height;
-        setViewportHeight(`${newHeight}px`);
+      if (window.visualViewport && chatContainerRef.current) {
+        // Update the container to match visual viewport
+        const vvHeight = window.visualViewport.height;
+        const vvOffsetTop = window.visualViewport.offsetTop;
+
+        chatContainerRef.current.style.height = `${vvHeight}px`;
+        chatContainerRef.current.style.top = `${vvOffsetTop}px`;
+
         // Scroll messages to bottom when keyboard opens
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -53,10 +57,13 @@ const ChatWidget = () => {
     }
 
     // Prevent body scroll when chat is open on mobile
+    const originalOverflow = document.body.style.overflow;
+    const originalPosition = document.body.style.position;
+    const originalWidth = document.body.style.width;
+
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
     document.body.style.width = "100%";
-    document.body.style.height = "100%";
 
     return () => {
       if (window.visualViewport) {
@@ -69,10 +76,9 @@ const ChatWidget = () => {
           handleViewportResize,
         );
       }
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.width = "";
-      document.body.style.height = "";
+      document.body.style.overflow = originalOverflow;
+      document.body.style.position = originalPosition;
+      document.body.style.width = originalWidth;
     };
   }, [isOpen, isMobile]);
 
@@ -157,12 +163,11 @@ const ChatWidget = () => {
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              style={isMobile ? { height: viewportHeight } : undefined}
               className={`
                 flex flex-col bg-white/95 backdrop-blur-xl overflow-hidden
                 ${
                   isMobile
-                    ? "w-full rounded-none"
+                    ? "w-full h-full rounded-none fixed inset-0"
                     : "mb-4 w-80 sm:w-96 h-[500px] border border-white/20 rounded-2xl shadow-2xl"
                 }
               `}
