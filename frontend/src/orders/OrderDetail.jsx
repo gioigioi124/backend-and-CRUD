@@ -35,6 +35,7 @@ const OrderDetail = ({
   vehicle,
   onPrint,
   refreshTrigger,
+  onRefresh,
 }) => {
   const { user } = useAuth();
   const isLeader = user?.role === "leader";
@@ -244,6 +245,11 @@ const OrderDetail = ({
           data = response.docs;
         }
         setVehicleOrders(data);
+      }
+      
+      // Gọi callback để refresh toàn bộ danh sách đơn hàng và chi tiết đơn hàng
+      if (onRefresh) {
+        onRefresh();
       }
     } catch (error) {
       console.error(error);

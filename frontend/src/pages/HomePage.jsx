@@ -241,6 +241,25 @@ const HomePage = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshTrigger((prev) => prev + 1);
+    
+    // Cập nhật số lượng đơn hàng cho xe hiện tại
+    if (selectedVehicle?._id && updateOrderCountRef.current) {
+      updateOrderCountRef.current(selectedVehicle._id);
+    }
+    
+    // Cập nhật lại chi tiết đơn hàng đang chọn
+    if (selectedOrder?._id) {
+      try {
+        const updatedOrder = await orderService.getOrder(selectedOrder._id);
+        setSelectedOrder(updatedOrder);
+      } catch (error) {
+        console.error("Không thể tải lại đơn hàng:", error);
+      }
+    }
+  };
+
   return (
     <div className="container mx-auto p-2 md:p-4 max-w-none">
       <PageHeader
@@ -296,6 +315,7 @@ const HomePage = () => {
             onUnassign={handleUnassign}
             onPrint={handlePrintSingleOrder}
             refreshTrigger={refreshTrigger}
+            onRefresh={handleRefresh}
           />
         </div>
       </div>
