@@ -23,7 +23,14 @@ import {
 import * as XLSX from "xlsx";
 import { orderService } from "@/services/orderService";
 
-const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
+const OrderDetail = ({
+  order,
+  onEdit,
+  onDelete,
+  vehicle,
+  onPrint,
+  refreshTrigger,
+}) => {
   const [viewMode, setViewMode] = useState(1); // 1: Đơn hàng hiện tại, 2: Cả xe
   const [vehicleOrders, setVehicleOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -70,7 +77,7 @@ const OrderDetail = ({ order, onEdit, onDelete, vehicle, onPrint }) => {
     };
 
     fetchVehicleOrders();
-  }, [viewMode, order?.vehicle, order?._id]);
+  }, [viewMode, order?.vehicle, order?._id, refreshTrigger]);
 
   if (!order) {
     return (

@@ -149,6 +149,7 @@ const OrderListPage = () => {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onPrint={handlePrint}
+              refreshTrigger={refreshTrigger}
             />
           </CardContent>
         </Card>

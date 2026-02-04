@@ -295,6 +295,7 @@ const HomePage = () => {
             vehicle={selectedVehicle}
             onUnassign={handleUnassign}
             onPrint={handlePrintSingleOrder}
+            refreshTrigger={refreshTrigger}
           />
         </div>
       </div>
