@@ -75,6 +75,13 @@ const OrderDetail = ({
             data = response.docs;
           }
 
+          // Sắp xếp đơn hàng theo tên khách hàng (giống VehicleOrderList.jsx)
+          data.sort((a, b) => {
+            const nameA = a.customer?.name || "";
+            const nameB = b.customer?.name || "";
+            return nameA.localeCompare(nameB, "vi");
+          });
+
           setVehicleOrders(data);
         } catch (error) {
           console.error("Error fetching vehicle orders:", error);
@@ -244,6 +251,14 @@ const OrderDetail = ({
         } else if (response.docs && Array.isArray(response.docs)) {
           data = response.docs;
         }
+        
+        // Sắp xếp đơn hàng theo tên khách hàng (giống VehicleOrderList.jsx)
+        data.sort((a, b) => {
+          const nameA = a.customer?.name || "";
+          const nameB = b.customer?.name || "";
+          return nameA.localeCompare(nameB, "vi");
+        });
+        
         setVehicleOrders(data);
       }
       
