@@ -513,7 +513,7 @@ const SurplusDeficitDashboard = () => {
 
         {/* Summary */}
         {filteredData.length > 0 && (
-          <CardContent className="pt-4 border-t">
+          <CardContent className="p-3 md:p-6 pt-4 border-t">
             <div className="flex flex-wrap gap-6 text-sm">
               <div>
                 <span className="text-gray-600">Tổng số mục: </span>

@@ -65,7 +65,7 @@ const CustomerUpload = ({ onUploadSuccess }) => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="p-6">
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
           Upload Dữ Liệu Khách Hàng
@@ -75,7 +75,7 @@ const CustomerUpload = ({ onUploadSuccess }) => {
           Số điện thoại)
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="p-6 pt-0 space-y-4">
         {/* File Input */}
         <div className="space-y-2">
           <label

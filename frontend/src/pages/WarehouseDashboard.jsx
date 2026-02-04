@@ -230,13 +230,13 @@ const WarehouseDashboard = () => {
       />
 
       <Card className="gap-0  max-w-7xl mx-auto">
-        <CardHeader>
+        <CardHeader className="p-6">
           <CardTitle className="text-base font-medium flex items-center gap-2">
             <Search className="w-4 h-4" />
             Bộ lọc tìm kiếm
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6 pt-0">
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-2">
               <span className="text-sm font-medium">Từ ngày:</span>
@@ -420,7 +420,7 @@ const WarehouseDashboard = () => {
 
         {/* Pagination Controls */}
         {totalItems > 0 && (
-          <CardContent className="pt-4 border-t">
+          <CardContent className="p-6 pt-4 border-t">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
               {/* Items info */}
               <div className="text-sm text-gray-600">

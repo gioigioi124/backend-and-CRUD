@@ -224,7 +224,7 @@ const DispatcherOrderDetail = ({
 
       {/* Basic Info: Show Vehicle instead of single Order */}
       <Card>
-        <CardContent className="pt-6 space-y-2 mb-4">
+        <CardContent className="p-6 space-y-2">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm font-medium text-gray-500">
@@ -254,7 +254,7 @@ const DispatcherOrderDetail = ({
 
       {/* Items Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between py-2">
+        <CardHeader className="flex flex-row items-center justify-between p-6">
           <CardTitle className="text-md">
             {viewMode === 1 && "Chi tiết hàng hóa toàn xe"}
             {viewMode === 2 && "Xác nhận hàng hóa thực tế (Cả xe)"}
@@ -291,7 +291,7 @@ const DispatcherOrderDetail = ({
             </Button>
           )}
         </CardHeader>
-        <CardContent className="py-2">
+        <CardContent className="p-6 pt-0">
           <div className="border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>

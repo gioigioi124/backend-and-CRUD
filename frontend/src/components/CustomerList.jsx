@@ -73,7 +73,7 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
       // If search query exists, use search API (no pagination)
       if (debouncedSearchQuery && debouncedSearchQuery.trim()) {
         const data = await customerService.searchCustomers(
-          debouncedSearchQuery.trim()
+          debouncedSearchQuery.trim(),
         );
         setCustomers(data);
         // Don't overwrite limit - use temp pagination for search display
@@ -87,7 +87,7 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
         // Otherwise use paginated getAllCustomers with fixed limit
         const data = await customerService.getAllCustomers(
           pagination.page,
-          PAGE_LIMIT
+          PAGE_LIMIT,
         );
         setCustomers(data.customers);
         setPagination(data.pagination);
@@ -177,13 +177,13 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
         bypassDebtCheck: !currentValue,
       });
       toast.success(
-        !currentValue ? "Đã bật bỏ qua công nợ" : "Đã tắt bỏ qua công nợ"
+        !currentValue ? "Đã bật bỏ qua công nợ" : "Đã tắt bỏ qua công nợ",
       );
       fetchCustomers();
     } catch (error) {
       console.error("Toggle bypass error:", error);
       toast.error(
-        error.response?.data?.message || "Lỗi khi cập nhật bỏ qua công nợ"
+        error.response?.data?.message || "Lỗi khi cập nhật bỏ qua công nợ",
       );
     }
   };
@@ -193,7 +193,7 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="p-6">
           <CardTitle>Danh Sách Khách Hàng</CardTitle>
           <CardDescription>
             {searchQuery && searchQuery.trim() ? (
@@ -216,7 +216,7 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
             )}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6 pt-0">
           {/* Search Bar */}
           <div className="mb-4 flex items-center gap-2">
             <div className="relative flex-1">
@@ -345,7 +345,7 @@ const CustomerList = ({ refreshTrigger, searchQuery, onSearchChange }) => {
                                   onCheckedChange={() =>
                                     handleToggleBypass(
                                       customer._id,
-                                      customer.bypassDebtCheck
+                                      customer.bypassDebtCheck,
                                     )
                                   }
                                   disabled={isEditing}
