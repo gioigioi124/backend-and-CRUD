@@ -732,11 +732,22 @@ const OrderDetail = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {localItems.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
+                      {localItems.map((item, index) => {
+                        const isItemSelected = item.orderId === order._id;
+                        return (
+                          <TableRow 
+                            key={index}
+                            className={isItemSelected ? "bg-blue-50" : ""}
+                          >
+                            <TableCell 
+                              className={`text-center ${
+                                isItemSelected
+                                  ? "border-l-4 border-l-blue-500"
+                                  : ""
+                              }`}
+                            >
+                              {index + 1}
+                            </TableCell>
                           <TableCell>
                             <div className="text-[10px] text-gray-400 uppercase font-bold">
                               {item.customerName}
@@ -789,8 +800,9 @@ const OrderDetail = ({
                           >
                             {item.note || item.customerNote || "-"}
                           </TableCell>
-                        </TableRow>
-                      ))}
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
