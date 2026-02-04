@@ -261,6 +261,21 @@ const OrderEditDialog = ({ open, onOpenChange, order, onSuccess }) => {
         prev.filter((item) => item.itemId !== shortageItem.itemId),
       );
 
+      // Nếu thiếu hàng này thuộc chính đơn hàng đang sửa, cập nhật cả state items
+      // để tránh việc khi bấm "Cập nhật" đơn hàng sẽ ghi đè lại trạng thái OPEN
+      if (order && shortageItem.orderId === order._id) {
+        setItems((prevItems) =>
+          prevItems.map((it) => {
+            // it._id có thể là kiểu string hoặc object tùy theo cách data được trả về
+            // nên so sánh dùng toString() cho chắc chắn
+            if (it._id && it._id.toString() === shortageItem.itemId.toString()) {
+              return { ...it, shortageStatus: "IGNORED" };
+            }
+            return it;
+          }),
+        );
+      }
+
       toast.success(`Đã bỏ qua thiếu hàng "${shortageItem.productName}"`);
     } catch (error) {
       toast.error(

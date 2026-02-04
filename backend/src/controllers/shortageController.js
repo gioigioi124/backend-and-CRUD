@@ -216,6 +216,7 @@ export const ignoreShortage = async (req, res) => {
 
     // Cập nhật trạng thái
     item.shortageStatus = "IGNORED";
+    order.markModified("items");
     await order.save();
 
     res.status(200).json({
