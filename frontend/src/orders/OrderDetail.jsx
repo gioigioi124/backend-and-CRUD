@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Pencil,
   Trash2,
@@ -11,6 +12,8 @@ import {
   FileDown,
   Eye,
   Box,
+  CheckSquare,
+  Zap,
 } from "lucide-react";
 import {
   Table,
@@ -22,6 +25,8 @@ import {
 } from "@/components/ui/table";
 import * as XLSX from "xlsx";
 import { orderService } from "@/services/orderService";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 const OrderDetail = ({
   order,
@@ -31,26 +36,28 @@ const OrderDetail = ({
   onPrint,
   refreshTrigger,
 }) => {
-  const [viewMode, setViewMode] = useState(1); // 1: Đơn hàng hiện tại, 2: Cả xe
+  const { user } = useAuth();
+  const isLeader = user?.role === "leader";
+  
+  const [viewMode, setViewMode] = useState(1); // 1: Đơn hàng hiện tại, 2: Cả xe, 3: Leader xác nhận
   const [vehicleOrders, setVehicleOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  
+  // State cho viewMode 3 (Leader xác nhận)
+  const [localItems, setLocalItems] = useState([]);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
-  useEffect(() => {
-    // Luôn về view đơn hàng khi đổi order
-    setViewMode(1);
-    setVehicleOrders([]);
-  }, [order?._id]);
+  // Tính vehicleId một lần để tránh re-render không cần thiết
+  const vehicleId = useMemo(() => {
+    return order?.vehicle?._id || (typeof order?.vehicle === "string" ? order?.vehicle : null);
+  }, [order?.vehicle?._id, order?.vehicle]);
 
   useEffect(() => {
     const fetchVehicleOrders = async () => {
       if (!order) return;
 
-      // Xác định vehicleId từ object hoặc string
-      const vehicleId =
-        order?.vehicle?._id ||
-        (typeof order?.vehicle === "string" ? order?.vehicle : null);
-
-      if (viewMode === 2 && vehicleId) {
+      // Fetch dữ liệu cho cả viewMode 2 (Xem cả xe) và viewMode 3 (Leader xác nhận)
+      if ((viewMode === 2 || viewMode === 3) && vehicleId) {
         try {
           setLoadingOrders(true);
           const response = await orderService.getOrdersByVehicle(vehicleId);
@@ -77,7 +84,43 @@ const OrderDetail = ({
     };
 
     fetchVehicleOrders();
-  }, [viewMode, order?.vehicle, order?._id, refreshTrigger]);
+  }, [viewMode, vehicleId, refreshTrigger]);
+
+  // Effect để tạo localItems cho viewMode 3
+  useEffect(() => {
+    if (viewMode === 3 && vehicleOrders && vehicleOrders.length > 0) {
+      const allItems = [];
+      vehicleOrders.forEach((o) => {
+        if (o.items) {
+          o.items.forEach((item, index) => {
+            allItems.push({
+              ...item,
+              orderId: o._id,
+              orderDate: o.orderDate,
+              customerName: o.customer?.name || "N/A",
+              customerNote: o.customer?.note || "",
+              itemIndex: index,
+              warehouseConfirmValue: item.warehouseConfirm?.value ?? "",
+              leaderConfirmValue: item.leaderConfirm?.value ?? "",
+            });
+          });
+        }
+      });
+
+      // Sắp xếp items
+      const sortedItems = sortItems(allItems, true);
+
+      // Cập nhật STT
+      const itemsWithNewStt = sortedItems.map((item, index) => ({
+        ...item,
+        stt: index + 1,
+      }));
+
+      setLocalItems(itemsWithNewStt);
+    } else if (viewMode !== 3) {
+      setLocalItems([]);
+    }
+  }, [viewMode, vehicleOrders]);
 
   if (!order) {
     return (
@@ -154,6 +197,64 @@ const OrderDetail = ({
   };
 
   const currentVehicleItems = viewMode === 2 ? getVehicleItems() : [];
+
+  // Handler cho input trong viewMode 3
+  const handleInputChange = (index, field, value) => {
+    const newItems = [...localItems];
+    newItems[index][field] = value;
+    setLocalItems(newItems);
+  };
+
+  // Quick fill cho viewMode 3
+  const handleQuickFill = () => {
+    const newItems = localItems.map((item) => ({
+      ...item,
+      leaderConfirmValue: item.quantity.toString(),
+    }));
+    setLocalItems(newItems);
+    toast.success("Đã cập nhật số lượng thực tế bằng số lượng đơn hàng");
+  };
+
+  // Xác nhận hàng cho viewMode 3
+  const handleConfirm = async () => {
+    try {
+      setConfirmLoading(true);
+      const updates = localItems.map((item) => ({
+        orderId: item.orderId,
+        itemIndex: item.itemIndex,
+        leaderValue: item.leaderConfirmValue,
+        warehouseValue: item.warehouseConfirmValue,
+      }));
+
+      await orderService.confirmDispatcherBatch(updates);
+      toast.success("Xác nhận thông tin toàn bộ xe thành công!");
+      
+      // Reload vehicleOrders để cập nhật lại dữ liệu
+      const vehicleId = order?.vehicle?._id || (typeof order?.vehicle === "string" ? order?.vehicle : null);
+      if (vehicleId) {
+        const response = await orderService.getOrdersByVehicle(vehicleId);
+        let data = [];
+        if (Array.isArray(response)) {
+          data = response;
+        } else if (response.orders && Array.isArray(response.orders)) {
+          data = response.orders;
+        } else if (response.data && Array.isArray(response.data)) {
+          data = response.data;
+        } else if (response.docs && Array.isArray(response.docs)) {
+          data = response.docs;
+        }
+        setVehicleOrders(data);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        "Xác nhận thất bại: " +
+          (error.response?.data?.message || error.message)
+      );
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
 
   // Kiểm tra trạng thái gán xe
   const isAssigned = order.vehicle !== null && order.vehicle !== undefined;
@@ -381,12 +482,27 @@ const OrderDetail = ({
         >
           <Truck className="w-4 h-4" /> Xem cả xe
         </Button>
+        {/* Tab xác nhận chỉ hiển thị cho leader */}
+        {isLeader && (
+          <Button
+            variant={viewMode === 3 ? "white" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode(3)}
+            disabled={!order.vehicle}
+            className={`gap-2 ${viewMode === 3 ? "shadow-sm" : ""}`}
+            title={!order.vehicle ? "Đơn hàng chưa được gán xe" : ""}
+          >
+            <CheckSquare className="w-4 h-4" /> Xác nhận
+          </Button>
+        )}
       </div>
 
       {/* Header với nút Edit, Print và Delete */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
         <h2 className="text-base md:text-lg font-semibold">
-          {viewMode === 1 ? "Chi tiết đơn hàng" : "Tổng hợp đơn hàng trên xe"}
+          {viewMode === 1 && "Chi tiết đơn hàng"}
+          {viewMode === 2 && "Tổng hợp đơn hàng trên xe"}
+          {viewMode === 3 && "Leader xác nhận hàng hóa"}
         </h2>
         <div className="flex flex-wrap gap-1.5 md:gap-2">
           {viewMode === 1 && (
@@ -572,6 +688,114 @@ const OrderDetail = ({
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
+          ) : viewMode === 3 ? (
+            /* VIEW 3: LEADER XÁC NHẬN */
+            localItems.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Chưa có hàng hóa nào để xác nhận. Vui lòng đảm bảo đơn hàng đã được gán xe.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Action buttons */}
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleQuickFill}
+                    className="gap-1 h-8"
+                  >
+                    <Zap className="w-3 h-3" /> Điền nhanh
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleConfirm}
+                    disabled={confirmLoading}
+                    className="gap-1 h-8 bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckSquare className="w-3 h-3" /> Xác nhận xe
+                  </Button>
+                </div>
+
+                {/* Table xác nhận */}
+                <div className="border rounded-lg overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="w-[40px] text-center">STT</TableHead>
+                        <TableHead className="min-w-[150px]">
+                          Khách hàng / Hàng hóa
+                        </TableHead>
+                        <TableHead className="w-[60px] text-right">SL Đơn</TableHead>
+                        <TableHead className="w-[100px]">Kho XN</TableHead>
+                        <TableHead className="w-[100px]">Leader XN</TableHead>
+                        <TableHead>Ghi chú</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {localItems.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-[10px] text-gray-400 uppercase font-bold">
+                              {item.customerName}
+                            </div>
+                            <div className="text-sm">{item.productName}</div>
+                            {item.size && (
+                              <div className="text-[10px] text-gray-500">
+                                KT: {item.size}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {item.quantity}{" "}
+                            <span className="text-[10px] text-gray-400">
+                              {item.unit}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={item.warehouseConfirmValue}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  index,
+                                  "warehouseConfirmValue",
+                                  e.target.value
+                                )
+                              }
+                              className="h-7 text-xs"
+                              placeholder="..."
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={item.leaderConfirmValue}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  index,
+                                  "leaderConfirmValue",
+                                  e.target.value
+                                )
+                              }
+                              className="h-7 text-xs font-bold text-blue-600"
+                              type="text"
+                              placeholder="..."
+                            />
+                          </TableCell>
+                          <TableCell
+                            className="text-[10px] text-gray-500 max-w-[100px] truncate"
+                            title={item.customerNote + " | " + item.note}
+                          >
+                            {item.note || item.customerNote || "-"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )
           ) : viewMode === 1 ? (
             /* VIEW 1: ĐƠN HÀNG ĐANG CHỌN */
             !order.items || order.items.length === 0 ? (
