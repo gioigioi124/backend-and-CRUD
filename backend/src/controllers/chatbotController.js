@@ -116,7 +116,7 @@ export const chat = async (req, res) => {
     // 2. Query Pinecone
     const queryResponse = await index.query({
       vector: queryEmbedding,
-      topK: 50, // Tăng lên 50 để lấy được nhiều dữ liệu so sánh hơn
+      topK: 20, // Tăng lên 50 để lấy được nhiều dữ liệu so sánh hơn
       includeMetadata: true,
     });
 
