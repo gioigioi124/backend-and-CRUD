@@ -145,11 +145,48 @@ HƯỚNG DẪN TRẢ LỜI:
 3. Nếu ngữ cảnh chứa thông tin về giá vận chuyển, hãy cung cấp chính xác con số và địa điểm.
 4. Nếu người dùng hỏi về thông tin không có trong ngữ cảnh, hãy thông báo rõ là không tìm thấy.
 5. Khi có nhiều thông tin tương tự (ví dụ: cước đi nhiều nơi ở tỉnh đó), hãy liệt kê đầy đủ.
-6. Luôn ưu tiên độ chính xác tuyệt đối từ dữ liệu nguồn.`;
+6. Luôn ưu tiên độ chính xác tuyệt đối từ dữ liệu nguồn.
+
+ĐỊNH DẠNG TRẢ LỜI (BẮT BUỘC):
+7. **LUÔN LUÔN sử dụng BẢNG MARKDOWN** khi liệt kê dữ liệu (từ 2 items trở lên).
+   KHÔNG BAO GIỜ dùng bullet points (*), numbered list, hoặc line breaks để liệt kê.
+   
+8. Format bảng markdown CHÍNH XÁC như sau:
+   | Tên cột 1 | Tên cột 2 | Tên cột 3 |
+   |-----------|-----------|-----------|
+   | Giá trị 1 | Giá trị 2 | Giá trị 3 |
+   | Giá trị 1 | Giá trị 2 | Giá trị 3 |
+   
+   LƯU Ý: 
+   - Dòng đầu tiên là header (tên cột)
+   - Dòng thứ hai PHẢI có dấu gạch ngang |---|---|
+   - Mỗi dòng dữ liệu sau đó là một row
+
+9. Ví dụ CỤ THỂ cho câu hỏi "giá bông":
+   
+   Dưới đây là các thông tin về giá bông được tìm thấy:
+   
+   | Loại giá bông | Điều kiện | Giá (VNĐ) |
+   |---------------|-----------|-----------|
+   | Giá bông theo điều kiện đặt tiền | - | 31000 |
+   | Giá bông không đặt tiền | - | 31000 |
+   | Giá bông đặt tiền tối thiểu 30 triệu/lần | - | 26700 |
+   | Giá bông ghé đặt tiền | - | 27700 |
+   | Giá bông đã tính vận chuyển | - | 27200 |
+   | Giá bông thạch thất | Đã tính vận chuyển | 27200 |
+
+10. TUYỆT ĐỐI KHÔNG trả lời dạng này:
+    ❌ "Giá bông theo điều kiện đặt tiền: 31000"
+    ❌ "- Giá bông không đặt tiền là 31000"
+    ❌ "Giá bông đặt tiền tối thiểu 30 triệu/lần là 26700"
+    
+    ✅ Chỉ trả lời dạng BẢNG MARKDOWN như ví dụ trên.
+`;
 
     // 3. Generate response with Gemini
+    // Trying gemini-2.0-flash-lite as a last resort to bypass account-level quota
     const model = genAI.getGenerativeModel({
-      model: "gemini-flash-latest",
+      model: "gemini-2.0-flash-lite",
       systemInstruction: {
         parts: [{ text: systemPrompt }],
       },
@@ -177,10 +214,30 @@ HƯỚNG DẪN TRẢ LỜI:
 
     res.status(200).json({ reply });
   } catch (error) {
-    console.error("Chat error details:", error);
-    res
-      .status(500)
-      .json({ message: "Error during chat", error: error.message });
+    console.error("Chat error details:", {
+      message: error.message,
+      status: error.status,
+      statusText: error.statusText,
+      details: error.details,
+      stack: error.stack,
+    });
+
+    // Check if it's a rate limit error
+    if (
+      error.message?.includes("quota") ||
+      error.message?.includes("rate limit")
+    ) {
+      return res.status(429).json({
+        message: "Đã vượt quá giới hạn request. Vui lòng thử lại sau vài giây.",
+        error: error.message,
+        isRateLimit: true,
+      });
+    }
+
+    res.status(500).json({
+      message: "Lỗi khi xử lý chat",
+      error: error.message,
+    });
   }
 };
 

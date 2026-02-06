@@ -1,10 +1,23 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Bot, Minimize2 } from "lucide-react";
+import {
+  MessageCircle,
+  X,
+  Send,
+  Bot,
+  Minimize2,
+  Maximize2,
+} from "lucide-react";
 import api from "@/services/api";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    const saved = localStorage.getItem("chatExpanded");
+    return saved === "true";
+  });
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -27,6 +40,11 @@ const ChatWidget = () => {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Save expanded state to localStorage
+  useEffect(() => {
+    localStorage.setItem("chatExpanded", isExpanded.toString());
+  }, [isExpanded]);
 
   // Handle visual viewport changes (keyboard open/close)
   useEffect(() => {
@@ -115,11 +133,22 @@ const ChatWidget = () => {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Chat error:", error);
+
+      let errorMessage = "Rất tiếc, đã có lỗi xảy ra. Vui lòng thử lại sau.";
+
+      // Check if it's a rate limit error
+      if (error.response?.status === 429 || error.response?.data?.isRateLimit) {
+        errorMessage =
+          "⏱️ Đã vượt quá giới hạn request của Gemini API. Vui lòng đợi 10-15 giây rồi thử lại.";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "Rất tiếc, đã có lỗi xảy ra. Vui lòng thử lại sau.",
+          content: errorMessage,
         },
       ]);
     } finally {
@@ -165,7 +194,9 @@ const ChatWidget = () => {
                 ${
                   isMobile
                     ? "w-full h-full rounded-none fixed inset-0"
-                    : "mb-4 w-80 sm:w-96 h-[500px] border border-white/20 rounded-2xl shadow-2xl"
+                    : isExpanded
+                      ? "mb-4 w-[700px] h-[600px] border border-white/20 rounded-2xl shadow-2xl"
+                      : "mb-4 w-80 sm:w-96 h-[500px] border border-white/20 rounded-2xl shadow-2xl"
                 }
               `}
             >
@@ -180,12 +211,23 @@ const ChatWidget = () => {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                >
-                  {isMobile ? <X size={22} /> : <Minimize2 size={18} />}
-                </button>
+                <div className="flex items-center gap-1">
+                  {!isMobile && (
+                    <button
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                      title={isExpanded ? "Thu nhỏ" : "Mở rộng"}
+                    >
+                      <Maximize2 size={18} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  >
+                    {isMobile ? <X size={22} /> : <Minimize2 size={18} />}
+                  </button>
+                </div>
               </div>
 
               {/* Messages */}
@@ -202,7 +244,64 @@ const ChatWidget = () => {
                           : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-none"
                       }`}
                     >
-                      {msg.content}
+                      {msg.role === "user" ? (
+                        msg.content
+                      ) : (
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            table: ({ ...props }) => (
+                              <div className="overflow-x-auto my-2">
+                                <table
+                                  className="min-w-full border-collapse border border-gray-300 text-xs"
+                                  {...props}
+                                />
+                              </div>
+                            ),
+                            thead: ({ ...props }) => (
+                              <thead className="bg-gray-50" {...props} />
+                            ),
+                            th: ({ ...props }) => (
+                              <th
+                                className="border border-gray-300 bg-blue-50 px-2 py-1.5 text-left font-semibold text-gray-700"
+                                {...props}
+                              />
+                            ),
+                            td: ({ ...props }) => (
+                              <td
+                                className="border border-gray-300 px-2 py-1.5"
+                                {...props}
+                              />
+                            ),
+                            tr: ({ ...props }) => (
+                              <tr className="hover:bg-gray-50" {...props} />
+                            ),
+                            p: ({ ...props }) => (
+                              <p className="mb-2 last:mb-0" {...props} />
+                            ),
+                            strong: ({ ...props }) => (
+                              <strong
+                                className="font-semibold text-blue-700"
+                                {...props}
+                              />
+                            ),
+                            code: ({ inline, ...props }) =>
+                              inline ? (
+                                <code
+                                  className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono"
+                                  {...props}
+                                />
+                              ) : (
+                                <code
+                                  className="block bg-gray-100 p-2 rounded my-2 text-xs font-mono"
+                                  {...props}
+                                />
+                              ),
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      )}
                     </div>
                   </div>
                 ))}
