@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { MessageCircle, X, Send, Bot, Minimize2 } from "lucide-react";
-import axios from "axios";
+import api from "@/services/api";
 import { motion, AnimatePresence } from "framer-motion";
 
 const ChatWidget = () => {
@@ -103,13 +103,10 @@ const ChatWidget = () => {
     inputRef.current?.focus();
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || ""}/api/chatbot/message`,
-        {
-          message: input,
-          history: messages,
-        },
-      );
+      const response = await api.post("/api/chatbot/message", {
+        message: input,
+        history: messages,
+      });
 
       const assistantMessage = {
         role: "assistant",

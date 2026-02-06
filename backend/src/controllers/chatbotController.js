@@ -45,7 +45,7 @@ export const uploadKnowledgeBase = async (req, res) => {
 
     // Get embedding model
     const embeddingModel = genAI.getGenerativeModel({
-      model: "models/text-embedding-004",
+      model: "models/gemini-embedding-001",
     });
 
     // Create embeddings and upsert
@@ -58,6 +58,7 @@ export const uploadKnowledgeBase = async (req, res) => {
         requests: chunk.map((doc) => ({
           content: { role: "user", parts: [{ text: doc.content }] },
           taskType: "RETRIEVAL_DOCUMENT",
+          outputDimensionality: 768,
         })),
       });
 
@@ -102,12 +103,13 @@ export const chat = async (req, res) => {
 
     // 1. Create embedding for user query
     const embeddingModel = genAI.getGenerativeModel({
-      model: "models/text-embedding-004",
+      model: "models/gemini-embedding-001",
     });
 
     const embeddingResult = await embeddingModel.embedContent({
       content: { parts: [{ text: message }] },
       taskType: "RETRIEVAL_QUERY",
+      outputDimensionality: 768,
     });
     const queryEmbedding = embeddingResult.embedding.values;
 
