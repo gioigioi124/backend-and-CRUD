@@ -102,23 +102,51 @@ export const chat = async (req, res) => {
     const index = pc.index(indexName);
 
     // 1. Create embedding for user query
-    const embeddingModel = genAI.getGenerativeModel({
-      model: "models/gemini-embedding-001",
-    });
+    let embeddingResult;
+    try {
+      const embeddingModel = genAI.getGenerativeModel({
+        model: "models/gemini-embedding-001",
+      });
 
-    const embeddingResult = await embeddingModel.embedContent({
-      content: { parts: [{ text: message }] },
-      taskType: "RETRIEVAL_QUERY",
-      outputDimensionality: 768,
-    });
+      embeddingResult = await embeddingModel.embedContent({
+        content: { parts: [{ text: message }] },
+        taskType: "RETRIEVAL_QUERY",
+        outputDimensionality: 768,
+      });
+    } catch (embError) {
+      console.error("Embedding API Error:", embError);
+      if (embError.status === 429 || embError.message?.includes("quota")) {
+        return res.status(429).json({
+          message:
+            "Giới hạn tạo embedding (Gemini) đã đạt. Vui lòng thử lại sau.",
+          error: embError.message,
+          source: "embedding",
+        });
+      }
+      throw new Error(`Embedding failed: ${embError.message}`);
+    }
     const queryEmbedding = embeddingResult.embedding.values;
 
     // 2. Query Pinecone
-    const queryResponse = await index.query({
-      vector: queryEmbedding,
-      topK: 20, // Tăng lên 50 để lấy được nhiều dữ liệu so sánh hơn
-      includeMetadata: true,
-    });
+    let queryResponse;
+    try {
+      queryResponse = await index.query({
+        vector: queryEmbedding,
+        topK: 20,
+        includeMetadata: true,
+      });
+    } catch (pcError) {
+      console.error("Pinecone Query Error:", pcError);
+      if (pcError.status === 429 || pcError.message?.includes("Rate limit")) {
+        return res.status(429).json({
+          message:
+            "Giới hạn truy vấn database (Pinecone) đã đạt. Vui lòng thử lại sau.",
+          error: pcError.message,
+          source: "pinecone",
+        });
+      }
+      throw new Error(`Pinecone query failed: ${pcError.message}`);
+    }
 
     // Lọc những kết quả có score quá thấp (giảm nhiễu khi dữ liệu lớn)
     const threshold = 0.25; // Hạ thêm một chút để lấy được các dòng giá trị khác nhau
@@ -184,9 +212,9 @@ HƯỚNG DẪN TRẢ LỜI:
 `;
 
     // 3. Generate response with Gemini
-    // Trying gemini-2.0-flash-lite as a last resort to bypass account-level quota
+    // Using gemini-2.5-flash-lite as it has a higher quota (10 RPM) and was verified to work
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-lite",
+      model: "models/gemini-2.5-flash-lite",
       systemInstruction: {
         parts: [{ text: systemPrompt }],
       },
@@ -205,13 +233,26 @@ HƯỚNG DẪN TRẢ LỜI:
       geminiHistory.shift();
     }
 
-    const chatInstance = model.startChat({
-      history: geminiHistory,
-    });
+    let result;
+    try {
+      const chatInstance = model.startChat({
+        history: geminiHistory,
+      });
 
-    const result = await chatInstance.sendMessage(message);
+      result = await chatInstance.sendMessage(message);
+    } catch (genError) {
+      console.error("Gemini Generation Error:", genError);
+      if (genError.status === 429 || genError.message?.includes("quota")) {
+        return res.status(429).json({
+          message: "Giới hạn chat (Gemini) đã đạt. Vui lòng thử lại sau.",
+          error: genError.message,
+          source: "generation",
+        });
+      }
+      throw new Error(`Generation failed: ${genError.message}`);
+    }
+
     const reply = result.response.text();
-
     res.status(200).json({ reply });
   } catch (error) {
     console.error("Chat error details:", {
