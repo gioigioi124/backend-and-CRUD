@@ -6,6 +6,7 @@ import {
   Bot,
   Minimize2,
   Maximize2,
+  RotateCcw,
 } from "lucide-react";
 import api from "@/services/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -156,6 +157,21 @@ const ChatWidget = () => {
     }
   };
 
+  const handleNewChat = () => {
+    if (
+      window.confirm("Bạn có chắc chắn muốn bắt đầu cuộc trò chuyện mới không?")
+    ) {
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "Xin chào! Giá bông, công nợ, khách hàng... tôi sẽ giúp bạn?",
+        },
+      ]);
+      setInput("");
+    }
+  };
+
   // Handle input focus to prevent zoom on iOS
   const handleInputFocus = () => {
     // Scroll to bottom when input is focused
@@ -205,27 +221,51 @@ const ChatWidget = () => {
                 <div className="flex items-center gap-2">
                   <Bot size={24} className="text-blue-100" />
                   <div>
-                    <h3 className="font-semibold text-sm">Lê Văn Giới</h3>
+                    <h3 className="font-semibold text-sm">Gemini AI</h3>
                     <p className="text-[10px] text-blue-100 opacity-80">
                       Trực tuyến
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
+                  <button
+                    onClick={handleNewChat}
+                    className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/20 rounded-lg transition-colors text-[11px] font-medium"
+                    title="Trò chuyện mới"
+                  >
+                    <RotateCcw size={16} />
+                    <span>Tạo mới</span>
+                  </button>
                   {!isMobile && (
                     <button
                       onClick={() => setIsExpanded(!isExpanded)}
-                      className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                      className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/20 rounded-lg transition-colors text-[11px] font-medium"
                       title={isExpanded ? "Thu nhỏ" : "Mở rộng"}
                     >
-                      <Maximize2 size={18} />
+                      {isExpanded ? (
+                        <Minimize2 size={16} />
+                      ) : (
+                        <Maximize2 size={16} />
+                      )}
+                      <span>{isExpanded ? "Thu nhỏ" : "Mở rộng"}</span>
                     </button>
                   )}
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                    className="p-2 hover:bg-red-500/20 rounded-full transition-colors group"
+                    title="Thu nhỏ"
                   >
-                    {isMobile ? <X size={22} /> : <Minimize2 size={18} />}
+                    {isMobile ? (
+                      <X
+                        size={22}
+                        className="text-red-200 group-hover:text-red-400"
+                      />
+                    ) : (
+                      <Minimize2
+                        size={18}
+                        className="text-red-200 group-hover:text-red-400"
+                      />
+                    )}
                   </button>
                 </div>
               </div>
@@ -347,17 +387,13 @@ const ChatWidget = () => {
           )}
         </AnimatePresence>
 
-        {/* Toggle button - hide on mobile when chat is open */}
-        {!(isMobile && isOpen) && (
+        {/* Toggle button - hide when chat is open */}
+        {!isOpen && (
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 ${
-              isOpen
-                ? "bg-red-500 rotate-90"
-                : "bg-gradient-to-tr from-blue-600 to-indigo-600"
-            }`}
+            className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 bg-gradient-to-tr from-blue-600 to-indigo-600"
           >
-            {isOpen ? <X size={28} /> : <MessageCircle size={28} />}
+            <MessageCircle size={28} />
           </button>
         )}
       </div>
