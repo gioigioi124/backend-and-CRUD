@@ -32,6 +32,37 @@ const ChatWidget = () => {
   const inputRef = useRef(null);
   const chatContainerRef = useRef(null);
 
+  // Format numbers in text with commas, excluding phone numbers and customer codes
+  const formatNumbersInText = (text) => {
+    if (!text) return text;
+
+    // Pattern to match standalone numbers (not part of phone/code patterns)
+    // This will match numbers that are:
+    // - At least 4 digits (to avoid formatting small numbers like years)
+    // - Not preceded by common code prefixes or patterns
+    // - Not in the middle of alphanumeric strings
+    return text.replace(/(?<![\w-])(\d{4,})(?![\w-])/g, (match) => {
+      // Skip if it starts with 0 (likely phone number, ID, or code)
+      if (match.startsWith("0")) {
+        return match;
+      }
+
+      // Skip if it looks like a phone number (10-11 digits)
+      if (match.length >= 10 && match.length <= 11) {
+        return match;
+      }
+
+      // Skip if it looks like a customer code pattern (contains specific prefixes)
+      // Adjust this pattern based on your customer code format
+      if (/^[A-Z]{2,}\d+$/i.test(match)) {
+        return match;
+      }
+
+      // Format the number with commas
+      return parseInt(match, 10).toLocaleString("en-US");
+    });
+  };
+
   // Detect mobile device
   useEffect(() => {
     const checkMobile = () => {
@@ -339,7 +370,7 @@ const ChatWidget = () => {
                               ),
                           }}
                         >
-                          {msg.content}
+                          {formatNumbersInText(msg.content)}
                         </ReactMarkdown>
                       )}
                     </div>
