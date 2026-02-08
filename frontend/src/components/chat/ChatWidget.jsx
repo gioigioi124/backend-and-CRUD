@@ -7,11 +7,13 @@ import {
   Minimize2,
   Maximize2,
   RotateCcw,
+  Download,
 } from "lucide-react";
 import api from "@/services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import * as XLSX from "xlsx";
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,6 +33,68 @@ const ChatWidget = () => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const chatContainerRef = useRef(null);
+
+  // Check if message contains a markdown table
+  const hasTable = (content) => {
+    return content && content.includes("|") && content.includes("---");
+  };
+
+  // Convert markdown table to Excel and download
+  const downloadTableAsExcel = (content, messageIndex) => {
+    if (!content) return;
+
+    // Extract table from markdown
+    const lines = content.split("\n");
+    const tableLines = [];
+    let inTable = false;
+
+    for (const line of lines) {
+      if (line.trim().startsWith("|")) {
+        inTable = true;
+        // Skip separator lines (e.g., |---|---|)
+        if (!line.includes("---")) {
+          tableLines.push(line);
+        }
+      } else if (inTable) {
+        break;
+      }
+    }
+
+    if (tableLines.length === 0) return;
+
+    // Convert to 2D array
+    const tableData = tableLines.map((line) => {
+      // Remove leading and trailing pipes, split by pipe
+      return line
+        .trim()
+        .replace(/^\|/, "")
+        .replace(/\|$/, "")
+        .split("|")
+        .map((cell) => cell.trim());
+    });
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(tableData);
+
+    // Auto-size columns
+    const colWidths = [];
+    tableData.forEach((row) => {
+      row.forEach((cell, colIndex) => {
+        const cellLength = cell.length;
+        if (!colWidths[colIndex] || colWidths[colIndex] < cellLength) {
+          colWidths[colIndex] = cellLength;
+        }
+      });
+    });
+    ws["!cols"] = colWidths.map((width) => ({ wch: Math.min(width + 2, 50) }));
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Bảng dữ liệu");
+
+    // Generate Excel file and download
+    XLSX.writeFile(wb, `table_${messageIndex}_${new Date().getTime()}.xlsx`);
+  };
 
   // Format numbers in text with commas, excluding phone numbers and customer codes
   const formatNumbersInText = (text) => {
@@ -309,12 +373,24 @@ const ChatWidget = () => {
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-2xl p-3 text-sm ${
+                      className={`max-w-[80%] rounded-2xl p-3 text-sm relative ${
                         msg.role === "user"
                           ? "bg-blue-600 text-white rounded-tr-none"
                           : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-none"
                       }`}
                     >
+                      {msg.role === "assistant" && hasTable(msg.content) && (
+                        <button
+                          onClick={() =>
+                            downloadTableAsExcel(msg.content, index)
+                          }
+                          className="absolute top-2 right-2 p-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors shadow-md flex items-center gap-1 text-xs font-medium z-10"
+                          title="Tải bảng xuống Excel"
+                        >
+                          <Download size={14} />
+                          <span>Excel</span>
+                        </button>
+                      )}
                       {msg.role === "user" ? (
                         msg.content
                       ) : (
