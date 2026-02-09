@@ -212,9 +212,9 @@ HƯỚNG DẪN TRẢ LỜI:
 `;
 
     // 3. Generate response with Gemini
-    // Using gemini-2.5-flash-lite as it has a higher quota (10 RPM) and was verified to work
+    // Using gemini-3-flash-preview - the latest flash model with better reasoning and calculation accuracy
     const model = genAI.getGenerativeModel({
-      model: "models/gemini-2.5-flash-lite",
+      model: "models/gemini-3-flash-preview",
       systemInstruction: {
         parts: [{ text: systemPrompt }],
       },
