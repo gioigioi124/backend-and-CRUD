@@ -12,7 +12,7 @@ const AiSettingsPage = () => {
       <PageHeader
         title="Cấu hình AI"
         subtitle="Quản lý cơ sở kiến thức cho Chatbot"
-        currentPage="home"
+        currentPage="ai-settings"
         user={user}
       />
 

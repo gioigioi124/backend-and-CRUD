@@ -77,7 +77,7 @@ const SurplusDeficitDashboard = () => {
         toDate,
         selectedCreator === "all" ? null : selectedCreator,
         selectedWarehouse === "all" ? null : selectedWarehouse,
-        selectedStatus
+        selectedStatus,
       );
 
       setData(response.data || []);
@@ -122,7 +122,7 @@ const SurplusDeficitDashboard = () => {
     ? data.filter((item) =>
         item.customer?.name
           ?.toLowerCase()
-          .includes(selectedCustomer.name.toLowerCase())
+          .includes(selectedCustomer.name.toLowerCase()),
       )
     : data;
 
@@ -201,7 +201,7 @@ const SurplusDeficitDashboard = () => {
       <PageHeader
         title="Dashboard Hàng Thừa Thiếu"
         subtitle="Hàng hóa thừa thiếu so với đơn hàng"
-        currentPage="home"
+        currentPage="surplus-deficit"
         user={user}
       />
 
@@ -443,8 +443,8 @@ const SurplusDeficitDashboard = () => {
                         item.deficit > 0
                           ? "bg-blue-50"
                           : item.deficit < 0
-                          ? "bg-red-50"
-                          : ""
+                            ? "bg-red-50"
+                            : ""
                       }
                     >
                       {/* Ngày */}
@@ -481,7 +481,7 @@ const SurplusDeficitDashboard = () => {
                       {/* Thừa/Thiếu */}
                       <TableCell
                         className={`text-center ${getDeficitColor(
-                          item.deficit
+                          item.deficit,
                         )}`}
                       >
                         {getDeficitText(item.deficit)}

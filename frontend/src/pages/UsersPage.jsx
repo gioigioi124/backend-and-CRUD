@@ -82,7 +82,7 @@ const UsersPage = () => {
 
   return (
     <div className="container mx-auto p-2 md:p-4 max-w-5xl">
-      <PageHeader title="Quản lý nhân viên" currentPage="home" user={user} />
+      <PageHeader title="Quản lý nhân viên" currentPage="users" user={user} />
 
       <div className="flex justify-end mb-3 md:mb-4">
         <Button
@@ -117,19 +117,19 @@ const UsersPage = () => {
                       user.role === "admin"
                         ? "bg-purple-100 text-purple-800"
                         : user.role === "warehouse"
-                        ? "bg-orange-100 text-orange-800"
-                        : user.role === "leader"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-green-100 text-green-800"
+                          ? "bg-orange-100 text-orange-800"
+                          : user.role === "leader"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-green-100 text-green-800"
                     }`}
                   >
                     {user.role === "admin"
                       ? "Quản trị viên"
                       : user.role === "warehouse"
-                      ? `Thủ kho (${user.warehouseCode || "-"})`
-                      : user.role === "leader"
-                      ? "Điều vận (Leader)"
-                      : "Nhân viên"}
+                        ? `Thủ kho (${user.warehouseCode || "-"})`
+                        : user.role === "leader"
+                          ? "Điều vận (Leader)"
+                          : "Nhân viên"}
                   </span>
                 </TableCell>
                 <TableCell className="text-right">

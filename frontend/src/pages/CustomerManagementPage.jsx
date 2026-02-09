@@ -54,7 +54,7 @@ const CustomerManagementPage = () => {
       <PageHeader
         title="Quản Lý Khách Hàng"
         subtitle="Upload và quản lý thông tin khách hàng"
-        currentPage="home"
+        currentPage="customers"
         user={user}
       />
 

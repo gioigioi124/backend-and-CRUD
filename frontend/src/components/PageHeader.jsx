@@ -177,8 +177,8 @@ const PageHeader = ({
           </>
         )}
 
-        {/* Điều vận - only for leader role */}
-        {user?.role === "leader" && (
+        {/* Điều vận - for admin and leader roles */}
+        {(user?.role === "admin" || user?.role === "leader") && (
           <>
             {currentPage === "dispatcher" ? (
               <Button
