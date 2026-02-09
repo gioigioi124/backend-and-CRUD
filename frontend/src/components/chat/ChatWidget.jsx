@@ -24,7 +24,8 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "Xin chào! Giá bông, công nợ, khách hàng... tôi sẽ giúp bạn?",
+      content:
+        "Xin chào! Giá bông, công nợ, khách hàng, tính giá... tôi sẽ giúp bạn?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -373,10 +374,12 @@ const ChatWidget = () => {
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-2xl p-3 text-sm relative ${
+                      className={`max-w-[80%] rounded-2xl text-sm relative ${
                         msg.role === "user"
-                          ? "bg-blue-600 text-white rounded-tr-none"
-                          : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-none"
+                          ? "bg-blue-600 text-white rounded-tr-none p-3"
+                          : hasTable(msg.content)
+                            ? "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-none p-3 pt-10"
+                            : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-none p-3"
                       }`}
                     >
                       {msg.role === "assistant" && hasTable(msg.content) && (
@@ -384,7 +387,7 @@ const ChatWidget = () => {
                           onClick={() =>
                             downloadTableAsExcel(msg.content, index)
                           }
-                          className="absolute top-2 right-2 p-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors shadow-md flex items-center gap-1 text-xs font-medium z-10"
+                          className="absolute top-1 right-1 p-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors shadow-md flex items-center gap-1 text-xs font-medium z-10"
                           title="Tải bảng xuống Excel"
                         >
                           <Download size={14} />

@@ -174,6 +174,7 @@ HƯỚNG DẪN TRẢ LỜI:
 4. Nếu người dùng hỏi về thông tin không có trong ngữ cảnh, hãy thông báo rõ là không tìm thấy.
 5. Khi có nhiều thông tin tương tự (ví dụ: cước đi nhiều nơi ở tỉnh đó), hãy liệt kê đầy đủ.
 6. Luôn ưu tiên độ chính xác tuyệt đối từ dữ liệu nguồn.
+7. Khi tính toán để trả về giá trị, hãy để 2 chữ số thập phân nếu có.
 
 ĐỊNH DẠNG TRẢ LỜI (BẮT BUỘC):
 7. **LUÔN LUÔN sử dụng BẢNG MARKDOWN** khi liệt kê dữ liệu (từ 2 items trở lên).
