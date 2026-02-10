@@ -62,9 +62,6 @@ export const uploadKnowledgeBase = async (req, res) => {
         const waitTime = WINDOW_MS - elapsed;
 
         if (waitTime > 0) {
-          console.log(
-            `[Upload] Rate limit approaching (${windowRequestCount}/${RATE_LIMIT}), pausing ${Math.ceil(waitTime / 1000)}s...`,
-          );
           await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
 
@@ -78,12 +75,7 @@ export const uploadKnowledgeBase = async (req, res) => {
     const chunkSize = 100; // Max batch size for Gemini API
     const concurrency = 5; // 5 chunks in parallel = 500 docs per round
 
-    console.log(
-      `[Upload] Processing ${documents.length} documents (batch: ${chunkSize}, concurrency: ${concurrency}, rate limit: ${RATE_LIMIT}/min)`,
-    );
-
     let processedCount = 0;
-    const startTime = Date.now();
 
     for (let i = 0; i < documents.length; i += chunkSize * concurrency) {
       // Check rate limit before starting this round
@@ -127,11 +119,6 @@ export const uploadKnowledgeBase = async (req, res) => {
 
       const results = await Promise.all(parallelTasks);
       processedCount += results.reduce((sum, count) => sum + count, 0);
-
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      console.log(
-        `[Upload] Progress: ${processedCount}/${documents.length} (${Math.round((processedCount / documents.length) * 100)}%) - ${elapsed}s elapsed`,
-      );
     }
 
     // 3. Save file info to MongoDB

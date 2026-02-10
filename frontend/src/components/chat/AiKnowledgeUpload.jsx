@@ -20,7 +20,6 @@ const AiKnowledgeUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [sources, setSources] = useState([]);
   const [isLoadingSources, setIsLoadingSources] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch source list
   const fetchSources = async () => {
@@ -84,7 +83,6 @@ const AiKnowledgeUpload = () => {
     )
       return;
 
-    setIsDeleting(true);
     try {
       await api.post("/api/chatbot/delete-file", { filename });
       toast.success(`Đã xóa sạch kiến thức từ file ${filename}`);
@@ -92,8 +90,6 @@ const AiKnowledgeUpload = () => {
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Lỗi khi xóa dữ liệu");
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -158,6 +154,22 @@ const AiKnowledgeUpload = () => {
           </label>
         </div>
 
+        {/* Progress Bar */}
+        {isUploading && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs text-gray-600">
+              <span>Đang xử lý và tạo embeddings...</span>
+              <span className="text-indigo-600 font-medium">Vui lòng chờ</span>
+            </div>
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 animate-progress-bar bg-[length:200%_100%]"></div>
+            </div>
+            <p className="text-[10px] text-gray-400 text-center">
+              File lớn có thể mất 1-2 phút. Không tắt trang này.
+            </p>
+          </div>
+        )}
+
         <button
           onClick={handleUpload}
           disabled={!file || isUploading}
@@ -166,7 +178,7 @@ const AiKnowledgeUpload = () => {
           {isUploading ? (
             <>
               <Loader2 size={20} className="animate-spin" />
-              Đang xử lý dữ liệu...
+              Đang upload và xử lý dữ liệu...
             </>
           ) : (
             <>

@@ -127,12 +127,17 @@ module.exports = {
           "0%": { transform: "translateY(100%)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
+        "progress-bar": {
+          "0%": { backgroundPosition: "0% 0%" },
+          "100%": { backgroundPosition: "100% 0%" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.5s ease-out",
         "fade-out": "fade-out 0.5s ease-out",
         "scale-in": "scale-in 0.5s ease-out",
         "slide-up": "slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        "progress-bar": "progress-bar 1.5s ease-in-out infinite",
       },
     },
   },
