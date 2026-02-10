@@ -44,11 +44,12 @@ const AiKnowledgeUpload = () => {
     if (selectedFile) {
       if (
         selectedFile.name.endsWith(".xlsx") ||
-        selectedFile.name.endsWith(".xls")
+        selectedFile.name.endsWith(".xls") ||
+        selectedFile.name.endsWith(".xlsm")
       ) {
         setFile(selectedFile);
       } else {
-        toast.error("Vui lòng chọn file Excel (.xlsx, .xls)");
+        toast.error("Vui lòng chọn file Excel (.xlsx, .xls, .xlsm)");
       }
     }
   };
@@ -124,7 +125,7 @@ const AiKnowledgeUpload = () => {
             type="file"
             id="ai-excel-upload"
             className="hidden"
-            accept=".xlsx, .xls"
+            accept=".xlsx, .xls, .xlsm"
             onChange={handleFileChange}
           />
           <label
@@ -150,7 +151,7 @@ const AiKnowledgeUpload = () => {
                   Click để chọn file hoặc kéo thả
                 </span>
                 <span className="text-xs text-gray-400">
-                  Hỗ trợ .xlsx, .xls
+                  Hỗ trợ .xlsx, .xls, .xlsm
                 </span>
               </>
             )}
