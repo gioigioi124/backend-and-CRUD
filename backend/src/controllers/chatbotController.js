@@ -127,14 +127,141 @@ export const chat = async (req, res) => {
     }
     const queryEmbedding = embeddingResult.embedding.values;
 
-    // 2. Query Pinecone
-    let queryResponse;
+    // 2. Sample query to discover metadata fields for smart filtering
+    let metadataFilter = null;
+    let isFilterQuery = false;
+
     try {
-      queryResponse = await index.query({
+      const sampleResponse = await index.query({
         vector: queryEmbedding,
-        topK: 20,
+        topK: 5,
         includeMetadata: true,
       });
+
+      const sampleMatches = sampleResponse.matches || [];
+
+      if (sampleMatches.length > 0) {
+        // Collect numeric fields from ALL sample matches (different records may have different fields)
+        const allFieldsMap = new Map();
+        sampleMatches.forEach((match) => {
+          if (!match.metadata) return;
+          Object.entries(match.metadata).forEach(([k, v]) => {
+            if (
+              k !== "text" &&
+              k !== "source" &&
+              typeof v === "number" &&
+              !allFieldsMap.has(k)
+            ) {
+              allFieldsMap.set(k, v);
+            }
+          });
+        });
+
+        const numericFields = Array.from(allFieldsMap.entries()).map(
+          ([name, sampleValue]) => ({ name, sampleValue }),
+        );
+
+        if (numericFields.length > 0) {
+          // Use Gemini to analyze if the question needs numerical filtering
+          const analyzerModel = genAI.getGenerativeModel({
+            model: "models/gemini-2.0-flash-lite",
+          });
+
+          const analyzePrompt = `Analyze this Vietnamese question and determine if it requires NUMERICAL FILTERING on a database field.
+
+Question: "${message}"
+
+Available NUMERIC fields in the database:
+${numericFields.map((f) => `- "${f.name}" (example value: ${f.sampleValue})`).join("\n")}
+
+If the question asks to filter by a number (keywords like "lớn hơn", "nhỏ hơn", "trên", "dưới", "cao hơn", "thấp hơn", ">", "<", ">=", "<=", "ít nhất", "nhiều nhất", "tối thiểu", "tối đa", "vượt quá", "đạt", "bằng", "từ ... trở lên", "từ ... trở xuống"), return ONLY this JSON:
+{"filter": true, "field": "exact field name from list above", "operator": "$gt or $gte or $lt or $lte or $eq or $ne", "value": <number>}
+
+If the question does NOT need numerical filtering, return ONLY:
+{"filter": false}
+
+CRITICAL RULES:
+- "triệu" = multiply by 1000000 (e.g., "300 triệu" = 300000000)
+- "tỷ" = multiply by 1000000000
+- "nghìn" or "ngàn" = multiply by 1000
+- Field name MUST exactly match one from the list above (case-sensitive, including spaces and Vietnamese characters)
+- Return ONLY valid JSON, no explanation, no markdown, no code block`;
+
+          const analyzeResult =
+            await analyzerModel.generateContent(analyzePrompt);
+          const analyzeText = analyzeResult.response.text().trim();
+
+          const jsonMatch = analyzeText.match(/\{[\s\S]*?\}/);
+          if (jsonMatch) {
+            const filterInfo = JSON.parse(jsonMatch[0]);
+            if (
+              filterInfo.filter &&
+              filterInfo.field &&
+              filterInfo.operator &&
+              filterInfo.value != null
+            ) {
+              // Verify the field actually exists in the metadata (exact match first)
+              let matchedField = numericFields.find(
+                (f) => f.name === filterInfo.field,
+              );
+
+              // Fuzzy match: if exact match fails, try case-insensitive or partial match
+              if (!matchedField) {
+                const queryFieldLower = filterInfo.field.toLowerCase().trim();
+                matchedField = numericFields.find(
+                  (f) =>
+                    f.name.toLowerCase().trim() === queryFieldLower ||
+                    f.name.toLowerCase().includes(queryFieldLower) ||
+                    queryFieldLower.includes(f.name.toLowerCase()),
+                );
+                if (matchedField) {
+                  // Fuzzy match successful
+                }
+              }
+
+              if (matchedField) {
+                metadataFilter = {
+                  [matchedField.name]: {
+                    [filterInfo.operator]: filterInfo.value,
+                  },
+                };
+                isFilterQuery = true;
+              }
+            }
+          }
+        }
+      }
+    } catch (filterError) {
+      // If filter analysis fails, continue with regular vector search
+    }
+
+    // 3. Main Pinecone query (with or without metadata filter)
+    let queryResponse;
+    try {
+      const queryParams = {
+        vector: queryEmbedding,
+        topK: isFilterQuery ? 100 : 20,
+        includeMetadata: true,
+      };
+
+      if (metadataFilter) {
+        queryParams.filter = metadataFilter;
+      }
+
+      queryResponse = await index.query(queryParams);
+
+      // Fallback: if filter returned no results, retry without filter
+      if (isFilterQuery && queryResponse.matches.length === 0) {
+        console.log(
+          "[Smart Filter] No results with filter, falling back to regular search",
+        );
+        queryResponse = await index.query({
+          vector: queryEmbedding,
+          topK: 20,
+          includeMetadata: true,
+        });
+        isFilterQuery = false;
+      }
     } catch (pcError) {
       console.error("Pinecone Query Error:", pcError);
       if (pcError.status === 429 || pcError.message?.includes("Rate limit")) {
@@ -148,8 +275,9 @@ export const chat = async (req, res) => {
       throw new Error(`Pinecone query failed: ${pcError.message}`);
     }
 
-    // Lọc những kết quả có score quá thấp (giảm nhiễu khi dữ liệu lớn)
-    const threshold = 0.25; // Hạ thêm một chút để lấy được các dòng giá trị khác nhau
+    // For filter queries, skip score threshold (results are already pre-filtered by Pinecone)
+    // For regular queries, filter low-score results to reduce noise
+    const threshold = isFilterQuery ? 0 : 0.25;
     const filteredMatches = queryResponse.matches.filter(
       (match) => match.score >= threshold,
     );
@@ -161,11 +289,15 @@ export const chat = async (req, res) => {
       )
       .join("\n---\n");
 
+    const filterContext = isFilterQuery
+      ? `\n\nLƯU Ý: Dữ liệu trên đã được LỌC TRƯỚC theo tiêu chí số từ câu hỏi của người dùng. Tất cả ${filteredMatches.length} kết quả đều thỏa mãn điều kiện lọc. Hãy liệt kê TẤT CẢ kết quả.`
+      : "";
+
     const systemPrompt = `Bạn là một trợ lý AI hỗ trợ quản lý thông tin của doanh nghiệp. 
 Kiến thức của bạn được lấy từ các tệp dữ liệu đã tải lên, bao gồm thông tin khách hàng, công nợ, bảng giá vận chuyển (ví dụ: giá bông), và các tài liệu khác.
 
 Dưới đây là dữ liệu liên quan tìm được từ bộ nhớ kiến thức (context):
-${context || "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG NGỮ CẢNH."}
+${context || "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG NGỮ CẢNH."}${filterContext}
 
 HƯỚNG DẪN TRẢ LỜI:
 1. Trả lời dựa TRỰC TIẾP và CHỈ DỰA VÀO ngữ cảnh được cung cấp ở trên.
@@ -212,8 +344,7 @@ HƯỚNG DẪN TRẢ LỜI:
     ✅ Chỉ trả lời dạng BẢNG MARKDOWN như ví dụ trên.
 `;
 
-    // 3. Generate response with Gemini
-    // Using gemini-3-flash-preview - the latest flash model with better reasoning and calculation accuracy
+    // 4. Generate response with Gemini
     const model = genAI.getGenerativeModel({
       model: "models/gemini-3-flash-preview",
       systemInstruction: {
@@ -222,8 +353,6 @@ HƯỚNG DẪN TRẢ LỜI:
     });
 
     // Convert history to Gemini format
-    // OpenAI: { role: 'user', content: '...' }
-    // Gemini: { role: 'user', parts: [{ text: '...' }] }
     let geminiHistory = history.slice(-5).map((msg) => ({
       role: msg.role === "assistant" ? "model" : "user",
       parts: [{ text: msg.content }],
