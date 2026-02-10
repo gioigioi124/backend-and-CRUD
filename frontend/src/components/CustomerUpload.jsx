@@ -24,9 +24,10 @@ const CustomerUpload = ({ onUploadSuccess }) => {
       const validTypes = [
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel.sheet.macroEnabled.12",
       ];
       if (!validTypes.includes(selectedFile.type)) {
-        toast.error("Vui lòng chọn file Excel (.xls hoặc .xlsx)");
+        toast.error("Vui lòng chọn file Excel (.xls, .xlsx hoặc .xlsm)");
         return;
       }
       setFile(selectedFile);
@@ -88,7 +89,7 @@ const CustomerUpload = ({ onUploadSuccess }) => {
             <input
               id="customer-file-input"
               type="file"
-              accept=".xls,.xlsx"
+              accept=".xls,.xlsx,.xlsm"
               onChange={handleFileChange}
               className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
             />

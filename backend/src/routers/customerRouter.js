@@ -18,15 +18,16 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Accept only Excel files
+    // Accept only Excel files (case-insensitive comparison)
     const allowedMimes = [
       "application/vnd.ms-excel",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel.sheet.macroenabled.12",
     ];
-    if (allowedMimes.includes(file.mimetype)) {
+    if (allowedMimes.some((m) => m === file.mimetype.toLowerCase())) {
       cb(null, true);
     } else {
-      cb(new Error("Chỉ chấp nhận file Excel (.xls, .xlsx)"));
+      cb(new Error("Chỉ chấp nhận file Excel (.xls, .xlsx, .xlsm)"));
     }
   },
 });
@@ -37,7 +38,7 @@ router.post(
   protect,
   authorize("admin"),
   upload.single("file"),
-  uploadCustomers
+  uploadCustomers,
 );
 
 // Search customers - All authenticated users
