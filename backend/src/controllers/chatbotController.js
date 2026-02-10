@@ -48,27 +48,90 @@ export const uploadKnowledgeBase = async (req, res) => {
       model: "models/gemini-embedding-001",
     });
 
-    // Create embeddings and upsert
-    // Note: Gemini embedding-001 supports batching
-    const chunkSize = 20;
-    for (let i = 0; i < documents.length; i += chunkSize) {
-      const chunk = documents.slice(i, i + chunkSize);
+    // Rate limiter: Gemini paid tier = 3000 embedding requests/minute
+    const RATE_LIMIT = 2800; // buffer below 3000 to be safe
+    const WINDOW_MS = 60_000; // 1 minute
+    let windowStart = Date.now();
+    let windowRequestCount = 0;
 
-      const batchEmbeddings = await embeddingModel.batchEmbedContents({
-        requests: chunk.map((doc) => ({
-          content: { role: "user", parts: [{ text: doc.content }] },
-          taskType: "RETRIEVAL_DOCUMENT",
-          outputDimensionality: 768,
-        })),
-      });
+    const waitForRateLimit = async (requestCount) => {
+      windowRequestCount += requestCount;
 
-      const upsertData = chunk.map((doc, index) => ({
-        id: doc.id,
-        values: batchEmbeddings.embeddings[index].values,
-        metadata: doc.metadata,
-      }));
+      if (windowRequestCount >= RATE_LIMIT) {
+        const elapsed = Date.now() - windowStart;
+        const waitTime = WINDOW_MS - elapsed;
 
-      await index.upsert(upsertData);
+        if (waitTime > 0) {
+          console.log(
+            `[Upload] Rate limit approaching (${windowRequestCount}/${RATE_LIMIT}), pausing ${Math.ceil(waitTime / 1000)}s...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+        }
+
+        // Reset window
+        windowStart = Date.now();
+        windowRequestCount = 0;
+      }
+    };
+
+    // Parallel processing with rate limit awareness
+    const chunkSize = 100; // Max batch size for Gemini API
+    const concurrency = 5; // 5 chunks in parallel = 500 docs per round
+
+    console.log(
+      `[Upload] Processing ${documents.length} documents (batch: ${chunkSize}, concurrency: ${concurrency}, rate limit: ${RATE_LIMIT}/min)`,
+    );
+
+    let processedCount = 0;
+    const startTime = Date.now();
+
+    for (let i = 0; i < documents.length; i += chunkSize * concurrency) {
+      // Check rate limit before starting this round
+      const docsInThisRound = Math.min(
+        chunkSize * concurrency,
+        documents.length - i,
+      );
+      await waitForRateLimit(docsInThisRound);
+
+      const parallelTasks = [];
+
+      for (
+        let j = 0;
+        j < concurrency && i + j * chunkSize < documents.length;
+        j++
+      ) {
+        const start = i + j * chunkSize;
+        const chunk = documents.slice(start, start + chunkSize);
+
+        parallelTasks.push(
+          (async () => {
+            const batchEmbeddings = await embeddingModel.batchEmbedContents({
+              requests: chunk.map((doc) => ({
+                content: { role: "user", parts: [{ text: doc.content }] },
+                taskType: "RETRIEVAL_DOCUMENT",
+                outputDimensionality: 768,
+              })),
+            });
+
+            const upsertData = chunk.map((doc, idx) => ({
+              id: doc.id,
+              values: batchEmbeddings.embeddings[idx].values,
+              metadata: doc.metadata,
+            }));
+
+            await index.upsert(upsertData);
+            return chunk.length;
+          })(),
+        );
+      }
+
+      const results = await Promise.all(parallelTasks);
+      processedCount += results.reduce((sum, count) => sum + count, 0);
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.log(
+        `[Upload] Progress: ${processedCount}/${documents.length} (${Math.round((processedCount / documents.length) * 100)}%) - ${elapsed}s elapsed`,
+      );
     }
 
     // 3. Save file info to MongoDB
