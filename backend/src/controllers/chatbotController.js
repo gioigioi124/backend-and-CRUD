@@ -2,6 +2,18 @@ import { genAI, pc, indexName } from "../config/ai.js";
 import xlsx from "xlsx";
 import KnowledgeBaseFile from "../models/KnowledgeBaseFile.js";
 
+// ===== In-memory metadata cache =====
+// Caches numeric field names from uploaded data so chat() doesn't need a sample query each time.
+let cachedNumericFields = null;
+
+// Regex to quickly detect filter-type questions (Vietnamese keywords for comparison)
+const FILTER_KEYWORDS_REGEX =
+  /lớn hơn|nhỏ hơn|cao hơn|thấp hơn|nhiều hơn|ít hơn|trên|dưới|ít nhất|nhiều nhất|tối thiểu|tối đa|vượt quá|>=|<=|>|<|từ .{1,20} trở lên|từ .{1,20} trở xuống|\d+\s*(triệu|tỷ|nghìn|ngàn)/i;
+
+// Regex to detect "list all" type queries that need more results
+const LIST_KEYWORDS_REGEX =
+  /giá|bảng giá|liệt kê|tất cả|toàn bộ|danh sách|cho .{0,10} xem|có bao nhiêu|những|các loại|đầy đủ/i;
+
 export const uploadKnowledgeBase = async (req, res) => {
   try {
     if (!req.file) {
@@ -121,6 +133,19 @@ export const uploadKnowledgeBase = async (req, res) => {
       processedCount += results.reduce((sum, count) => sum + count, 0);
     }
 
+    // Update metadata cache after successful upload
+    const numericFieldsFromData = new Map();
+    data.forEach((row) => {
+      Object.entries(row).forEach(([k, v]) => {
+        if (typeof v === "number" && !numericFieldsFromData.has(k)) {
+          numericFieldsFromData.set(k, v);
+        }
+      });
+    });
+    cachedNumericFields = Array.from(numericFieldsFromData.entries()).map(
+      ([name, sampleValue]) => ({ name, sampleValue }),
+    );
+
     // 3. Save file info to MongoDB
     await KnowledgeBaseFile.create({
       filename: filename,
@@ -177,42 +202,49 @@ export const chat = async (req, res) => {
     }
     const queryEmbedding = embeddingResult.embedding.values;
 
-    // 2. Sample query to discover metadata fields for smart filtering
+    // 2. Smart filter analysis (only when needed)
     let metadataFilter = null;
     let isFilterQuery = false;
 
-    try {
-      const sampleResponse = await index.query({
-        vector: queryEmbedding,
-        topK: 5,
-        includeMetadata: true,
-      });
+    // Quick regex check: only call Gemini filter analyzer if the question looks like a filter query
+    const looksLikeFilterQuery = FILTER_KEYWORDS_REGEX.test(message);
 
-      const sampleMatches = sampleResponse.matches || [];
+    if (looksLikeFilterQuery) {
+      try {
+        // Use cached metadata fields if available, otherwise do a quick sample query
+        let numericFields = cachedNumericFields;
 
-      if (sampleMatches.length > 0) {
-        // Collect numeric fields from ALL sample matches (different records may have different fields)
-        const allFieldsMap = new Map();
-        sampleMatches.forEach((match) => {
-          if (!match.metadata) return;
-          Object.entries(match.metadata).forEach(([k, v]) => {
-            if (
-              k !== "text" &&
-              k !== "source" &&
-              typeof v === "number" &&
-              !allFieldsMap.has(k)
-            ) {
-              allFieldsMap.set(k, v);
-            }
+        if (!numericFields) {
+          const sampleResponse = await index.query({
+            vector: queryEmbedding,
+            topK: 3,
+            includeMetadata: true,
           });
-        });
 
-        const numericFields = Array.from(allFieldsMap.entries()).map(
-          ([name, sampleValue]) => ({ name, sampleValue }),
-        );
+          const sampleMatches = sampleResponse.matches || [];
+          const allFieldsMap = new Map();
+          sampleMatches.forEach((match) => {
+            if (!match.metadata) return;
+            Object.entries(match.metadata).forEach(([k, v]) => {
+              if (
+                k !== "text" &&
+                k !== "source" &&
+                typeof v === "number" &&
+                !allFieldsMap.has(k)
+              ) {
+                allFieldsMap.set(k, v);
+              }
+            });
+          });
+
+          numericFields = Array.from(allFieldsMap.entries()).map(
+            ([name, sampleValue]) => ({ name, sampleValue }),
+          );
+          // Cache for future use
+          cachedNumericFields = numericFields;
+        }
 
         if (numericFields.length > 0) {
-          // Use Gemini to analyze if the question needs numerical filtering
           const analyzerModel = genAI.getGenerativeModel({
             model: "models/gemini-2.0-flash-lite",
           });
@@ -250,12 +282,10 @@ CRITICAL RULES:
               filterInfo.operator &&
               filterInfo.value != null
             ) {
-              // Verify the field actually exists in the metadata (exact match first)
               let matchedField = numericFields.find(
                 (f) => f.name === filterInfo.field,
               );
 
-              // Fuzzy match: if exact match fails, try case-insensitive or partial match
               if (!matchedField) {
                 const queryFieldLower = filterInfo.field.toLowerCase().trim();
                 matchedField = numericFields.find(
@@ -264,9 +294,6 @@ CRITICAL RULES:
                     f.name.toLowerCase().includes(queryFieldLower) ||
                     queryFieldLower.includes(f.name.toLowerCase()),
                 );
-                if (matchedField) {
-                  // Fuzzy match successful
-                }
               }
 
               if (matchedField) {
@@ -280,17 +307,21 @@ CRITICAL RULES:
             }
           }
         }
+      } catch (filterError) {
+        // If filter analysis fails, continue with regular vector search
       }
-    } catch (filterError) {
-      // If filter analysis fails, continue with regular vector search
     }
 
     // 3. Main Pinecone query (with or without metadata filter)
+    // Determine topK based on query type
+    const isListQuery = LIST_KEYWORDS_REGEX.test(message);
+    const regularTopK = isListQuery ? 50 : 10;
+
     let queryResponse;
     try {
       const queryParams = {
         vector: queryEmbedding,
-        topK: isFilterQuery ? 100 : 20,
+        topK: isFilterQuery ? 100 : regularTopK,
         includeMetadata: true,
       };
 
@@ -307,7 +338,7 @@ CRITICAL RULES:
         );
         queryResponse = await index.query({
           vector: queryEmbedding,
-          topK: 20,
+          topK: regularTopK,
           includeMetadata: true,
         });
         isFilterQuery = false;
@@ -343,11 +374,18 @@ CRITICAL RULES:
       ? `\n\nLƯU Ý: Dữ liệu trên đã được LỌC TRƯỚC theo tiêu chí số từ câu hỏi của người dùng. Tất cả ${filteredMatches.length} kết quả đều thỏa mãn điều kiện lọc. Hãy liệt kê TẤT CẢ kết quả.`
       : "";
 
+    // Truncation hint: let Gemini know if results might be incomplete
+    const usedTopK = isFilterQuery ? 100 : regularTopK;
+    const mayBeTruncated = filteredMatches.length >= usedTopK * 0.8; // if we got near the limit
+    const truncationHint = mayBeTruncated
+      ? `\n\nLƯU Ý QUAN TRỌNG: Kết quả trả về có thể CHƯA ĐẦY ĐỦ (đang hiển thị ${filteredMatches.length} kết quả). Nếu người dùng muốn xem thêm, hãy gợi ý họ hỏi cụ thể hơn hoặc yêu cầu "liệt kê tất cả" hoặc "xem thêm" để nhận được đầy đủ dữ liệu.`
+      : "";
+
     const systemPrompt = `Bạn là một trợ lý AI hỗ trợ quản lý thông tin của doanh nghiệp. 
 Kiến thức của bạn được lấy từ các tệp dữ liệu đã tải lên, bao gồm thông tin khách hàng, công nợ, bảng giá vận chuyển (ví dụ: giá bông), và các tài liệu khác.
 
 Dưới đây là dữ liệu liên quan tìm được từ bộ nhớ kiến thức (context):
-${context || "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG NGỮ CẢNH."}${filterContext}
+${context || "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG NGỮ CẢNH."}${filterContext}${truncationHint}
 
 HƯỚNG DẪN TRẢ LỜI:
 1. Trả lời dựa TRỰC TIẾP và CHỈ DỰA VÀO ngữ cảnh được cung cấp ở trên.
