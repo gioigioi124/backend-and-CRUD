@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   MessageCircle,
   X,
@@ -8,43 +8,44 @@ import {
   Maximize2,
   RotateCcw,
   Download,
+  Expand,
 } from "lucide-react";
-import api from "@/services/api";
+import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import * as XLSX from "xlsx";
+import { useChatLogic } from "@/hooks/useChatLogic";
 
 const ChatWidget = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = localStorage.getItem("chatExpanded");
     return saved === "true";
   });
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content:
-        "Xin chào! Giá bông, công nợ, khách hàng, tính giá... tôi sẽ giúp bạn?",
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
   const chatContainerRef = useRef(null);
 
-  // Check if message contains a markdown table
-  const hasTable = (content) => {
-    return content && content.includes("|") && content.includes("---");
-  };
+  // Use shared chat logic hook
+  const {
+    messages,
+    input,
+    setInput,
+    isLoading,
+    messagesEndRef,
+    inputRef,
+    hasTable,
+    formatNumbersInText,
+    handleSend,
+    handleNewChat,
+    scrollToBottom,
+  } = useChatLogic();
 
   // Convert markdown table to Excel and download
   const downloadTableAsExcel = (content, messageIndex) => {
     if (!content) return;
 
-    // Extract table from markdown
     const lines = content.split("\n");
     const tableLines = [];
     let inTable = false;
@@ -52,7 +53,6 @@ const ChatWidget = () => {
     for (const line of lines) {
       if (line.trim().startsWith("|")) {
         inTable = true;
-        // Skip separator lines (e.g., |---|---|)
         if (!line.includes("---")) {
           tableLines.push(line);
         }
@@ -63,9 +63,7 @@ const ChatWidget = () => {
 
     if (tableLines.length === 0) return;
 
-    // Convert to 2D array
     const tableData = tableLines.map((line) => {
-      // Remove leading and trailing pipes, split by pipe
       return line
         .trim()
         .replace(/^\|/, "")
@@ -74,11 +72,9 @@ const ChatWidget = () => {
         .map((cell) => cell.trim());
     });
 
-    // Create workbook and worksheet
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(tableData);
 
-    // Auto-size columns
     const colWidths = [];
     tableData.forEach((row) => {
       row.forEach((cell, colIndex) => {
@@ -90,42 +86,8 @@ const ChatWidget = () => {
     });
     ws["!cols"] = colWidths.map((width) => ({ wch: Math.min(width + 2, 50) }));
 
-    // Add worksheet to workbook
     XLSX.utils.book_append_sheet(wb, ws, "Bảng dữ liệu");
-
-    // Generate Excel file and download
     XLSX.writeFile(wb, `table_${messageIndex}_${new Date().getTime()}.xlsx`);
-  };
-
-  // Format numbers in text with commas, handling both integers and decimals
-  // Examples: 78235 → 78,235 | 78235.61 → 78,235.61 | 1.328725 → 1.328725
-  const formatNumbersInText = (text) => {
-    if (!text) return text;
-
-    // Match whole numbers: integer part + optional decimal part
-    // Lookbehind: not preceded by word chars or hyphens
-    // Lookahead: not followed by word chars or hyphens (but allow "." to be consumed inside the match)
-    return text.replace(
-      /(?<![\w-])(\d+)(\.\d+)?(?![\w-])/g,
-      (match, intPart, decPart) => {
-        // Only format if integer part has 4+ digits
-        if (intPart.length < 4) return match;
-
-        // Skip if it starts with 0 (likely phone number, ID, or code)
-        if (intPart.startsWith("0")) return match;
-
-        // Skip if it looks like a phone number (10-11 digits, no decimal)
-        if (!decPart && intPart.length >= 10 && intPart.length <= 11)
-          return match;
-
-        // Skip if it looks like a customer code pattern
-        if (/^[A-Z]{2,}\d+$/i.test(match)) return match;
-
-        // Format integer part with commas, preserve decimal part as-is
-        const formattedInt = parseInt(intPart, 10).toLocaleString("en-US");
-        return decPart ? formattedInt + decPart : formattedInt;
-      },
-    );
   };
 
   // Detect mobile device
@@ -149,21 +111,18 @@ const ChatWidget = () => {
 
     const handleViewportResize = () => {
       if (window.visualViewport && chatContainerRef.current) {
-        // Update the container to match visual viewport
         const vvHeight = window.visualViewport.height;
         const vvOffsetTop = window.visualViewport.offsetTop;
 
         chatContainerRef.current.style.height = `${vvHeight}px`;
         chatContainerRef.current.style.top = `${vvOffsetTop}px`;
 
-        // Scroll messages to bottom when keyboard opens
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }, 100);
       }
     };
 
-    // Initial set
     handleViewportResize();
 
     if (window.visualViewport) {
@@ -171,7 +130,6 @@ const ChatWidget = () => {
       window.visualViewport.addEventListener("scroll", handleViewportResize);
     }
 
-    // Prevent body scroll when chat is open on mobile
     const originalOverflow = document.body.style.overflow;
     const originalPosition = document.body.style.position;
     const originalWidth = document.body.style.width;
@@ -197,80 +155,8 @@ const ChatWidget = () => {
     };
   }, [isOpen, isMobile]);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    // Keep focus on input after sending
-    inputRef.current?.focus();
-
-    try {
-      const response = await api.post("/api/chatbot/message", {
-        message: input,
-        history: messages,
-      });
-
-      const assistantMessage = {
-        role: "assistant",
-        content: response.data.reply,
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Chat error:", error);
-
-      let errorMessage = "Rất tiếc, đã có lỗi xảy ra. Vui lòng thử lại sau.";
-
-      // Check if it's a rate limit error
-      if (error.response?.status === 429 || error.response?.data?.isRateLimit) {
-        errorMessage =
-          "⏱️ Đã vượt quá giới hạn request của Gemini API. Vui lòng đợi 10-15 giây rồi thử lại.";
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: errorMessage,
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleNewChat = () => {
-    if (
-      window.confirm("Bạn có chắc chắn muốn bắt đầu cuộc trò chuyện mới không?")
-    ) {
-      setMessages([
-        {
-          role: "assistant",
-          content:
-            "Xin chào! Giá bông, công nợ, khách hàng... tôi sẽ giúp bạn?",
-        },
-      ]);
-      setInput("");
-    }
-  };
-
   // Handle input focus to prevent zoom on iOS
   const handleInputFocus = () => {
-    // Scroll to bottom when input is focused
     setTimeout(() => {
       scrollToBottom();
     }, 300);
@@ -332,18 +218,26 @@ const ChatWidget = () => {
                     <RotateCcw size={16} />
                     <span>Tạo mới</span>
                   </button>
+                  <button
+                    onClick={() => navigate("/chat")}
+                    className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/20 rounded-lg transition-colors text-[11px] font-medium"
+                    title="Mở trang chat đầy đủ"
+                  >
+                    <Expand size={16} />
+                    <span>Mở rộng</span>
+                  </button>
                   {!isMobile && (
                     <button
                       onClick={() => setIsExpanded(!isExpanded)}
                       className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/20 rounded-lg transition-colors text-[11px] font-medium"
-                      title={isExpanded ? "Thu nhỏ" : "Mở rộng"}
+                      title={isExpanded ? "Thu nhỏ" : "Mở rộng widget"}
                     >
                       {isExpanded ? (
                         <Minimize2 size={16} />
                       ) : (
                         <Maximize2 size={16} />
                       )}
-                      <span>{isExpanded ? "Thu nhỏ" : "Mở rộng"}</span>
+                      <span>{isExpanded ? "Thu nhỏ" : "Widget"}</span>
                     </button>
                   )}
                   <button

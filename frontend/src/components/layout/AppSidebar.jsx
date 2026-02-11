@@ -13,6 +13,7 @@ import {
   TrendingDown,
   Keyboard,
   Sparkles,
+  MessageCircle,
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,6 +41,12 @@ const AppSidebar = () => {
       title: "Trang chủ",
       icon: Home,
       path: "/",
+      roles: ["admin", "staff", "warehouse", "leader"],
+    },
+    {
+      title: "AI Chat",
+      icon: MessageCircle,
+      path: "/chat",
       roles: ["admin", "staff", "warehouse", "leader"],
     },
     {

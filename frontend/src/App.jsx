@@ -11,6 +11,7 @@ import DispatcherDashboard from "./pages/DispatcherDashboard";
 import VehicleReportPage from "./pages/VehicleReportPage";
 import SurplusDeficitDashboard from "./pages/SurplusDeficitDashboard";
 import AiSettingsPage from "./pages/AiSettingsPage";
+import ChatPage from "./pages/ChatPage";
 import PrivateRoute from "./components/PrivateRoute";
 import { VehicleProvider } from "./vehicles/VehicleContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -36,6 +37,9 @@ function App() {
 
                 {/* Protected Routes */}
                 <Route element={<PrivateRoute />}>
+                  {/* Full-page chat without MainLayout */}
+                  <Route path="/chat" element={<ChatPage />} />
+
                   <Route path="/" element={<MainLayout />}>
                     <Route index element={<HomePage />} />
                     <Route path="orders" element={<OrderListPage />} />
