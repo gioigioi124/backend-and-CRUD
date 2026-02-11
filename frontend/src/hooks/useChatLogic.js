@@ -2,17 +2,42 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import api from "@/services/api";
 
 export const useChatLogic = () => {
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content:
-        "Xin chào! Giá bông, công nợ, khách hàng, tính giá... tôi sẽ giúp bạn?",
-    },
-  ]);
+  // Load messages from localStorage or use default
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem("chatMessages");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Validate that it's an array with at least one message
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.error("Error loading chat messages:", error);
+    }
+    // Default message
+    return [
+      {
+        role: "assistant",
+        content:
+          "Xin chào! Giá bông, công nợ, khách hàng, tính giá... tôi sẽ giúp bạn?",
+      },
+    ];
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    } catch (error) {
+      console.error("Error saving chat messages:", error);
+    }
+  }, [messages]);
 
   // Check if message contains a markdown table
   const hasTable = (content) => {
@@ -106,14 +131,21 @@ export const useChatLogic = () => {
     if (
       window.confirm("Bạn có chắc chắn muốn bắt đầu cuộc trò chuyện mới không?")
     ) {
-      setMessages([
+      const defaultMessages = [
         {
           role: "assistant",
           content:
             "Xin chào! Giá bông, công nợ, khách hàng... tôi sẽ giúp bạn?",
         },
-      ]);
+      ];
+      setMessages(defaultMessages);
       setInput("");
+      // Clear localStorage as well
+      try {
+        localStorage.setItem("chatMessages", JSON.stringify(defaultMessages));
+      } catch (error) {
+        console.error("Error clearing chat messages:", error);
+      }
     }
   };
 
