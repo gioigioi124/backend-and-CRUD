@@ -199,12 +199,12 @@ const ChatWidget = () => {
               `}
             >
               {/* Header */}
-              <div className="flex-shrink-0 p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex justify-between items-center safe-area-top">
+              <div className="flex-shrink-0 p-4 bg-gradient-primary text-white flex justify-between items-center safe-area-top">
                 <div className="flex items-center gap-2">
-                  <Bot size={24} className="text-blue-100" />
+                  <Bot size={24} className="text-white/80" />
                   <div>
                     <h3 className="font-semibold text-sm">Gemini AI</h3>
-                    <p className="text-[10px] text-blue-100 opacity-80">
+                    <p className="text-[10px] text-white/70 opacity-80">
                       Trực tuyến
                     </p>
                   </div>
@@ -270,7 +270,7 @@ const ChatWidget = () => {
                     <div
                       className={`max-w-[80%] rounded-2xl text-sm relative ${
                         msg.role === "user"
-                          ? "bg-blue-600 text-white rounded-tr-none p-3"
+                          ? "bg-gradient-primary text-white rounded-tr-none p-3"
                           : hasTable(msg.content)
                             ? "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-none p-3 pt-10"
                             : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tl-none p-3"
@@ -307,7 +307,7 @@ const ChatWidget = () => {
                             ),
                             th: ({ ...props }) => (
                               <th
-                                className="border border-gray-300 bg-blue-50 px-2 py-1.5 text-left font-semibold text-gray-700"
+                                className="border border-gray-300 bg-primary/10 px-2 py-1.5 text-left font-semibold text-gray-700"
                                 {...props}
                               />
                             ),
@@ -325,7 +325,7 @@ const ChatWidget = () => {
                             ),
                             strong: ({ ...props }) => (
                               <strong
-                                className="font-semibold text-blue-700"
+                                className="font-semibold text-primary"
                                 {...props}
                               />
                             ),
@@ -352,9 +352,9 @@ const ChatWidget = () => {
                 {isLoading && (
                   <div className="flex justify-start">
                     <div className="bg-white text-gray-800 shadow-sm border border-gray-100 rounded-2xl rounded-tl-none p-3 text-sm flex gap-1">
-                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
-                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce" />
+                      <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0.4s]" />
                     </div>
                   </div>
                 )}
@@ -376,13 +376,13 @@ const ChatWidget = () => {
                   autoComplete="off"
                   autoCorrect="off"
                   autoCapitalize="off"
-                  className="flex-1 bg-gray-100 border-none rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+                  className="flex-1 bg-gray-100 border-none rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-primary/50 transition-all outline-none"
                   style={{ fontSize: "16px" }} // Prevent iOS zoom
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-blue-200"
+                  className="p-3 bg-gradient-primary text-white rounded-xl hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
                 >
                   <Send size={20} />
                 </button>
@@ -395,7 +395,7 @@ const ChatWidget = () => {
         {!isOpen && (
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 bg-gradient-to-tr from-blue-600 to-indigo-600"
+            className="w-14 h-14 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 bg-gradient-primary"
           >
             <MessageCircle size={28} />
           </button>

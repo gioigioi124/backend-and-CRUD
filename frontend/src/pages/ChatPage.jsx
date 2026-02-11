@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Sparkles,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useChatLogic } from "@/hooks/useChatLogic";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -106,20 +107,21 @@ const ChatPage = () => {
     messages.length === 1 && messages[0].role === "assistant";
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex flex-col">
+    <div className="min-h-screen w-full bg-gradient-to-br from-primary/5 via-white to-primary/10 flex flex-col">
       {/* Header */}
       <header className="flex-shrink-0 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate("/")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               title="Quay lại trang chủ"
             >
-              <ArrowLeft size={20} className="text-gray-600" />
-            </button>
+              <ArrowLeft size={20} />
+            </Button>
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-lg">
                 <Sparkles size={20} className="text-white" />
               </div>
               <div>
@@ -128,13 +130,10 @@ const ChatPage = () => {
               </div>
             </div>
           </div>
-          <button
-            onClick={handleNewChat}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all font-medium text-sm"
-          >
+          <Button variant="gradient" onClick={handleNewChat} className="gap-2">
             <RotateCcw size={16} />
             <span className="hidden sm:inline">Cuộc trò chuyện mới</span>
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -149,11 +148,8 @@ const ChatPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8"
               >
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-2xl">
-                  <Bot size={40} className="text-white" />
-                </div>
                 <div className="space-y-3">
-                  <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  <h2 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                     Xin chào!
                   </h2>
                   <p className="text-lg text-gray-600 max-w-2xl">
@@ -166,18 +162,21 @@ const ChatPage = () => {
                 {/* Suggestion Chips */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-3xl mt-8">
                   {suggestions.map((suggestion, index) => (
-                    <motion.button
+                    <Button
                       key={index}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className="group p-4 bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 border-2 border-gray-200 hover:border-blue-400 rounded-2xl text-left transition-all shadow-sm hover:shadow-md"
+                      asChild
+                      variant="outline"
+                      className="h-auto p-4 text-left justify-start"
                     >
-                      <p className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
-                        {suggestion}
-                      </p>
-                    </motion.button>
+                      <motion.button
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        <p className="text-sm font-medium">{suggestion}</p>
+                      </motion.button>
+                    </Button>
                   ))}
                 </div>
               </motion.div>
@@ -194,23 +193,24 @@ const ChatPage = () => {
                     <div
                       className={`max-w-[85%] sm:max-w-[75%] rounded-2xl text-sm relative ${
                         msg.role === "user"
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-none p-4 shadow-lg"
+                          ? "bg-gradient-primary text-white rounded-tr-none p-4 shadow-lg"
                           : hasTable(msg.content)
                             ? "bg-white text-gray-800 shadow-md border border-gray-200 rounded-tl-none p-4 pt-12"
                             : "bg-white text-gray-800 shadow-md border border-gray-200 rounded-tl-none p-4"
                       }`}
                     >
                       {msg.role === "assistant" && hasTable(msg.content) && (
-                        <button
+                        <Button
+                          size="sm"
                           onClick={() =>
                             downloadTableAsExcel(msg.content, index)
                           }
-                          className="absolute top-2 right-2 p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors shadow-md flex items-center gap-1.5 text-xs font-medium z-10"
+                          className="absolute top-2 right-2 bg-success hover:bg-success/90 text-white gap-1.5 text-xs z-10"
                           title="Tải bảng xuống Excel"
                         >
                           <Download size={14} />
                           <span>Excel</span>
-                        </button>
+                        </Button>
                       )}
                       {msg.role === "user" ? (
                         msg.content
@@ -231,7 +231,7 @@ const ChatPage = () => {
                             ),
                             th: ({ ...props }) => (
                               <th
-                                className="border border-gray-300 bg-blue-50 px-3 py-2 text-left font-semibold text-gray-700"
+                                className="border border-gray-300 bg-primary/10 px-3 py-2 text-left font-semibold text-gray-700"
                                 {...props}
                               />
                             ),
@@ -249,7 +249,7 @@ const ChatPage = () => {
                             ),
                             strong: ({ ...props }) => (
                               <strong
-                                className="font-semibold text-blue-700"
+                                className="font-semibold text-primary"
                                 {...props}
                               />
                             ),
@@ -276,9 +276,9 @@ const ChatPage = () => {
                 {isLoading && (
                   <div className="flex justify-start">
                     <div className="bg-white text-gray-800 shadow-md border border-gray-200 rounded-2xl rounded-tl-none p-4 text-sm flex gap-1.5">
-                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
-                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" />
+                      <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:0.4s]" />
                     </div>
                   </div>
                 )}
@@ -300,17 +300,18 @@ const ChatPage = () => {
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
-              className="flex-1 bg-white border-2 border-gray-200 focus:border-blue-500 rounded-2xl px-5 py-3.5 text-base focus:ring-2 focus:ring-blue-200 transition-all outline-none shadow-sm"
+              className="flex-1 bg-white border-2 border-gray-200 focus:border-primary rounded-2xl px-5 py-3.5 text-base focus:ring-2 focus:ring-primary/20 transition-all outline-none shadow-sm"
               style={{ fontSize: "16px" }}
             />
-            <button
+            <Button
               type="submit"
+              variant="gradient"
               disabled={!input.trim() || isLoading}
-              className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg flex items-center gap-2 font-medium"
+              className="h-[54px] px-6 gap-2"
             >
               <Send size={20} />
               {!isMobile && <span>Gửi</span>}
-            </button>
+            </Button>
           </form>
         </div>
       </main>
