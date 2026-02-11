@@ -100,7 +100,7 @@ const VehicleOrderList = ({
     } catch (error) {
       toast.error(
         "Bỏ gán đơn hàng thất bại: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
       console.error(error);
     }
@@ -110,7 +110,7 @@ const VehicleOrderList = ({
   const handleExportExcel = () => {
     try {
       const selectedOrders = orders.filter((o) =>
-        selectedOrderIds.includes(o._id)
+        selectedOrderIds.includes(o._id),
       );
 
       if (selectedOrders.length === 0) {
@@ -339,7 +339,7 @@ const VehicleOrderList = ({
             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             onClick={() =>
               onPrintConfirmed(
-                orders.filter((o) => selectedOrderIds.includes(o._id))
+                orders.filter((o) => selectedOrderIds.includes(o._id)),
               )
             }
           >
@@ -363,7 +363,7 @@ const VehicleOrderList = ({
         </div>
       ) : (
         <div className="space-y-2">
-          {orders.map((order) => {
+          {orders.map((order, index) => {
             const totalItems = order.items?.length || 0;
             const isSelected = selectedOrderIds.includes(order._id);
             // Đếm số items chưa được thủ kho xác nhận
@@ -375,11 +375,12 @@ const VehicleOrderList = ({
               <div
                 key={order._id}
                 onClick={() => onSelectOrder(order)}
-                className={`relative p-3 border rounded transition-colors group cursor-pointer flex gap-3 ${
+                className={`vehicle-item-animate relative p-3 border rounded transition-colors group cursor-pointer flex gap-3 ${
                   selectedOrder?._id === order._id
                     ? "bg-blue-50 border-blue-500 ring-3 ring-blue-600/30"
                     : "hover:bg-gray-50"
                 } ${isSelected ? "ring-2 ring-blue-400 ring-inset" : ""}`}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Badge số lượng chưa xác nhận */}
                 {totalItems > 0 && (
