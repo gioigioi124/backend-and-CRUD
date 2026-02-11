@@ -341,12 +341,13 @@ const VehicleList = ({
           <p className="text-gray-500 text-center">Chưa có xe nào</p>
         ) : (
           <div className="space-y-2 ">
-            {vehicles.map((vehicle) => {
+            {vehicles.map((vehicle, index) => {
               const hasOrders = (orderCounts[vehicle._id] || 0) > 0;
               return (
                 <VehicleItem
                   key={vehicle._id}
                   vehicle={vehicle}
+                  index={index}
                   // props onSelect trong VehicleItem, sẽ lấy hết dữ liệu của Vehicle
                   //lúc này onSelectVehicle sẽ có giá trị của Vehicle
                   //truyền onSelectVehicle ra ngoài để gọi hàm setSelectVehicle(vehicle) để setSelectVehicle có thuộc tính _id

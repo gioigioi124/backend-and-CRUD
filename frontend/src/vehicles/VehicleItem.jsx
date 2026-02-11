@@ -5,6 +5,7 @@ import VehicleStatusDialog from "@/components/confirmations/VehicleStatusDialog"
 
 const VehicleItem = ({
   vehicle,
+  index = 0,
   isSelected,
   onSelect,
   onEdit,
@@ -30,26 +31,30 @@ const VehicleItem = ({
 
   return (
     <>
-      <div onClick={() => onSelect(vehicle)}>
+      <div
+        onClick={() => onSelect(vehicle)}
+        className="vehicle-item-animate"
+        style={{ animationDelay: `${index * 50}ms` }}
+      >
         <div
           className={`relative p-3 border rounded transition-colors group ${
             // Màu viền: Ưu tiên blue khi select, sau đó là green khi hoàn thành, yellow khi đã in, cuối cùng là mặc định
             isSelected
               ? "border-blue-600 ring-3 ring-blue-600/30"
               : vehicle.isCompleted
-              ? "border-green-500"
-              : vehicle.isPrinted
-              ? "border-yellow-400"
-              : "border-gray-200"
+                ? "border-green-500"
+                : vehicle.isPrinted
+                  ? "border-yellow-400"
+                  : "border-gray-200"
           } ${
             // Màu nền: Ưu tiên hoàn thành (xanh lá), sau đó đã in (vàng), cuối cùng mới đến selected (xanh dương)
             vehicle.isCompleted
               ? "bg-green-100"
               : vehicle.isPrinted
-              ? "bg-yellow-100"
-              : isSelected
-              ? "bg-blue-50"
-              : "hover:bg-gray-50"
+                ? "bg-yellow-100"
+                : isSelected
+                  ? "bg-blue-50"
+                  : "hover:bg-gray-50"
           }`}
         >
           {/* Thông tin xe */}
@@ -84,8 +89,8 @@ const VehicleItem = ({
                   vehicle.isCompleted
                     ? "text-green-600"
                     : vehicle.isPrinted
-                    ? "text-yellow-600"
-                    : ""
+                      ? "text-yellow-600"
+                      : ""
                 }`}
               />
             </Button>
