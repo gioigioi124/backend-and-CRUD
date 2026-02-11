@@ -431,6 +431,7 @@ HƯỚNG DẪN TRẢ LỜI:
     ❌ "Giá bông đặt tiền tối thiểu 30 triệu/lần là 26700"
     
     ✅ Chỉ trả lời dạng BẢNG MARKDOWN như ví dụ trên.
+11. Luôn ưu tiên tìm giá có sẵn kể cả với câu hỏi tính giá, khi không tìm thấy thì mới dùng công thức hoặc ví dụ để thực hiện tính giá
 `;
 
     // 4. Generate response with Gemini

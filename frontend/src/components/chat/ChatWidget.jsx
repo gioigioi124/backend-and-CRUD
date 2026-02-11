@@ -97,32 +97,35 @@ const ChatWidget = () => {
     XLSX.writeFile(wb, `table_${messageIndex}_${new Date().getTime()}.xlsx`);
   };
 
-  // Format numbers in text with commas, excluding phone numbers, customer codes, and decimal numbers
+  // Format numbers in text with commas, handling both integers and decimals
+  // Examples: 78235 → 78,235 | 78235.61 → 78,235.61 | 1.328725 → 1.328725
   const formatNumbersInText = (text) => {
     if (!text) return text;
 
-    // Pattern to match standalone INTEGERS (not part of decimal numbers, phone/code patterns)
-    // Negative lookbehind: not preceded by word chars, hyphens, or a dot (decimal point)
-    // Negative lookahead: not followed by word chars, hyphens, or a dot+digit (decimal point)
-    return text.replace(/(?<![\w\-.])(\d{4,})(?![\w\-.])/g, (match) => {
-      // Skip if it starts with 0 (likely phone number, ID, or code)
-      if (match.startsWith("0")) {
-        return match;
-      }
+    // Match whole numbers: integer part + optional decimal part
+    // Lookbehind: not preceded by word chars or hyphens
+    // Lookahead: not followed by word chars or hyphens (but allow "." to be consumed inside the match)
+    return text.replace(
+      /(?<![\w-])(\d+)(\.\d+)?(?![\w-])/g,
+      (match, intPart, decPart) => {
+        // Only format if integer part has 4+ digits
+        if (intPart.length < 4) return match;
 
-      // Skip if it looks like a phone number (10-11 digits)
-      if (match.length >= 10 && match.length <= 11) {
-        return match;
-      }
+        // Skip if it starts with 0 (likely phone number, ID, or code)
+        if (intPart.startsWith("0")) return match;
 
-      // Skip if it looks like a customer code pattern (contains specific prefixes)
-      if (/^[A-Z]{2,}\d+$/i.test(match)) {
-        return match;
-      }
+        // Skip if it looks like a phone number (10-11 digits, no decimal)
+        if (!decPart && intPart.length >= 10 && intPart.length <= 11)
+          return match;
 
-      // Format the number with commas
-      return parseInt(match, 10).toLocaleString("en-US");
-    });
+        // Skip if it looks like a customer code pattern
+        if (/^[A-Z]{2,}\d+$/i.test(match)) return match;
+
+        // Format integer part with commas, preserve decimal part as-is
+        const formattedInt = parseInt(intPart, 10).toLocaleString("en-US");
+        return decPart ? formattedInt + decPart : formattedInt;
+      },
+    );
   };
 
   // Detect mobile device
