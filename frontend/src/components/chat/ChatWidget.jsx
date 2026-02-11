@@ -199,9 +199,9 @@ const ChatWidget = () => {
               `}
             >
               {/* Header */}
-              <div className="flex-shrink-0 p-4 bg-gradient-primary text-white flex justify-between items-center safe-area-top">
+              <div className="flex-shrink-0 px-3 py-2.5 bg-gradient-primary text-white flex justify-between items-center safe-area-top">
                 <div className="flex items-center gap-2">
-                  <Bot size={24} className="text-white/80" />
+                  <Bot size={20} className="text-white/80" />
                   <div>
                     <h3 className="font-semibold text-sm">Gemini AI</h3>
                     <p className="text-[10px] text-white/70 opacity-80">
@@ -209,51 +209,48 @@ const ChatWidget = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                   <button
                     onClick={handleNewChat}
-                    className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/20 rounded-lg transition-colors text-[11px] font-medium"
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                     title="Trò chuyện mới"
                   >
-                    <RotateCcw size={16} />
-                    <span>Tạo mới</span>
+                    <RotateCcw size={18} />
                   </button>
                   <button
                     onClick={() => navigate("/chat")}
-                    className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/20 rounded-lg transition-colors text-[11px] font-medium"
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                     title="Mở trang chat đầy đủ"
                   >
-                    <Expand size={16} />
-                    <span>Mở rộng</span>
+                    <Expand size={18} />
                   </button>
                   {!isMobile && (
                     <button
                       onClick={() => setIsExpanded(!isExpanded)}
-                      className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/20 rounded-lg transition-colors text-[11px] font-medium"
-                      title={isExpanded ? "Thu nhỏ" : "Mở rộng widget"}
+                      className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                      title={isExpanded ? "Thu nhỏ widget" : "Mở rộng widget"}
                     >
                       {isExpanded ? (
-                        <Minimize2 size={16} />
+                        <Minimize2 size={18} />
                       ) : (
-                        <Maximize2 size={16} />
+                        <Maximize2 size={18} />
                       )}
-                      <span>{isExpanded ? "Thu nhỏ" : "Widget"}</span>
                     </button>
                   )}
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-2 hover:bg-red-500/20 rounded-full transition-colors group"
-                    title="Thu nhỏ"
+                    className="p-2 hover:bg-red-500/20 rounded-lg transition-colors group"
+                    title="Đóng chat"
                   >
                     {isMobile ? (
                       <X
-                        size={22}
-                        className="text-red-200 group-hover:text-red-400"
+                        size={20}
+                        className="text-white/80 group-hover:text-red-300"
                       />
                     ) : (
                       <Minimize2
                         size={18}
-                        className="text-red-200 group-hover:text-red-400"
+                        className="text-white/80 group-hover:text-red-300"
                       />
                     )}
                   </button>
