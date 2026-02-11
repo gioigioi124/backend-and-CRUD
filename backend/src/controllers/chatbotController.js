@@ -395,6 +395,7 @@ HƯỚNG DẪN TRẢ LỜI:
 5. Khi có nhiều thông tin tương tự (ví dụ: cước đi nhiều nơi ở tỉnh đó), hãy liệt kê đầy đủ.
 6. Luôn ưu tiên độ chính xác tuyệt đối từ dữ liệu nguồn.
 7. Khi tính toán để trả về giá trị, hãy để 2 chữ số thập phân nếu có.
+8. QUAN TRỌNG VỀ ĐỊNH DẠNG SỐ: Giữ nguyên các giá trị số ĐÚNG NGUYÊN BẢN từ dữ liệu nguồn. TUYỆT ĐỐI KHÔNG thêm dấu phẩy hoặc dấu chấm vào giữa số. Ví dụ: nếu dữ liệu nguồn là 1.328725 thì phải giữ nguyên là 1.328725, KHÔNG ĐƯỢC viết thành 1.328,725 hay 1,328.725. Dấu chấm trong số thập phân là dấu phân cách thập phân, KHÔNG phải dấu phân cách hàng nghìn.
 
 ĐỊNH DẠNG TRẢ LỜI (BẮT BUỘC):
 7. **LUÔN LUÔN sử dụng BẢNG MARKDOWN** khi liệt kê dữ liệu (từ 2 items trở lên).

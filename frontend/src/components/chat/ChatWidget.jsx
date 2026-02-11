@@ -97,16 +97,14 @@ const ChatWidget = () => {
     XLSX.writeFile(wb, `table_${messageIndex}_${new Date().getTime()}.xlsx`);
   };
 
-  // Format numbers in text with commas, excluding phone numbers and customer codes
+  // Format numbers in text with commas, excluding phone numbers, customer codes, and decimal numbers
   const formatNumbersInText = (text) => {
     if (!text) return text;
 
-    // Pattern to match standalone numbers (not part of phone/code patterns)
-    // This will match numbers that are:
-    // - At least 4 digits (to avoid formatting small numbers like years)
-    // - Not preceded by common code prefixes or patterns
-    // - Not in the middle of alphanumeric strings
-    return text.replace(/(?<![\w-])(\d{4,})(?![\w-])/g, (match) => {
+    // Pattern to match standalone INTEGERS (not part of decimal numbers, phone/code patterns)
+    // Negative lookbehind: not preceded by word chars, hyphens, or a dot (decimal point)
+    // Negative lookahead: not followed by word chars, hyphens, or a dot+digit (decimal point)
+    return text.replace(/(?<![\w\-.])(\d{4,})(?![\w\-.])/g, (match) => {
       // Skip if it starts with 0 (likely phone number, ID, or code)
       if (match.startsWith("0")) {
         return match;
@@ -118,7 +116,6 @@ const ChatWidget = () => {
       }
 
       // Skip if it looks like a customer code pattern (contains specific prefixes)
-      // Adjust this pattern based on your customer code format
       if (/^[A-Z]{2,}\d+$/i.test(match)) {
         return match;
       }
