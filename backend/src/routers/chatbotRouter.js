@@ -13,7 +13,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 router.get("/files", protect, getKnowledgeSources);
-router.post("/upload", protect, upload.single("file"), uploadKnowledgeBase);
+router.post("/upload", protect, upload.array("files", 10), uploadKnowledgeBase); // Max 10 files
 router.post("/delete-file", protect, deleteKnowledgeBase);
 router.post("/message", chat); // Chat can be public or semi-public depending on use case
 

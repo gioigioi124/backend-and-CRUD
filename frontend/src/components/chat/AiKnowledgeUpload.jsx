@@ -9,6 +9,7 @@ import {
   Trash2,
   Calendar,
   Database,
+  X,
 } from "lucide-react";
 import api from "../../services/api";
 import { toast } from "sonner";
@@ -16,10 +17,11 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 
 const AiKnowledgeUpload = () => {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [sources, setSources] = useState([]);
   const [isLoadingSources, setIsLoadingSources] = useState(false);
+  const [uploadResults, setUploadResults] = useState([]);
 
   // Fetch source list
   const fetchSources = async () => {
@@ -39,41 +41,79 @@ const AiKnowledgeUpload = () => {
   }, []);
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
+    const selectedFiles = Array.from(e.target.files);
+    const validFiles = [];
+
+    selectedFiles.forEach((file) => {
       if (
-        selectedFile.name.endsWith(".xlsx") ||
-        selectedFile.name.endsWith(".xls") ||
-        selectedFile.name.endsWith(".xlsm")
+        file.name.endsWith(".xlsx") ||
+        file.name.endsWith(".xls") ||
+        file.name.endsWith(".xlsm")
       ) {
-        setFile(selectedFile);
+        validFiles.push(file);
       } else {
-        toast.error("Vui lòng chọn file Excel (.xlsx, .xls, .xlsm)");
+        toast.error(
+          `File ${file.name} không hợp lệ. Chỉ chấp nhận .xlsx, .xls, .xlsm`,
+        );
       }
+    });
+
+    if (validFiles.length > 0) {
+      setFiles((prev) => [...prev, ...validFiles]);
     }
   };
 
+  const removeFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleUpload = async () => {
-    if (!file) return;
+    if (files.length === 0) return;
 
     setIsUploading(true);
+    setUploadResults([]);
     const formData = new FormData();
-    formData.append("file", file);
+
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
 
     try {
-      await api.post("/api/chatbot/upload", formData, {
+      const response = await api.post("/api/chatbot/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      toast.success("Đã cập nhật dữ liệu kiến thức AI thành công!");
-      setFile(null);
+
+      setUploadResults(response.data.results || []);
+
+      const successCount =
+        response.data.results?.filter((r) => r.status === "success").length ||
+        0;
+      const failCount =
+        response.data.results?.filter((r) => r.status === "error").length || 0;
+
+      if (successCount > 0) {
+        toast.success(`Đã upload thành công ${successCount} file!`);
+      }
+      if (failCount > 0) {
+        toast.error(`${failCount} file upload thất bại`);
+      }
+
+      setFiles([]);
+      // Reset file input
+      const fileInput = document.getElementById("ai-excel-upload");
+      if (fileInput) {
+        fileInput.value = "";
+      }
       fetchSources(); // Refresh list
     } catch (error) {
       console.error("Upload error:", error);
       toast.error(error.response?.data?.message || "Lỗi khi upload dữ liệu");
     } finally {
       setIsUploading(false);
+      // Clear results after 5 seconds
+      setTimeout(() => setUploadResults([]), 5000);
     }
   };
 
@@ -104,7 +144,7 @@ const AiKnowledgeUpload = () => {
             Cơ sở kiến thức AI
           </h2>
           <p className="text-sm text-gray-500">
-            Upload file Excel để huấn luyện Chatbot
+            Upload nhiều file Excel để huấn luyện Chatbot
           </p>
         </div>
       </div>
@@ -112,7 +152,7 @@ const AiKnowledgeUpload = () => {
       <div className="grid gap-6">
         <div
           className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center transition-all ${
-            file
+            files.length > 0
               ? "border-indigo-400 bg-indigo-50/50"
               : "border-gray-200 hover:border-indigo-300"
           }`}
@@ -123,67 +163,123 @@ const AiKnowledgeUpload = () => {
             className="hidden"
             accept=".xlsx, .xls, .xlsm"
             onChange={handleFileChange}
+            multiple
           />
           <label
             htmlFor="ai-excel-upload"
             className="cursor-pointer flex flex-col items-center gap-2"
           >
-            {file ? (
-              <>
-                <FileText size={48} className="text-indigo-500" />
-                <span className="text-sm font-medium text-gray-700">
-                  {file.name}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {(file.size / 1024).toFixed(1)} KB
-                </span>
-              </>
-            ) : (
-              <>
-                <div className="p-4 bg-gray-50 rounded-full text-gray-400 mb-2">
-                  <Upload size={32} />
-                </div>
-                <span className="text-sm font-medium text-gray-600">
-                  Click để chọn file hoặc kéo thả
-                </span>
-                <span className="text-xs text-gray-400">
-                  Hỗ trợ .xlsx, .xls, .xlsm
-                </span>
-              </>
-            )}
+            <div className="p-4 bg-gray-50 rounded-full text-gray-400 mb-2">
+              <Upload size={32} />
+            </div>
+            <span className="text-sm font-medium text-gray-600">
+              Click để chọn file hoặc kéo thả
+            </span>
+            <span className="text-xs text-gray-400">
+              Hỗ trợ .xlsx, .xls, .xlsm • Có thể chọn nhiều file
+            </span>
           </label>
         </div>
+
+        {/* Selected Files List */}
+        {files.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700">
+              Đã chọn {files.length} file:
+            </h3>
+            <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
+              {files.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-indigo-50 rounded-xl border border-indigo-100"
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <FileText size={20} className="text-indigo-500 shrink-0" />
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-medium text-gray-700 truncate">
+                        {file.name}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {(file.size / 1024).toFixed(1)} KB
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                    title="Xóa file này"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Upload Results */}
+        {uploadResults.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700">
+              Kết quả upload:
+            </h3>
+            <div className="space-y-2">
+              {uploadResults.map((result, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center gap-2 p-2 rounded-lg text-sm ${
+                    result.status === "success"
+                      ? "bg-green-50 text-green-700"
+                      : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {result.status === "success" ? (
+                    <CheckCircle2 size={16} />
+                  ) : (
+                    <AlertCircle size={16} />
+                  )}
+                  <span className="flex-1">
+                    {result.filename}:{" "}
+                    {result.status === "success"
+                      ? `${result.rowCount} dòng`
+                      : result.message}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Progress Bar */}
         {isUploading && (
           <div className="space-y-2">
             <div className="flex justify-between text-xs text-gray-600">
-              <span>Đang xử lý và tạo embeddings...</span>
+              <span>Đang xử lý {files.length} file và tạo embeddings...</span>
               <span className="text-indigo-600 font-medium">Vui lòng chờ</span>
             </div>
             <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 animate-progress-bar bg-[length:200%_100%]"></div>
             </div>
             <p className="text-[10px] text-gray-400 text-center">
-              File lớn có thể mất 1-2 phút. Không tắt trang này.
+              File lớn có thể mất 1-2 phút mỗi file. Không tắt trang này.
             </p>
           </div>
         )}
 
         <button
           onClick={handleUpload}
-          disabled={!file || isUploading}
+          disabled={files.length === 0 || isUploading}
           className="w-full py-3 px-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white rounded-xl font-semibold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2"
         >
           {isUploading ? (
             <>
               <Loader2 size={20} className="animate-spin" />
-              Đang upload và xử lý dữ liệu...
+              Đang upload và xử lý {files.length} file...
             </>
           ) : (
             <>
               <CheckCircle2 size={20} />
-              Cập nhật kiến thức AI
+              Cập nhật kiến thức AI ({files.length} file)
             </>
           )}
         </button>
@@ -202,7 +298,10 @@ const AiKnowledgeUpload = () => {
               <p>
                 • Để cập nhật một file đã có, chỉ cần upload lại file cùng tên.
               </p>
-              <p>• Bạn có thể upload nhiều file để AI có kiến thức tổng hợp.</p>
+              <p>
+                • Bạn có thể upload nhiều file cùng lúc để AI có kiến thức tổng
+                hợp.
+              </p>
             </div>
           </div>
         </div>

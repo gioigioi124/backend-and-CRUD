@@ -16,146 +16,183 @@ const LIST_KEYWORDS_REGEX =
 
 export const uploadKnowledgeBase = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
+    // Support both single and multiple file uploads
+    const files = req.files || (req.file ? [req.file] : []);
 
-    const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet);
-
-    if (data.length === 0) {
-      return res.status(400).json({ message: "Excel file is empty" });
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: "No files uploaded" });
     }
 
     const index = pc.index(indexName);
-    const filename = req.file.originalname;
+    const results = [];
+    let totalDocuments = 0;
 
-    // 1. Clear old data from Pinecone
-    await index.deleteMany({ source: { $eq: filename } });
+    // Process each file
+    for (const file of files) {
+      try {
+        const workbook = xlsx.read(file.buffer, { type: "buffer" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const data = xlsx.utils.sheet_to_json(sheet);
 
-    // 2. Clear meta info from MongoDB if exists
-    await KnowledgeBaseFile.findOneAndDelete({ filename: filename });
-
-    // Prepare documents
-    const documents = data.map((row, i) => {
-      // Create a structured string: "Source: filename, Column1: Value1, Column2: Value2..."
-      // Adding filename to content helps for queries like "giá bông" when "bông" is in the filename
-      const content =
-        `Nguồn dữ liệu: ${filename}, ` +
-        Object.entries(row)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(", ");
-
-      return {
-        id: `row-${Date.now()}-${i}`,
-        content,
-        metadata: { ...row, text: content, source: filename },
-      };
-    });
-
-    // Get embedding model
-    const embeddingModel = genAI.getGenerativeModel({
-      model: "models/gemini-embedding-001",
-    });
-
-    // Rate limiter: Gemini paid tier = 3000 embedding requests/minute
-    const RATE_LIMIT = 2800; // buffer below 3000 to be safe
-    const WINDOW_MS = 60_000; // 1 minute
-    let windowStart = Date.now();
-    let windowRequestCount = 0;
-
-    const waitForRateLimit = async (requestCount) => {
-      windowRequestCount += requestCount;
-
-      if (windowRequestCount >= RATE_LIMIT) {
-        const elapsed = Date.now() - windowStart;
-        const waitTime = WINDOW_MS - elapsed;
-
-        if (waitTime > 0) {
-          await new Promise((resolve) => setTimeout(resolve, waitTime));
+        if (data.length === 0) {
+          results.push({
+            filename: file.originalname,
+            status: "error",
+            message: "Excel file is empty",
+          });
+          continue;
         }
 
-        // Reset window
-        windowStart = Date.now();
-        windowRequestCount = 0;
-      }
-    };
+        const filename = file.originalname;
 
-    // Parallel processing with rate limit awareness
-    const chunkSize = 100; // Max batch size for Gemini API
-    const concurrency = 5; // 5 chunks in parallel = 500 docs per round
+        // 1. Clear old data from Pinecone
+        await index.deleteMany({ source: { $eq: filename } });
 
-    let processedCount = 0;
+        // 2. Clear meta info from MongoDB if exists
+        await KnowledgeBaseFile.findOneAndDelete({ filename: filename });
 
-    for (let i = 0; i < documents.length; i += chunkSize * concurrency) {
-      // Check rate limit before starting this round
-      const docsInThisRound = Math.min(
-        chunkSize * concurrency,
-        documents.length - i,
-      );
-      await waitForRateLimit(docsInThisRound);
+        // Prepare documents
+        const documents = data.map((row, i) => {
+          // Create a structured string: "Source: filename, Column1: Value1, Column2: Value2..."
+          // Adding filename to content helps for queries like "giá bông" when "bông" is in the filename
+          const content =
+            `Nguồn dữ liệu: ${filename}, ` +
+            Object.entries(row)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(", ");
 
-      const parallelTasks = [];
+          return {
+            id: `row-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 9)}`,
+            content,
+            metadata: { ...row, text: content, source: filename },
+          };
+        });
 
-      for (
-        let j = 0;
-        j < concurrency && i + j * chunkSize < documents.length;
-        j++
-      ) {
-        const start = i + j * chunkSize;
-        const chunk = documents.slice(start, start + chunkSize);
+        // Get embedding model
+        const embeddingModel = genAI.getGenerativeModel({
+          model: "models/gemini-embedding-001",
+        });
 
-        parallelTasks.push(
-          (async () => {
-            const batchEmbeddings = await embeddingModel.batchEmbedContents({
-              requests: chunk.map((doc) => ({
-                content: { role: "user", parts: [{ text: doc.content }] },
-                taskType: "RETRIEVAL_DOCUMENT",
-                outputDimensionality: 768,
-              })),
-            });
+        // Rate limiter: Gemini paid tier = 3000 embedding requests/minute
+        const RATE_LIMIT = 2800; // buffer below 3000 to be safe
+        const WINDOW_MS = 60_000; // 1 minute
+        let windowStart = Date.now();
+        let windowRequestCount = 0;
 
-            const upsertData = chunk.map((doc, idx) => ({
-              id: doc.id,
-              values: batchEmbeddings.embeddings[idx].values,
-              metadata: doc.metadata,
-            }));
+        const waitForRateLimit = async (requestCount) => {
+          windowRequestCount += requestCount;
 
-            await index.upsert(upsertData);
-            return chunk.length;
-          })(),
+          if (windowRequestCount >= RATE_LIMIT) {
+            const elapsed = Date.now() - windowStart;
+            const waitTime = WINDOW_MS - elapsed;
+
+            if (waitTime > 0) {
+              await new Promise((resolve) => setTimeout(resolve, waitTime));
+            }
+
+            // Reset window
+            windowStart = Date.now();
+            windowRequestCount = 0;
+          }
+        };
+
+        // Parallel processing with rate limit awareness
+        const chunkSize = 100; // Max batch size for Gemini API
+        const concurrency = 5; // 5 chunks in parallel = 500 docs per round
+
+        let processedCount = 0;
+
+        for (let i = 0; i < documents.length; i += chunkSize * concurrency) {
+          // Check rate limit before starting this round
+          const docsInThisRound = Math.min(
+            chunkSize * concurrency,
+            documents.length - i,
+          );
+          await waitForRateLimit(docsInThisRound);
+
+          const parallelTasks = [];
+
+          for (
+            let j = 0;
+            j < concurrency && i + j * chunkSize < documents.length;
+            j++
+          ) {
+            const start = i + j * chunkSize;
+            const chunk = documents.slice(start, start + chunkSize);
+
+            parallelTasks.push(
+              (async () => {
+                const batchEmbeddings = await embeddingModel.batchEmbedContents(
+                  {
+                    requests: chunk.map((doc) => ({
+                      content: { role: "user", parts: [{ text: doc.content }] },
+                      taskType: "RETRIEVAL_DOCUMENT",
+                      outputDimensionality: 768,
+                    })),
+                  },
+                );
+
+                const upsertData = chunk.map((doc, idx) => ({
+                  id: doc.id,
+                  values: batchEmbeddings.embeddings[idx].values,
+                  metadata: doc.metadata,
+                }));
+
+                await index.upsert(upsertData);
+                return chunk.length;
+              })(),
+            );
+          }
+
+          const chunkResults = await Promise.all(parallelTasks);
+          processedCount += chunkResults.reduce((sum, count) => sum + count, 0);
+        }
+
+        // Update metadata cache after successful upload
+        const numericFieldsFromData = new Map();
+        data.forEach((row) => {
+          Object.entries(row).forEach(([k, v]) => {
+            if (typeof v === "number" && !numericFieldsFromData.has(k)) {
+              numericFieldsFromData.set(k, v);
+            }
+          });
+        });
+        cachedNumericFields = Array.from(numericFieldsFromData.entries()).map(
+          ([name, sampleValue]) => ({ name, sampleValue }),
         );
-      }
 
-      const results = await Promise.all(parallelTasks);
-      processedCount += results.reduce((sum, count) => sum + count, 0);
+        // 3. Save file info to MongoDB
+        await KnowledgeBaseFile.create({
+          filename: filename,
+          originalName: filename,
+          rowCount: documents.length,
+          uploadedBy: req.user?._id,
+        });
+
+        results.push({
+          filename: filename,
+          status: "success",
+          rowCount: documents.length,
+        });
+        totalDocuments += documents.length;
+      } catch (fileError) {
+        console.error(`Error processing file ${file.originalname}:`, fileError);
+        results.push({
+          filename: file.originalname,
+          status: "error",
+          message: fileError.message,
+        });
+      }
     }
 
-    // Update metadata cache after successful upload
-    const numericFieldsFromData = new Map();
-    data.forEach((row) => {
-      Object.entries(row).forEach(([k, v]) => {
-        if (typeof v === "number" && !numericFieldsFromData.has(k)) {
-          numericFieldsFromData.set(k, v);
-        }
-      });
-    });
-    cachedNumericFields = Array.from(numericFieldsFromData.entries()).map(
-      ([name, sampleValue]) => ({ name, sampleValue }),
-    );
-
-    // 3. Save file info to MongoDB
-    await KnowledgeBaseFile.create({
-      filename: filename,
-      originalName: filename,
-      rowCount: documents.length,
-      uploadedBy: req.user?._id,
-    });
+    const successCount = results.filter((r) => r.status === "success").length;
+    const failCount = results.filter((r) => r.status === "error").length;
 
     res.status(200).json({
-      message: `Successfully updated knowledge base with ${documents.length} items.`,
+      message: `Processed ${files.length} file(s): ${successCount} successful, ${failCount} failed`,
+      totalDocuments,
+      results,
     });
   } catch (error) {
     console.error("Upload error:", error);
