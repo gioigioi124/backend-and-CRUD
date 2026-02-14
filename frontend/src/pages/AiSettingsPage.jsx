@@ -20,7 +20,7 @@ const AiSettingsPage = () => {
         <AiKnowledgeUpload />
 
         <div className="bg-white/40 backdrop-blur-md rounded-2xl border border-white/40 p-6 flex flex-col justify-center items-center text-center space-y-4">
-          <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white shadow-xl">
+          <div className="w-16 h-16 bg-linear-to-tr from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white shadow-xl">
             <Sparkles size={32} className="animate-pulse" />
           </div>
           <h3 className="text-xl font-bold text-gray-800">
@@ -32,7 +32,7 @@ const AiSettingsPage = () => {
           </p>
           <div className="pt-4 flex gap-4">
             <div className="px-4 py-2 bg-indigo-50 rounded-lg text-indigo-700 text-sm font-medium">
-              Gemini Flash-Latest
+              ElanX Flash-Latest
             </div>
             <div className="px-4 py-2 bg-purple-50 rounded-lg text-purple-700 text-sm font-medium">
               Pinecone DB

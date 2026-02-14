@@ -110,7 +110,7 @@ export const useChatLogic = () => {
       // Check if it's a rate limit error
       if (error.response?.status === 429 || error.response?.data?.isRateLimit) {
         errorMessage =
-          "⏱️ Đã vượt quá giới hạn request của Gemini API. Vui lòng đợi 10-15 giây rồi thử lại.";
+          "⏱️ Đã vượt quá giới hạn request của ElanX API. Vui lòng đợi 10-15 giây rồi thử lại.";
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }

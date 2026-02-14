@@ -230,7 +230,7 @@ export const chat = async (req, res) => {
       if (embError.status === 429 || embError.message?.includes("quota")) {
         return res.status(429).json({
           message:
-            "Giới hạn tạo embedding (Gemini) đã đạt. Vui lòng thử lại sau.",
+            "Giới hạn tạo embedding (ElanX) đã đạt. Vui lòng thử lại sau.",
           error: embError.message,
           source: "embedding",
         });
@@ -501,7 +501,7 @@ HƯỚNG DẪN TRẢ LỜI:
       console.error("Gemini Generation Error:", genError);
       if (genError.status === 429 || genError.message?.includes("quota")) {
         return res.status(429).json({
-          message: "Giới hạn chat (Gemini) đã đạt. Vui lòng thử lại sau.",
+          message: "Giới hạn chat (ElanX) đã đạt. Vui lòng thử lại sau.",
           error: genError.message,
           source: "generation",
         });

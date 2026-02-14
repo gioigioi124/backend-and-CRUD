@@ -125,7 +125,7 @@ const ChatPage = () => {
                 <Sparkles size={20} className="text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-lg text-gray-800">Gemini AI</h1>
+                <h1 className="font-bold text-lg text-gray-800">ElanX AI</h1>
                 <p className="text-xs text-gray-500">Trợ lý thông minh</p>
               </div>
             </div>

@@ -203,7 +203,7 @@ const ChatWidget = () => {
                 <div className="flex items-center gap-2">
                   <Bot size={20} className="text-white/80" />
                   <div>
-                    <h3 className="font-semibold text-sm">Gemini AI</h3>
+                    <h3 className="font-semibold text-sm">ElanX AI</h3>
                     <p className="text-[10px] text-white/70 opacity-80">
                       Trực tuyến
                     </p>
