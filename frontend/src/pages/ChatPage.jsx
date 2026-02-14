@@ -107,9 +107,9 @@ const ChatPage = () => {
     messages.length === 1 && messages[0].role === "assistant";
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-primary/5 via-white to-primary/10 flex flex-col">
+    <div className="min-h-screen w-full bg-linear-to-br from-primary/5 via-white to-primary/10 flex flex-col">
       {/* Header */}
-      <header className="flex-shrink-0 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
+      <header className="shrink-0 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
@@ -289,7 +289,7 @@ const ChatPage = () => {
         </div>
 
         {/* Input Area */}
-        <div className="flex-shrink-0 bg-white/80 backdrop-blur-xl border-t border-gray-200 px-4 sm:px-6 py-4">
+        <div className="shrink-0 bg-white/80 backdrop-blur-xl border-t border-gray-200 px-4 sm:px-6 py-4">
           <form onSubmit={handleSend} className="max-w-4xl mx-auto flex gap-3">
             <input
               ref={inputRef}
@@ -311,6 +311,16 @@ const ChatPage = () => {
             >
               <Send size={20} />
               {!isMobile && <span>Gửi</span>}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleNewChat}
+              className="h-[54px] px-4 gap-2"
+              title="Tạo trò chuyện mới"
+            >
+              <RotateCcw size={20} />
+              {!isMobile && <span>Mới</span>}
             </Button>
           </form>
         </div>

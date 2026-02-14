@@ -242,17 +242,10 @@ const ChatWidget = () => {
                     className="p-2 hover:bg-red-500/20 rounded-lg transition-colors group"
                     title="Đóng chat"
                   >
-                    {isMobile ? (
-                      <X
-                        size={20}
-                        className="text-white/80 group-hover:text-red-300"
-                      />
-                    ) : (
-                      <Minimize2
-                        size={18}
-                        className="text-white/80 group-hover:text-red-300"
-                      />
-                    )}
+                    <X
+                      size={18}
+                      className="text-white/80 group-hover:text-red-300"
+                    />
                   </button>
                 </div>
               </div>
